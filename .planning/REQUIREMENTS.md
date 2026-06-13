@@ -137,64 +137,64 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | TBD | Pending |
-| CORE-02 | TBD | Pending |
-| CORE-03 | TBD | Pending |
-| CORE-04 | TBD | Pending |
-| CORE-05 | TBD | Pending |
-| CORE-06 | TBD | Pending |
-| CLOUD-01 | TBD | Pending |
-| CLOUD-02 | TBD | Pending |
-| CLOUD-03 | TBD | Pending |
-| CLOUD-04 | TBD | Pending |
-| CLOUD-05 | TBD | Pending |
-| CLOUD-06 | TBD | Pending |
-| MODEL-01 | TBD | Pending |
-| MODEL-02 | TBD | Pending |
-| MODEL-03 | TBD | Pending |
-| MODEL-04 | TBD | Pending |
-| MODEL-05 | TBD | Pending |
-| TOOL-01 | TBD | Pending |
-| TOOL-02 | TBD | Pending |
-| TOOL-03 | TBD | Pending |
-| TOOL-04 | TBD | Pending |
-| TOOL-05 | TBD | Pending |
-| TOOL-06 | TBD | Pending |
-| TOOL-07 | TBD | Pending |
-| EXT-01 | TBD | Pending |
-| EXT-02 | TBD | Pending |
-| EXT-03 | TBD | Pending |
-| EXT-04 | TBD | Pending |
-| EXT-05 | TBD | Pending |
-| MCP-01 | TBD | Pending |
-| MCP-02 | TBD | Pending |
-| MCP-03 | TBD | Pending |
-| MCP-04 | TBD | Pending |
-| MCP-05 | TBD | Pending |
-| PLUG-01 | TBD | Pending |
-| PLUG-02 | TBD | Pending |
-| PLUG-03 | TBD | Pending |
-| PLUG-04 | TBD | Pending |
-| PLUG-05 | TBD | Pending |
-| PLUG-06 | TBD | Pending |
-| GUI-01 | TBD | Pending |
-| GUI-02 | TBD | Pending |
-| GUI-03 | TBD | Pending |
-| GUI-04 | TBD | Pending |
-| GUI-05 | TBD | Pending |
-| GUI-06 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| OPS-02 | TBD | Pending |
-| OPS-03 | TBD | Pending |
-| OPS-04 | TBD | Pending |
-| OPS-05 | TBD | Pending |
-| OPS-06 | TBD | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Pending |
+| CORE-05 | Phase 1 | Pending |
+| CORE-06 | Phase 1 | Pending |
+| CLOUD-01 | Phase 2 | Pending |
+| CLOUD-02 | Phase 2 | Pending |
+| CLOUD-03 | Phase 2 | Pending |
+| CLOUD-04 | Phase 2 | Pending |
+| CLOUD-05 | Phase 2 | Pending |
+| CLOUD-06 | Phase 2 | Pending |
+| MODEL-01 | Phase 3 | Pending |
+| MODEL-02 | Phase 3 | Pending |
+| MODEL-03 | Phase 3 | Pending |
+| MODEL-04 | Phase 3 | Pending |
+| MODEL-05 | Phase 3 | Pending |
+| TOOL-01 | Phase 4 | Pending |
+| TOOL-02 | Phase 4 | Pending |
+| TOOL-03 | Phase 4 | Pending |
+| TOOL-04 | Phase 4 | Pending |
+| TOOL-05 | Phase 4 | Pending |
+| TOOL-06 | Phase 4 | Pending |
+| TOOL-07 | Phase 4 | Pending |
+| EXT-01 | Phase 6 | Pending |
+| EXT-02 | Phase 6 | Pending |
+| EXT-03 | Phase 6 | Pending |
+| EXT-04 | Phase 6 | Pending |
+| EXT-05 | Phase 6 | Pending |
+| MCP-01 | Phase 7 | Pending |
+| MCP-02 | Phase 7 | Pending |
+| MCP-03 | Phase 7 | Pending |
+| MCP-04 | Phase 7 | Pending |
+| MCP-05 | Phase 7 | Pending |
+| PLUG-01 | Phase 8 | Pending |
+| PLUG-02 | Phase 8 | Pending |
+| PLUG-03 | Phase 8 | Pending |
+| PLUG-04 | Phase 8 | Pending |
+| PLUG-05 | Phase 8 | Pending |
+| PLUG-06 | Phase 8 | Pending |
+| GUI-01 | Phase 5 | Pending |
+| GUI-02 | Phase 5 | Pending |
+| GUI-03 | Phase 5 | Pending |
+| GUI-04 | Phase 5 | Pending |
+| GUI-05 | Phase 5 | Pending |
+| GUI-06 | Phase 5 | Pending |
+| OPS-01 | Phase 9 | Pending |
+| OPS-02 | Phase 4 | Pending |
+| OPS-03 | Phase 4 | Pending |
+| OPS-04 | Phase 1 | Pending |
+| OPS-05 | Phase 4 | Pending |
+| OPS-06 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 54 total
-- Mapped to phases: 0
-- Unmapped: 54 ⚠️
+- Mapped to phases: 54
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-13 after initialization*
+*Last updated: 2026-06-13 after roadmap creation*

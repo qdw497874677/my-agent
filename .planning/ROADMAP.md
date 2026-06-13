@@ -1,0 +1,214 @@
+# Roadmap: Pi Java Agent Platform
+
+**Created:** 2026-06-13  
+**Granularity:** Standard  
+**Mode:** YOLO  
+**v1 Requirements:** 54  
+**Mapped:** 54 / 54 ✓
+
+## Overview
+
+Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent platform: runtime contracts first, Cloud Server and persistence next, model/provider integration, governed tools, Admin GUI, Java extension surfaces, MCP, dynamic plugins, and finally production hardening. The roadmap intentionally avoids starting with MCP/PF4J/TUI because those capabilities depend on stable event, tool, policy, and persistence contracts.
+
+| # | Phase | Goal | Requirements | UI hint |
+|---|-------|------|--------------|---------|
+| 1 | Runtime Spine and Domain Contracts | Establish Spring-free Agent Runtime contracts, state model, event envelope, cancellation, and testkit | CORE-01..CORE-06, OPS-04, OPS-06 | no |
+| 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state and baseline security | CLOUD-01..CLOUD-06 | no |
+| 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
+| 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, and redaction | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05 | no |
+| 5 | Admin GUI Runtime Cockpit | Provide all-Java operational Admin GUI for runs, timelines, tools, providers, extensions, and cancellation | GUI-01..GUI-06 | yes |
+| 6 | Java Extension Surface: SPI and Spring | Stabilize public extension APIs via Java SPI and Spring Bean/annotation registration | EXT-01..EXT-05 | no |
+| 7 | MCP Client Bridge and Governed Remote Tools | Connect trusted MCP servers and normalize remote tools through the governed tool pipeline | MCP-01..MCP-05 | yes |
+| 8 | Controlled Dynamic Plugin JARs | Load trusted plugin JARs with lifecycle, compatibility checks, health, disable, and quarantine | PLUG-01..PLUG-06 | yes |
+| 9 | Observability, Policy, Tenancy, and Production Hardening | Complete production safety and operational readiness across traces, audit, tenant context, and metrics | OPS-01 | yes |
+
+## Phase Details
+
+### Phase 1: Runtime Spine and Domain Contracts
+
+**Goal:** Establish a framework-independent Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
+
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, OPS-04, OPS-06  
+**UI hint**: no
+
+**Success criteria:**
+1. Developer can construct an `AgentDefinition` with model config, instructions, tool allowlist, policies, and runtime limits without Spring dependencies.
+2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, and `RunEvent` with tenant/user/session/run/step/trace context.
+3. Fake model and fake tool testkit can execute a complete General Agent loop and emit ordered events.
+4. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
+5. Architecture tests verify core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDKs.
+
+**Notes:** This phase is the foundation. Avoid adding real provider SDKs, persistence, UI, MCP, or plugin classloaders here.
+
+---
+
+### Phase 2: Cloud Server, Persistence, SSE, and Baseline Security
+
+**Goal:** Prove Pi is a Cloud Server product by exposing runtime through REST/SSE and durable PostgreSQL-backed state.
+
+**Requirements:** CLOUD-01, CLOUD-02, CLOUD-03, CLOUD-04, CLOUD-05, CLOUD-06  
+**UI hint**: no
+
+**Success criteria:**
+1. Authenticated REST API can create a run, fetch run detail, fetch status, list events, list steps/messages/tool calls, and cancel a run.
+2. SSE stream emits the same provider-neutral RunEvent envelope stored in persistence.
+3. PostgreSQL Flyway migrations create durable tables for sessions, runs, steps, messages, tool calls, events, and audit basics.
+4. Cancellation through REST changes run state and appears in event history.
+5. Health endpoints, structured logs, request correlation IDs, and tenant/user placeholder context are present.
+
+**Notes:** Use API-first patterns so Admin GUI and future TUI/CLI consume the same surface.
+
+---
+
+### Phase 3: Model Provider Registry and OpenAI-Compatible Adapter
+
+**Goal:** Add real model streaming and tool-call intent normalization without leaking provider-specific types into core.
+
+**Requirements:** MODEL-01, MODEL-02, MODEL-03, MODEL-04, MODEL-05  
+**UI hint**: no
+
+**Success criteria:**
+1. Provider registry resolves model IDs, provider IDs, capability descriptors, and credential references.
+2. OpenAI-compatible streaming chat adapter can run through the General Agent loop.
+3. Text deltas, tool-call intents, finish reasons, usage/tokens, latency, and provider errors are normalized into platform records/events.
+4. Raw secrets are never written to logs, prompts, Admin-visible payloads, or default events.
+5. Provider calls support timeout, cancellation, retry/rate-limit/circuit-breaker hooks, and contract tests.
+
+**Research needed:** Spring AI artifact/version details; OpenAI-compatible streaming and tool-call semantics.
+
+---
+
+### Phase 4: Governed Tool Registry and Invocation Pipeline
+
+**Goal:** Build the single safety gateway for every future tool source before exposing SPI, Spring, MCP, or dynamic plugin tools.
+
+**Requirements:** TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05  
+**UI hint**: no
+
+**Success criteria:**
+1. Tools register with canonical descriptors including schema, provenance, version, scopes, risk level, side effects, and timeout defaults.
+2. All tool calls execute through `ToolExecutionGateway`; no provider or extension path can bypass it.
+3. Gateway validates arguments, enforces timeout/cancellation/payload limits, normalizes results/errors, and emits lifecycle events.
+4. Default policy engine can allow, deny, require approval, require sandbox, or block tool calls.
+5. Audit records include redacted input/output summaries and security-sensitive actions never expose raw secrets by default.
+
+**Research needed:** JSON Schema validation/versioning and policy decision schema.
+
+---
+
+### Phase 5: Admin GUI Runtime Cockpit
+
+**Goal:** Deliver an all-Java operational cockpit for inspecting and controlling runs, tools, providers, extensions, and runtime health.
+
+**Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06  
+**UI hint**: yes
+
+**Success criteria:**
+1. Admin can view run list with status, timestamps, model, agent definition, usage summary, and terminal state.
+2. Admin can inspect a run timeline with ordered events, steps, model events, tool calls, policy decisions, errors, and terminal result.
+3. Admin can inspect tool-call metadata, provenance, policy decision, redacted inputs/outputs, duration, status, and error details.
+4. Admin can view provider, extension, MCP, plugin, and tool registry health/status placeholders.
+5. Admin can cancel a running run from the GUI, and GUI uses REST/SSE/read-model APIs rather than private runtime access.
+
+**Research needed:** Vaadin + Spring Security + SSE UI patterns if unfamiliar.
+
+---
+
+### Phase 6: Java Extension Surface: SPI and Spring
+
+**Goal:** Stabilize the Java-native extension contract using safe in-process mechanisms before dynamic classloader plugins.
+
+**Requirements:** EXT-01, EXT-02, EXT-03, EXT-04, EXT-05  
+**UI hint**: no
+
+**Success criteria:**
+1. Public extension API/JAR supports tools, providers, policies, event sinks, memory providers, workspace providers, metadata, lifecycle, and version compatibility.
+2. Java ServiceLoader discovers extension capabilities and registers them through the platform registry.
+3. Spring Boot starter/autoconfiguration registers Spring Beans or annotations as tools/providers/policies/listeners without core changes.
+4. Admin can view extension sources, capabilities, health, compatibility, enable/disable status, and errors.
+5. Conformance tests prove extensions cannot bypass tool gateway, policy, audit, event, or credential boundaries.
+
+**Notes:** This phase establishes the public SDK shape before PF4J.
+
+---
+
+### Phase 7: MCP Client Bridge and Governed Remote Tools
+
+**Goal:** Add MCP as a remote tool adapter that respects Pi's registry, policy, audit, and event model.
+
+**Requirements:** MCP-01, MCP-02, MCP-03, MCP-04, MCP-05  
+**UI hint**: yes
+
+**Success criteria:**
+1. Admin can configure trusted MCP servers with credential references, transport settings, server allowlists, and network controls.
+2. Platform discovers MCP tools, normalizes their schemas into `ToolDescriptor`, and registers them with provenance/server health.
+3. MCP tool calls execute only through `ToolExecutionGateway` with policy, timeout, cancellation, audit, redaction, and events.
+4. Admin can see MCP connection state, discovery errors, invocation errors, auth failures, and server health.
+5. Security-sensitive boundaries for SSRF, credentials, and transport configuration are implemented or explicitly blocked by defaults.
+
+**Research needed:** MCP Java SDK/Spring AI MCP maturity, transports, OAuth/protected-resource auth, SSRF controls.
+
+---
+
+### Phase 8: Controlled Dynamic Plugin JARs
+
+**Goal:** Support trusted dynamic plugin JARs as controlled enterprise extensions with lifecycle, compatibility, and operational controls.
+
+**Requirements:** PLUG-01, PLUG-02, PLUG-03, PLUG-04, PLUG-05, PLUG-06  
+**UI hint**: yes
+
+**Success criteria:**
+1. Admin can configure a controlled plugin directory for trusted plugin JARs.
+2. Platform loads descriptors, validates API/platform compatibility, and registers capabilities through the extension registry.
+3. Plugin lifecycle states include discovered, loaded, started, disabled, failed, and quarantined.
+4. Admin can view plugin metadata, capabilities, health, load errors, compatibility errors, and disable/quarantine plugins.
+5. Documentation and runtime warnings make clear that JVM plugin isolation is not a sandbox for untrusted code.
+
+**Research needed:** PF4J vs alternatives, Spring Boot executable JAR packaging, classloader behavior, unload semantics.
+
+---
+
+### Phase 9: Observability, Policy, Tenancy, and Production Hardening
+
+**Goal:** Complete production-readiness around telemetry, security, audit, tenancy context, and operational reliability.
+
+**Requirements:** OPS-01  
+**UI hint**: yes
+
+**Success criteria:**
+1. Platform emits structured logs, metrics, and OpenTelemetry-compatible spans for run, model, tool, MCP, plugin, and policy lifecycles.
+2. Admin GUI surfaces runtime health and key operational metrics for runs, providers, tools, MCP servers, and plugins.
+3. Trace/run/session IDs are consistently correlated across API responses, SSE events, logs, audit records, and traces.
+4. Production configuration documents cover secrets, policy engine extension, tenancy/RBAC hooks, sandbox strategy, retention/redaction, and deployment.
+5. Regression tests cover critical policy, audit, cancellation, timeout, extension, and event-ordering paths.
+
+**Research needed:** policy engine options, secrets/KMS, tenancy/RBAC, sandbox strategy, observability backend.
+
+## Coverage Validation
+
+| Requirement Prefix | Count | Phase |
+|--------------------|-------|-------|
+| CORE | 6 | Phase 1 |
+| CLOUD | 6 | Phase 2 |
+| MODEL | 5 | Phase 3 |
+| TOOL | 7 | Phase 4 |
+| EXT | 5 | Phase 6 |
+| MCP | 5 | Phase 7 |
+| PLUG | 6 | Phase 8 |
+| GUI | 6 | Phase 5 |
+| OPS | 6 | Phase 1, 4, 9 |
+
+**Total mapped:** 54 / 54 ✓
+
+## Deferred After v1
+
+- TUI/CLI clients over the same REST/SSE API.
+- Local developer runtime mode.
+- Multi-agent orchestration and workflow builder.
+- Durable crash-resumable execution and replay.
+- RAG/knowledge-base product.
+- Sandboxed Coding Agent workspace.
+- Plugin marketplace and full SaaS tenant/RBAC/billing.
+
+---
+*Roadmap created: 2026-06-13 after initialization*
