@@ -14,10 +14,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CORE-03**: Agent Runtime can execute a General Agent loop that sends messages to a model, receives text/tool-call intents, executes tools, appends results, and continues until completion or failure.
 - [ ] **CORE-04**: Agent Runtime emits ordered, provider-neutral RunEvents with IDs, sequence numbers, timestamps, trace IDs, tenant/user/session/run/step context, event type, payload, and redaction metadata.
 - [ ] **CORE-05**: Agent Runtime supports run status transitions, cancellation, deadlines, max-step budgets, and terminal states for completed, failed, cancelled, and policy-blocked runs.
-- [ ] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
+- [x] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
 - [ ] **CORE-07**: Core runtime supports multiple Agent interaction modes, including chat-style message input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution, without treating chat transcript as the only state model.
 - [ ] **CORE-08**: Core runtime models artifacts, attachments, intermediate outputs, and external references separately from messages so non-chat Agents can produce and consume structured work products.
-- [ ] **CORE-09**: Codebase follows COLA layer boundaries where Adapter handles external protocols/UI, App orchestrates use cases, Domain owns runtime models/rules/gateways, and Infrastructure implements external systems without Domain depending outward.
+- [x] **CORE-09**: Codebase follows COLA layer boundaries where Adapter handles external protocols/UI, App orchestrates use cases, Domain owns runtime models/rules/gateways, and Infrastructure implements external systems without Domain depending outward.
 
 ### Cloud Server API
 
@@ -170,10 +170,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-03 | Phase 1 | Pending |
 | CORE-04 | Phase 1 | Pending |
 | CORE-05 | Phase 1 | Pending |
-| CORE-06 | Phase 1 | Pending |
+| CORE-06 | Phase 1 | Complete |
 | CORE-07 | Phase 1 | Pending |
 | CORE-08 | Phase 1 | Pending |
-| CORE-09 | Phase 1 | Pending |
+| CORE-09 | Phase 1 | Complete |
 | CLOUD-01 | Phase 2 | Pending |
 | CLOUD-02 | Phase 2 | Pending |
 | CLOUD-03 | Phase 2 | Pending |

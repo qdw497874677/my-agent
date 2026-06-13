@@ -1,15 +1,29 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 01
+status: executing
+last_updated: "2026-06-13T18:44:01.389Z"
+progress:
+  total_phases: 9
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 1
+---
+
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready for Phase 1 planning  
-**Current Phase:** Phase 1 — Runtime Spine and Domain Contracts
+**Status:** Executing Phase 01 — 1/5 plans complete
+**Current Phase:** 01
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 1 — Runtime Spine and Domain Contracts
+**Current focus:** Phase 01 — runtime-spine-workspace-and-domain-contracts
 
 ## Workflow Configuration
 
@@ -42,6 +56,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 **Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, WORK-01, WORK-02, WORK-04, WORK-05, OPS-04, OPS-06
 
 **Key concerns for planning:**
+
 - Keep runtime core independent of Spring Boot, Vaadin, PF4J, MCP, and provider SDKs.
 - Use COLA boundaries: Adapter → App → Domain ← Infrastructure; Domain has zero outward dependencies.
 - Keep runtime core generic: no Chat-only, Coding-only, single-provider, single-tool-protocol, or UI-driven assumptions.
@@ -57,6 +72,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 See `.planning/research/SUMMARY.md`.
 
 Key findings:
+
 - Build modular monolith first, distributed-capable later.
 - Runtime core should be framework-independent; Spring, Spring AI, MCP, PF4J, Vaadin are adapters.
 - Every tool source must normalize into one Tool Registry + Governed Tool Invocation Pipeline.
@@ -71,12 +87,37 @@ Key findings:
 - Which policy engine approach should be adopted beyond the default Java interface?
 - Which E2E tool stack should be standard for Web Console: Playwright, Selenium, or Vaadin TestBench?
 
+## Execution Progress
+
+- [x] 01-01-PLAN.md — Java 21 Maven/COLA skeleton and architecture gates completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-01-SUMMARY.md`).
+- [ ] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts.
+- [ ] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts.
+- [ ] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop.
+- [ ] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index.
+
+## Decisions
+
+- 2026-06-13 (Phase 01 Plan 01): Use a Maven parent with explicit dependency/plugin management and no framework BOM in Phase 1 foundation.
+- 2026-06-13 (Phase 01 Plan 01): Keep `pi-agent-domain` production dependencies empty while allowing only test-scoped JUnit, AssertJ, and ArchUnit.
+- 2026-06-13 (Phase 01 Plan 01): Codify COLA dependency direction immediately with ArchUnit before domain implementation starts.
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 01-runtime-spine-workspace-and-domain-contracts | 01 | 11m 46s | 2 | 16 |
+
+## Last Session
+
+- **Updated:** 2026-06-13T18:41:21Z
+- **Stopped At:** Completed 01-01-PLAN.md
+
 ## Next Action
 
 Run:
 
 ```text
-/gsd-plan-phase 1
+/gsd-execute-phase 1 --plan 01-02
 ```
 
 Context captured:
