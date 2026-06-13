@@ -47,6 +47,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 - Define stable domain models before persistence/API/UI.
 - Define event envelope carefully because REST/SSE/Admin/TUI/CLI/audit all depend on it.
 - Use fake model/fake tool testkit to validate Agent loop without real providers.
+- Design Phase 1 testkit so later E2E can validate Run lifecycle without real model keys.
 
 ## Research Summary
 
@@ -65,6 +66,7 @@ Key findings:
 - Which MCP transport/auth scope is mandatory for launch?
 - Should dynamic plugins be restart-required for unload in v1?
 - Which policy engine approach should be adopted beyond the default Java interface?
+- Which E2E tool stack should be standard for Web Console: Playwright, Selenium, or Vaadin TestBench?
 
 ## Next Action
 

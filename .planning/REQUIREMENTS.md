@@ -90,6 +90,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
 - [ ] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
+### End-to-End Verification
+
+- [ ] **E2E-01**: Platform provides a headless E2E test harness that can create an Agent Run through API/runtime entry points, stream events, persist state, and assert terminal status without real model keys.
+- [ ] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway.
+- [ ] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution.
+- [ ] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
+- [ ] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
+- [ ] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default.
+- [ ] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views.
+- [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline.
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -198,10 +209,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-04 | Phase 1 | Pending |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 1 | Pending |
+| E2E-01 | Phase 2 | Pending |
+| E2E-02 | Phase 4 | Pending |
+| E2E-03 | Phase 4 | Pending |
+| E2E-04 | Phase 2 | Pending |
+| E2E-05 | Phase 2 | Pending |
+| E2E-06 | Phase 4 | Pending |
+| E2E-07 | Phase 5 | Pending |
+| E2E-08 | Phase 7, Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 58 total
-- Mapped to phases: 58
+- v1 requirements: 66 total
+- Mapped to phases: 66
 - Unmapped: 0 ✓
 
 ---

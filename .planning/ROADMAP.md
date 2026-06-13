@@ -3,8 +3,8 @@
 **Created:** 2026-06-13  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**v1 Requirements:** 58  
-**Mapped:** 58 / 58 ✓
+**v1 Requirements:** 66  
+**Mapped:** 66 / 66 ✓
 
 ## Overview
 
@@ -13,13 +13,13 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | # | Phase | Goal | Requirements | UI hint |
 |---|-------|------|--------------|---------|
 | 1 | Runtime Spine and Domain Contracts | Establish Spring-free, UI-agnostic Agent Runtime contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-08, OPS-04, OPS-06 | no |
-| 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state and baseline security | CLOUD-01..CLOUD-06 | no |
+| 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state, baseline security, and first headless E2E | CLOUD-01..CLOUD-06, E2E-01, E2E-04, E2E-05 | no |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
-| 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, and redaction | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05 | no |
-| 5 | Agent Web Console and Runtime Cockpit | Provide all-Java Agent Catalog, Chat entry, run timeline, tool cards, approval cards, session history, and admin governance views | GUI-01..GUI-08 | yes |
+| 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, redaction, and security E2E | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06 | no |
+| 5 | Agent Web Console and Runtime Cockpit | Provide all-Java Agent Catalog, Chat entry, run timeline, tool cards, approval cards, session history, admin governance views, and browser E2E | GUI-01..GUI-08, E2E-07 | yes |
 | 6 | Java Extension Surface: SPI and Spring | Stabilize public extension APIs via Java SPI and Spring Bean/annotation registration | EXT-01..EXT-05 | no |
-| 7 | MCP Client Bridge and Governed Remote Tools | Connect trusted MCP servers and normalize remote tools through the governed tool pipeline | MCP-01..MCP-05 | yes |
-| 8 | Controlled Dynamic Plugin JARs | Load trusted plugin JARs with lifecycle, compatibility checks, health, disable, and quarantine | PLUG-01..PLUG-06 | yes |
+| 7 | MCP Client Bridge and Governed Remote Tools | Connect trusted MCP servers and normalize remote tools through the governed tool pipeline | MCP-01..MCP-05, E2E-08 | yes |
+| 8 | Controlled Dynamic Plugin JARs | Load trusted plugin JARs with lifecycle, compatibility checks, health, disable, and quarantine | PLUG-01..PLUG-06, E2E-08 | yes |
 | 9 | Observability, Policy, Tenancy, and Production Hardening | Complete production safety and operational readiness across traces, audit, tenant context, and metrics | OPS-01 | yes |
 
 ## Phase Details
@@ -47,7 +47,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Goal:** Prove Pi is a Cloud Server product by exposing runtime through REST/SSE and durable PostgreSQL-backed state.
 
-**Requirements:** CLOUD-01, CLOUD-02, CLOUD-03, CLOUD-04, CLOUD-05, CLOUD-06  
+**Requirements:** CLOUD-01, CLOUD-02, CLOUD-03, CLOUD-04, CLOUD-05, CLOUD-06, E2E-01, E2E-04, E2E-05  
 **UI hint**: no
 
 **Success criteria:**
@@ -56,6 +56,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 3. PostgreSQL Flyway migrations create durable tables for sessions, runs, steps, messages, tool calls, events, and audit basics.
 4. Cancellation through REST changes run state and appears in event history.
 5. Health endpoints, structured logs, request correlation IDs, and tenant/user placeholder context are present.
+6. Headless E2E can create a run, stream events, persist state, query history, cancel a run, and verify SSE ordering/reconnect behavior without real model keys.
 
 **Notes:** Use API-first patterns so Web Console, Admin Governance, and future TUI/CLI consume the same surface.
 
@@ -83,7 +84,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Goal:** Build the single safety gateway for every future tool source before exposing SPI, Spring, MCP, or dynamic plugin tools.
 
-**Requirements:** TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05  
+**Requirements:** TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06  
 **UI hint**: no
 
 **Success criteria:**
@@ -92,6 +93,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 3. Gateway validates arguments, enforces timeout/cancellation/payload limits, normalizes results/errors, and emits lifecycle events.
 4. Default policy engine can allow, deny, require approval, require sandbox, or block tool calls.
 5. Audit records include redacted input/output summaries and security-sensitive actions never expose raw secrets by default.
+6. E2E proves successful tool execution, policy deny, approval-required, and secret-redaction paths through API/runtime, events, audit, and persistence.
 
 **Research needed:** JSON Schema validation/versioning and policy decision schema.
 
@@ -101,7 +103,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Goal:** Deliver an all-Java Agent Web Console where users can discover Agents, chat, watch execution, handle approvals, continue sessions, and access basic Admin Governance for runtime health and controls.
 
-**Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07, GUI-08  
+**Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07, GUI-08, E2E-07  
 **UI hint**: yes
 
 **Success criteria:**
@@ -112,6 +114,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 5. User or Admin can approve/reject gated tool calls through approval cards when ToolPolicy requires approval.
 6. Admin can inspect provider, extension, MCP, plugin, tool registry, policy decision, and audit governance views.
 7. Web GUI uses REST/SSE/read-model APIs rather than private runtime/database access.
+8. Browser E2E validates Agent Catalog, interaction page, streaming output, tool cards, approval cards, session history, cancellation, and basic governance views.
 
 **Research needed:** Vaadin + Spring Security + SSE Chat UI patterns, tool-call card UX, approval-card flow, and Agent Catalog information architecture.
 
@@ -139,7 +142,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Goal:** Add MCP as a remote tool adapter that respects Pi's registry, policy, audit, and event model.
 
-**Requirements:** MCP-01, MCP-02, MCP-03, MCP-04, MCP-05  
+**Requirements:** MCP-01, MCP-02, MCP-03, MCP-04, MCP-05, E2E-08  
 **UI hint**: yes
 
 **Success criteria:**
@@ -148,6 +151,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 3. MCP tool calls execute only through `ToolExecutionGateway` with policy, timeout, cancellation, audit, redaction, and events.
 4. Admin can see MCP connection state, discovery errors, invocation errors, auth failures, and server health.
 5. Security-sensitive boundaries for SSRF, credentials, and transport configuration are implemented or explicitly blocked by defaults.
+6. Integration E2E proves Fake MCP server discovery and tool execution through ToolExecutionGateway, policy, audit, and event pipeline.
 
 **Research needed:** MCP Java SDK/Spring AI MCP maturity, transports, OAuth/protected-resource auth, SSRF controls.
 
@@ -157,7 +161,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Goal:** Support trusted dynamic plugin JARs as controlled enterprise extensions with lifecycle, compatibility, and operational controls.
 
-**Requirements:** PLUG-01, PLUG-02, PLUG-03, PLUG-04, PLUG-05, PLUG-06  
+**Requirements:** PLUG-01, PLUG-02, PLUG-03, PLUG-04, PLUG-05, PLUG-06, E2E-08  
 **UI hint**: yes
 
 **Success criteria:**
@@ -166,6 +170,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 3. Plugin lifecycle states include discovered, loaded, started, disabled, failed, and quarantined.
 4. Admin can view plugin metadata, capabilities, health, load errors, compatibility errors, and disable/quarantine plugins.
 5. Documentation and runtime warnings make clear that JVM plugin isolation is not a sandbox for untrusted code.
+6. Integration E2E proves sample plugin JAR load, capability registration, ToolGateway invocation, disable, and quarantine behavior.
 
 **Research needed:** PF4J vs alternatives, Spring Boot executable JAR packaging, classloader behavior, unload semantics.
 
@@ -200,8 +205,9 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | PLUG | 6 | Phase 8 |
 | GUI | 8 | Phase 5 |
 | OPS | 6 | Phase 1, 4, 9 |
+| E2E | 8 | Phase 2, 4, 5, 7, 8 |
 
-**Total mapped:** 58 / 58 ✓
+**Total mapped:** 66 / 66 ✓
 
 ## Deferred After v1
 
