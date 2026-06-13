@@ -76,14 +76,24 @@ Key findings:
 Run:
 
 ```text
-/gsd-discuss-phase 1
-```
-
-or skip discussion and run:
-
-```text
 /gsd-plan-phase 1
 ```
+
+Context captured:
+
+```text
+.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-CONTEXT.md
+```
+
+Optional shortcuts:
+
+```text
+/gsd-plan-phase 1 --skip-research
+```
+
+## Session Notes
+
+- 2026-06-13: Phase 1 context gathered. Resume from `.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-CONTEXT.md`.
 
 ---
 *State initialized: 2026-06-13 after roadmap creation*
