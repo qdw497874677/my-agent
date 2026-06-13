@@ -82,6 +82,54 @@ class FakeGeneralAgentLoopTest {
         assertThat(events.last().type()).isEqualTo(RunEventType.RUN_FAILED);
     }
 
+    @Test
+    void pre_cancelled_token_results_in_cancelled_terminal_event() {
+        EventCollector events = new EventCollector();
+        CancellationToken token = new CancellationToken();
+        token.cancel("user stopped run");
+        GeneralAgentLoop loop = new GeneralAgentLoop(new FakeModelClient(), new FakeToolInvoker(), FakePolicy.allow(), events,
+                new DeterministicIds(), new DeterministicClock(START));
+
+        RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), token));
+
+        assertThat(handle.status()).isEqualTo(RunStatus.CANCELLED);
+        events.assertExactlyOneTerminalEventLast();
+        assertThat(events.last().type()).isEqualTo(RunEventType.RUN_CANCELLED);
+    }
+
+    @Test
+    void cancellation_before_tool_call_skips_tool_and_emits_cancelled_terminal_event() {
+        EventCollector events = new EventCollector();
+        CancellationToken token = new CancellationToken();
+        ToolCall toolCall = new ToolCall("tool-call-1", nullRunId(), nullStepId(), "lookup", Map.of(), START);
+        FakeModelClient model = new FakeModelClient().scriptThenCancel(new ModelResponse.ToolCallIntent(toolCall), token, "cancel before tool");
+        FakeToolInvoker tools = new FakeToolInvoker().register("lookup", new ToolResult("tool-call-1", true, "ok", null, START));
+        GeneralAgentLoop loop = new GeneralAgentLoop(model, tools, FakePolicy.allow(), events,
+                new DeterministicIds(), new DeterministicClock(START));
+
+        RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), token));
+
+        assertThat(handle.status()).isEqualTo(RunStatus.CANCELLED);
+        assertThat(tools.invocations()).isEmpty();
+        events.assertExactlyOneTerminalEventLast();
+    }
+
+    @Test
+    void expired_deadline_fails_with_normalized_recoverable_failure_summary() {
+        EventCollector events = new EventCollector();
+        GeneralAgentLoop loop = new GeneralAgentLoop(new FakeModelClient(), new FakeToolInvoker(), FakePolicy.allow(), events,
+                new DeterministicIds(), new DeterministicClock(START.plusSeconds(5)));
+
+        RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofSeconds(1), 4, 2), new CancellationToken()));
+
+        assertThat(handle.status()).isEqualTo(RunStatus.FAILED);
+        assertThat(handle.failureSummary()).isPresent();
+        assertThat(handle.failureSummary().orElseThrow().error().retryable()).isFalse();
+        assertThat(handle.failureSummary().orElseThrow().error().recoverable()).isTrue();
+        assertThat(handle.failureSummary().orElseThrow().error().userActionRequired()).isFalse();
+        events.assertExactlyOneTerminalEventLast();
+    }
+
     private static final Instant START = Instant.parse("2026-06-13T00:00:00Z");
 
     private static RunContext context(RuntimeLimits limits, CancellationToken token) {
