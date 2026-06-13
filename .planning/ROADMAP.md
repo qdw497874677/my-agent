@@ -31,6 +31,15 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 **Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, WORK-01, WORK-02, WORK-04, WORK-05, OPS-04, OPS-06  
 **UI hint**: no
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create Java 21 Maven/COLA skeleton and architecture gates.
+- [ ] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts.
+- [ ] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts.
+- [ ] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop.
+- [ ] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index.
+
 **Success criteria:**
 1. Developer can construct an `AgentDefinition` with model config, instructions, tool allowlist, policies, interaction modes, and runtime limits without Spring dependencies.
 2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `Artifact`, `Attachment`, `Workspace`, `WorkspaceSession`, `WorkspaceScope`, `WorkspaceSnapshot`, and `RunEvent` with tenant/user/session/run/step/trace/workspace context.
