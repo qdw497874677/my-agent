@@ -1,7 +1,7 @@
 # Requirements: Pi Java Agent Platform
 
 **Defined:** 2026-06-13  
-**Core Value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。
+**Core Value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一、通用的 Runtime 运行、观测和治理。
 
 ## v1 Requirements
 
@@ -15,6 +15,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CORE-04**: Agent Runtime emits ordered, provider-neutral RunEvents with IDs, sequence numbers, timestamps, trace IDs, tenant/user/session/run/step context, event type, payload, and redaction metadata.
 - [ ] **CORE-05**: Agent Runtime supports run status transitions, cancellation, deadlines, max-step budgets, and terminal states for completed, failed, cancelled, and policy-blocked runs.
 - [ ] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
+- [ ] **CORE-07**: Core runtime supports multiple Agent interaction modes, including chat-style message input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution, without treating chat transcript as the only state model.
+- [ ] **CORE-08**: Core runtime models artifacts, attachments, intermediate outputs, and external references separately from messages so non-chat Agents can produce and consume structured work products.
 
 ### Cloud Server API
 
@@ -71,7 +73,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Agent Web Console and Admin Governance
 
 - [ ] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
-- [ ] **GUI-02**: User can enter an Agent Chat page, send a message, receive streaming model output, and see the current Run status.
+- [ ] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes.
 - [ ] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors.
 - [ ] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
 - [ ] **GUI-05**: User can cancel a running Agent Run from the Web Console.
@@ -126,7 +128,7 @@ Explicitly excluded. Documented to prevent scope creep.
 |---------|--------|
 | Direct TypeScript pi code port | The product is a Java cloud platform; pi is a reference design, not the implementation target. |
 | Full TUI/CLI in v1 | Cloud Server and Web Console are the first product surfaces; future clients must use public APIs. |
-| Dify-style visual workflow builder in v1 | Different product category and high UI complexity; v1 focuses on Agent Catalog, Chat entry, runtime cockpit, and extension governance. |
+| Dify-style visual workflow builder in v1 | Different product category and high UI complexity; v1 focuses on Agent Catalog, Chat/Run entry, runtime cockpit, and extension governance. |
 | Complex Agent Studio in v1 | Full visual agent authoring/versioning/publishing can wait; v1 needs basic Agent entry and run experience first. |
 | Full plugin marketplace in v1 | Marketplace requires trust, distribution, review, billing, moderation, and ecosystem operations. |
 | Unrestricted shell/file/code execution in v1 | Unsafe for cloud by default; require workspace, sandbox, policy, approval, and audit before enabling. |
@@ -146,6 +148,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-04 | Phase 1 | Pending |
 | CORE-05 | Phase 1 | Pending |
 | CORE-06 | Phase 1 | Pending |
+| CORE-07 | Phase 1 | Pending |
+| CORE-08 | Phase 1 | Pending |
 | CLOUD-01 | Phase 2 | Pending |
 | CLOUD-02 | Phase 2 | Pending |
 | CLOUD-03 | Phase 2 | Pending |
@@ -196,8 +200,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-06 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 56 total
-- Mapped to phases: 56
+- v1 requirements: 58 total
+- Mapped to phases: 58
 - Unmapped: 0 ✓
 
 ---

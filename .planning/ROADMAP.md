@@ -3,8 +3,8 @@
 **Created:** 2026-06-13  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**v1 Requirements:** 56  
-**Mapped:** 56 / 56 ✓
+**v1 Requirements:** 58  
+**Mapped:** 58 / 58 ✓
 
 ## Overview
 
@@ -12,7 +12,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 | # | Phase | Goal | Requirements | UI hint |
 |---|-------|------|--------------|---------|
-| 1 | Runtime Spine and Domain Contracts | Establish Spring-free Agent Runtime contracts, state model, event envelope, cancellation, and testkit | CORE-01..CORE-06, OPS-04, OPS-06 | no |
+| 1 | Runtime Spine and Domain Contracts | Establish Spring-free, UI-agnostic Agent Runtime contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-08, OPS-04, OPS-06 | no |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state and baseline security | CLOUD-01..CLOUD-06 | no |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
 | 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, and redaction | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05 | no |
@@ -26,17 +26,18 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 ### Phase 1: Runtime Spine and Domain Contracts
 
-**Goal:** Establish a framework-independent Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
+**Goal:** Establish a framework-independent and UI-agnostic Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
 
-**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, OPS-04, OPS-06  
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, OPS-04, OPS-06  
 **UI hint**: no
 
 **Success criteria:**
-1. Developer can construct an `AgentDefinition` with model config, instructions, tool allowlist, policies, and runtime limits without Spring dependencies.
-2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, and `RunEvent` with tenant/user/session/run/step/trace context.
-3. Fake model and fake tool testkit can execute a complete General Agent loop and emit ordered events.
-4. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
-5. Architecture tests verify core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDKs.
+1. Developer can construct an `AgentDefinition` with model config, instructions, tool allowlist, policies, interaction modes, and runtime limits without Spring dependencies.
+2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `Artifact`, `Attachment`, and `RunEvent` with tenant/user/session/run/step/trace context.
+3. Runtime supports chat-style input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution without using chat transcript as the only state model.
+4. Fake model and fake tool testkit can execute a complete General Agent loop and emit ordered events.
+5. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
+6. Architecture tests verify core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDKs.
 
 **Notes:** This phase is the foundation. Avoid adding real provider SDKs, persistence, UI, MCP, or plugin classloaders here.
 
@@ -190,7 +191,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 | Requirement Prefix | Count | Phase |
 |--------------------|-------|-------|
-| CORE | 6 | Phase 1 |
+| CORE | 8 | Phase 1 |
 | CLOUD | 6 | Phase 2 |
 | MODEL | 5 | Phase 3 |
 | TOOL | 7 | Phase 4 |
@@ -200,7 +201,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | GUI | 8 | Phase 5 |
 | OPS | 6 | Phase 1, 4, 9 |
 
-**Total mapped:** 56 / 56 ✓
+**Total mapped:** 58 / 58 ✓
 
 ## Deferred After v1
 

@@ -2,7 +2,7 @@
 
 Pi Java Agent Platform 是一个面向云端、企业集成和插件生态的 **Java 通用 Agent 基座**。它借鉴 [`earendil-works/pi`](https://github.com/earendil-works/pi) 的 Agent Loop、Provider Registry、Tool、Session、Extension、Skills 等思想，但不是 TypeScript pi 的 Java 复刻版，而是面向云上 Agent 服务重新设计的 Java 平台内核。
 
-项目的第一阶段首要交付形态是 **Cloud Server + Agent Web Console**：一个可部署、可观测、可扩展、可治理的 Java 云上 Agent 服务，并提供各种 Agent 的统一 Chat 入口、Run/Session 管理、REST/SSE API、工具执行过程展示和基础 Admin Governance。
+项目的第一阶段首要交付形态是 **Cloud Server + Agent Web Console**：一个可部署、可观测、可扩展、可治理的 Java 云上 Agent 服务，并提供各种 Agent 的统一入口、Chat/Run 等交互形态、Run/Session 管理、REST/SSE API、工具执行过程展示和基础 Admin Governance。
 
 ---
 
@@ -16,7 +16,7 @@ Pi Java 的定位是：
 它面向的不是单一聊天机器人，也不是本地 CLI 工具，而是一套可以支撑以下产品形态的底层平台：
 
 - **Cloud Agent Server**：云上 Agent 运行服务，提供 REST/SSE API、Run 管理、Session 管理、工具治理和审计。
-- **Agent Web Console**：面向用户的 Agent 入口，用于发现 Agent、进入 Chat、发起 Run、查看执行过程、处理审批和继续历史会话。
+- **Agent Web Console**：面向用户的 Agent 入口，用于发现 Agent、进入 Chat/Run/Form 等交互形态、查看执行过程、处理审批和继续历史会话。
 - **Admin Governance Console**：面向管理员和运维人员的治理入口，用于管理 Provider、Tool、Plugin、MCP、Policy、审计和运行状态。
 - **Java SDK / 基础 Jar**：业务系统可以嵌入 Agent Runtime，注册自定义模型、工具、Memory、Workspace、Policy 和事件处理器。
 - **Plugin / Extension Ecosystem**：通过 Java SPI、Spring Bean、动态插件 Jar、MCP 等机制扩展平台能力。
@@ -201,23 +201,39 @@ v1 应具备：
 
 ## 架构原则
 
-### 1. Runtime Core 独立
+### 1. 通用基座优先
+
+Pi Java 的核心不是“聊天系统”，也不是“Coding Agent”，而是通用 Agent Runtime。
+
+核心模型必须支持多种 Agent 类型和交互形态：
+
+- Chat Agent
+- Task / Run Agent
+- Workflow / Planner Agent
+- Tool-only Agent
+- Retrieval / Knowledge Agent
+- Coding / Workspace Agent
+- Business Process Agent
+
+Chat 是 v1 Web Console 的首个入口形态，但不能成为 Runtime 的唯一抽象。Runtime 里应使用更通用的 `Run`、`Input`、`Message`、`Event`、`Artifact`、`Interaction`、`ToolCall` 等模型，避免把所有能力简化成 chat transcript。
+
+### 2. Runtime Core 独立
 
 核心 Runtime 不直接依赖 Spring Boot、Vaadin、PF4J、MCP、数据库或具体模型 SDK。
 
 Core 只定义领域模型、状态机、端口和事件协议。
 
-### 2. Adapter Containment
+### 3. Adapter Containment
 
 Spring Boot、Spring AI、MCP Java SDK、PF4J、Vaadin、PostgreSQL、OpenTelemetry 都是 adapter，不允许反向定义平台核心模型。
 
-### 3. Event First
+### 4. Event First
 
 RunEvent 是平台的统一事实流。
 
 REST/SSE、Agent Web Console、Admin Governance、未来 TUI/CLI、审计、Trace、Replay 都应该消费同一套事件语义。
 
-### 4. Tool Gateway First
+### 5. Tool Gateway First
 
 所有工具来源都必须通过同一个 `ToolExecutionGateway`：
 
@@ -229,19 +245,25 @@ REST/SSE、Agent Web Console、Admin Governance、未来 TUI/CLI、审计、Trac
 
 任何工具调用都不能绕过 schema validation、policy、timeout、audit、redaction 和 observability。
 
-### 5. Cloud Safety by Default
+### 6. Cloud Safety by Default
 
 云上 Agent 的最大风险来自工具边界。
 
 默认不提供无限制 shell/file/code execution。高风险工具必须显式经过 Workspace、Policy、Approval、Sandbox、Audit 约束。
 
-### 6. API First
+### 7. API First
 
 Agent Web Console、Admin Governance 和未来 TUI/CLI 使用同一套 REST/SSE/read-model API。
 
 不允许 GUI 直接依赖私有 Runtime 或数据库细节。
 
-### 7. Extension Without Core Pollution
+### 8. Extension Without Core Pollution
+
+### 9. UI 只是入口，不是内核
+
+Agent Web Console、Admin Governance、未来 TUI/CLI 都是 Runtime 的客户端。
+
+它们可以提供不同体验：Chat、任务表单、Agent Catalog、审批、Timeline、调试视图、治理视图，但不能让 UI 形态决定核心运行模型。所有客户端都应通过统一 API/Event 协议访问 Runtime。
 
 模型、工具、Memory、Workspace、Policy、EventSink、Plugin 都可扩展，但扩展机制不能污染核心 Runtime。
 
@@ -283,7 +305,7 @@ Agent Web Console、Admin Governance 和未来 TUI/CLI 使用同一套 REST/SSE/
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | 通过 Spring Boot REST/SSE 和 PostgreSQL 暴露云上 Runtime |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | 引入真实模型流式调用、Provider Registry、usage/error 归一化 |
 | 4 | Governed Tool Registry and Invocation Pipeline | 构建所有工具调用必须经过的安全网关 |
-| 5 | Agent Web Console and Runtime Cockpit | 提供 all-Java Agent 入口和运行时 cockpit，用于 Chat、Run、工具过程、审批、历史会话和基础治理 |
+| 5 | Agent Web Console and Runtime Cockpit | 提供 all-Java Agent 入口和运行时 cockpit，用于 Agent Catalog、Chat/Run 入口、工具过程、审批、历史会话和基础治理 |
 | 6 | Java Extension Surface: SPI and Spring | 稳定 Java SPI 与 Spring Bean/annotation 扩展 API |
 | 7 | MCP Client Bridge and Governed Remote Tools | 将 MCP remote tools 接入统一 Tool Gateway |
 | 8 | Controlled Dynamic Plugin JARs | 支持可信插件 Jar 的生命周期、健康、禁用和隔离 |
