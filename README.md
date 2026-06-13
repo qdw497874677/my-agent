@@ -143,6 +143,18 @@ v1 应具备：
 - Redaction
 - Side-effect classification
 
+### 4.5 Workspace and Resource Boundary
+
+- Workspace
+- WorkspaceSession
+- WorkspaceScope
+- WorkspaceGateway
+- CommandExecutionGateway
+- Artifact / Attachment
+- Snapshot / Restore contract
+- Resource / Mount abstraction
+- Provision / impact estimation
+
 ### 5. Extension Fabric
 
 - Java SPI
@@ -217,6 +229,8 @@ Pi Java 的核心不是“聊天系统”，也不是“Coding Agent”，而是
 
 Chat 是 v1 Web Console 的首个入口形态，但不能成为 Runtime 的唯一抽象。Runtime 里应使用更通用的 `Run`、`Input`、`Message`、`Event`、`Artifact`、`Interaction`、`ToolCall` 等模型，避免把所有能力简化成 chat transcript。
 
+同样，Workspace 也必须是一等抽象。它不是“本地文件夹”别名，而是 Agent Run 的受控资源边界：文件、命令、Artifact、Snapshot、Mount、Session、权限、审计和缓存都应围绕 Workspace 建模，而不是让工具直接访问宿主机文件系统。
+
 ### 2. COLA 分层
 
 项目采用 COLA 风格分层：
@@ -271,11 +285,15 @@ REST/SSE、Agent Web Console、Admin Governance、未来 TUI/CLI、审计、Trac
 
 任何工具调用都不能绕过 schema validation、policy、timeout、audit、redaction 和 observability。
 
+文件、bash、代码仓库、Artifact 等能力也不能直接操作宿主机；它们必须通过 `WorkspaceGateway` / `CommandExecutionGateway` 进入 Workspace 边界。
+
 ### 7. Cloud Safety by Default
 
 云上 Agent 的最大风险来自工具边界。
 
 默认不提供无限制 shell/file/code execution。高风险工具必须显式经过 Workspace、Policy、Approval、Sandbox、Audit 约束。
+
+默认实现可以是 fake/local-temp workspace，但不能把宿主机 bash 作为平台默认能力。
 
 ### 8. API First
 
@@ -284,6 +302,16 @@ Agent Web Console、Admin Governance 和未来 TUI/CLI 使用同一套 REST/SSE/
 不允许 GUI 直接依赖私有 Runtime 或数据库细节。
 
 ### 9. Extension Without Core Pollution
+
+Resource、Workspace、Memory、Tool、Provider、Policy、EventSink、Plugin 都可扩展，但扩展机制不能污染核心 Runtime。
+
+Workspace 层建议借鉴 Mirage 的思路：
+
+- `Resource`：统一异构后端能力
+- `Mount`：把资源挂到统一命名空间
+- `WorkspaceSession`：隔离 cwd/env/allowed resources
+- `Snapshot`：支持恢复和可重现性
+- `Provision`：执行前预估副作用和成本
 
 ### 10. UI 只是入口，不是内核
 
@@ -411,7 +439,7 @@ mvn verify -P browser-e2e         # Web Console browser E2E
 | 1 | Runtime Spine and Domain Contracts | 建立 COLA-aligned、Spring-free Agent Runtime contracts、状态模型、事件 envelope、取消机制和 testkit |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | 通过 Spring Boot REST/SSE 和 PostgreSQL 暴露云上 Runtime |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | 引入真实模型流式调用、Provider Registry、usage/error 归一化 |
-| 4 | Governed Tool Registry and Invocation Pipeline | 构建所有工具调用必须经过的安全网关 |
+| 4 | Governed Tool Registry, Workspace, and Invocation Pipeline | 构建所有工具调用必须经过的安全网关，并接入 Workspace 资源边界 |
 | 5 | Agent Web Console and Runtime Cockpit | 提供 all-Java Agent 入口和运行时 cockpit，用于 Agent Catalog、Chat/Run 入口、工具过程、审批、历史会话和基础治理 |
 | 6 | Java Extension Surface: SPI and Spring | 稳定 Java SPI 与 Spring Bean/annotation 扩展 API |
 | 7 | MCP Client Bridge and Governed Remote Tools | 将 MCP remote tools 接入统一 Tool Gateway |
@@ -438,6 +466,7 @@ v1 明确不做：
 - 不做完整插件市场。
 - 不做所有模型厂商适配。
 - 不做无限制 shell/file/code execution。
+- 不把宿主机文件系统或宿主机 bash 暴露为默认 Workspace。
 - 不承诺 JVM 插件热卸载。
 - 不做完整 RAG/Knowledge Base 产品。
 - 不让 Agent 自主安装插件。

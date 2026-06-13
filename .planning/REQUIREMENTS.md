@@ -46,6 +46,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
 - [ ] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
 
+### Workspace and Resources
+
+- [ ] **WORK-01**: Domain defines Workspace, WorkspaceSession, WorkspaceScope, WorkspaceSnapshot, Artifact, Attachment, and Resource/Mount abstractions as first-class runtime concepts.
+- [ ] **WORK-02**: WorkspaceGateway abstracts file/resource/artifact operations without exposing host filesystem assumptions to Domain.
+- [ ] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment.
+- [ ] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
+- [ ] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
+- [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
+- [ ] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
+- [ ] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
+
 ### Extension Fabric
 
 - [ ] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata.
@@ -174,6 +185,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODEL-03 | Phase 3 | Pending |
 | MODEL-04 | Phase 3 | Pending |
 | MODEL-05 | Phase 3 | Pending |
+| WORK-01 | Phase 1 | Pending |
+| WORK-02 | Phase 1 | Pending |
+| WORK-03 | Phase 4 | Pending |
+| WORK-04 | Phase 1 | Pending |
+| WORK-05 | Phase 1 | Pending |
+| WORK-06 | Phase 6 | Pending |
+| WORK-07 | Phase 4 | Pending |
+| WORK-08 | Phase 4 | Pending |
 | TOOL-01 | Phase 4 | Pending |
 | TOOL-02 | Phase 4 | Pending |
 | TOOL-03 | Phase 4 | Pending |
@@ -221,8 +240,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-08 | Phase 7, Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 67 total
-- Mapped to phases: 67
+- v1 requirements: 75 total
+- Mapped to phases: 75
 - Unmapped: 0 ✓
 
 ---

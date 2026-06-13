@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | Runtime Spine and Domain Contracts | Pending |
+| 1 | Runtime Spine, Workspace, and Domain Contracts | Pending |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Pending |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Pending |
 | 4 | Governed Tool Registry and Invocation Pipeline | Pending |
@@ -37,17 +37,19 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 ## Phase 1 Summary
 
-**Goal:** Establish a framework-independent Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
+**Goal:** Establish a framework-independent Java Agent Runtime kernel and first-class Workspace contracts that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
 
-**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, OPS-04, OPS-06
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, WORK-01, WORK-02, WORK-04, WORK-05, OPS-04, OPS-06
 
 **Key concerns for planning:**
 - Keep runtime core independent of Spring Boot, Vaadin, PF4J, MCP, and provider SDKs.
 - Use COLA boundaries: Adapter → App → Domain ← Infrastructure; Domain has zero outward dependencies.
 - Keep runtime core generic: no Chat-only, Coding-only, single-provider, single-tool-protocol, or UI-driven assumptions.
+- Define Workspace as a first-class domain concept instead of a thin wrapper over host filesystem.
 - Define stable domain models before persistence/API/UI.
 - Define event envelope carefully because REST/SSE/Admin/TUI/CLI/audit all depend on it.
 - Use fake model/fake tool testkit to validate Agent loop without real providers.
+- Use fake workspace and fake command executor so later E2E can validate file/command/resource actions without host shell dependencies.
 - Design Phase 1 testkit so later E2E can validate Run lifecycle without real model keys.
 
 ## Research Summary

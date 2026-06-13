@@ -3,8 +3,8 @@
 **Created:** 2026-06-13  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**v1 Requirements:** 67  
-**Mapped:** 67 / 67 ✓
+**v1 Requirements:** 75  
+**Mapped:** 75 / 75 ✓
 
 ## Overview
 
@@ -12,32 +12,33 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 | # | Phase | Goal | Requirements | UI hint |
 |---|-------|------|--------------|---------|
-| 1 | Runtime Spine and Domain Contracts | Establish COLA-aligned, Spring-free, UI-agnostic Agent Runtime contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-09, OPS-04, OPS-06 | no |
+| 1 | Runtime Spine, Workspace, and Domain Contracts | Establish COLA-aligned, Spring-free, UI-agnostic Agent Runtime and Workspace contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-09, WORK-01, WORK-02, WORK-04, WORK-05, OPS-04, OPS-06 | no |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state, baseline security, and first headless E2E | CLOUD-01..CLOUD-06, E2E-01, E2E-04, E2E-05 | no |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
-| 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, redaction, and security E2E | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06 | no |
+| 4 | Governed Tool Registry, Workspace, and Invocation Pipeline | Build the single safety gateway for all tool and workspace execution with schema, policy, timeout, audit, redaction, provision preview, and security E2E | WORK-03, WORK-07, WORK-08, TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06 | no |
 | 5 | Agent Web Console and Runtime Cockpit | Provide all-Java Agent Catalog, Chat entry, run timeline, tool cards, approval cards, session history, admin governance views, and browser E2E | GUI-01..GUI-08, E2E-07 | yes |
-| 6 | Java Extension Surface: SPI and Spring | Stabilize public extension APIs via Java SPI and Spring Bean/annotation registration | EXT-01..EXT-05 | no |
+| 6 | Java Extension Surface: SPI and Spring | Stabilize public extension APIs via Java SPI and Spring Bean/annotation registration | WORK-06, EXT-01..EXT-05 | no |
 | 7 | MCP Client Bridge and Governed Remote Tools | Connect trusted MCP servers and normalize remote tools through the governed tool pipeline | MCP-01..MCP-05, E2E-08 | yes |
 | 8 | Controlled Dynamic Plugin JARs | Load trusted plugin JARs with lifecycle, compatibility checks, health, disable, and quarantine | PLUG-01..PLUG-06, E2E-08 | yes |
 | 9 | Observability, Policy, Tenancy, and Production Hardening | Complete production safety and operational readiness across traces, audit, tenant context, and metrics | OPS-01 | yes |
 
 ## Phase Details
 
-### Phase 1: Runtime Spine and Domain Contracts
+### Phase 1: Runtime Spine, Workspace, and Domain Contracts
 
-**Goal:** Establish a framework-independent and UI-agnostic Java Agent Runtime kernel in the COLA Domain layer that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
+**Goal:** Establish a framework-independent and UI-agnostic Java Agent Runtime kernel plus first-class Workspace contracts in the COLA Domain layer that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
 
-**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, OPS-04, OPS-06  
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, WORK-01, WORK-02, WORK-04, WORK-05, OPS-04, OPS-06  
 **UI hint**: no
 
 **Success criteria:**
 1. Developer can construct an `AgentDefinition` with model config, instructions, tool allowlist, policies, interaction modes, and runtime limits without Spring dependencies.
-2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `Artifact`, `Attachment`, and `RunEvent` with tenant/user/session/run/step/trace context.
+2. Runtime domain model includes `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `Artifact`, `Attachment`, `Workspace`, `WorkspaceSession`, `WorkspaceScope`, `WorkspaceSnapshot`, and `RunEvent` with tenant/user/session/run/step/trace/workspace context.
 3. Runtime supports chat-style input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution without using chat transcript as the only state model.
-4. Fake model and fake tool testkit can execute a complete General Agent loop and emit ordered events.
-5. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
-6. Architecture tests verify COLA boundaries: Adapter depends on App, App depends on Domain/Gateways, Infrastructure implements Domain ports, and Domain/core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, DB, or provider SDKs.
+4. Domain defines `WorkspaceGateway`, `CommandExecutionGateway`, `Resource/Mount` abstractions, and snapshot contracts without host filesystem assumptions.
+5. Fake model, fake tool, and fake workspace testkit can execute a complete General Agent loop and emit ordered events.
+6. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
+7. Architecture tests verify COLA boundaries: Adapter depends on App, App depends on Domain/Gateways, Infrastructure implements Domain ports, and Domain/core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, DB, or provider SDKs.
 
 **Notes:** This phase is the foundation. Avoid adding real provider SDKs, persistence, UI, MCP, or plugin classloaders to Domain. Those belong to Infrastructure/Adapter phases.
 
@@ -80,20 +81,21 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 ---
 
-### Phase 4: Governed Tool Registry and Invocation Pipeline
+### Phase 4: Governed Tool Registry, Workspace, and Invocation Pipeline
 
-**Goal:** Build the single safety gateway for every future tool source before exposing SPI, Spring, MCP, or dynamic plugin tools.
+**Goal:** Build the single safety gateway for every future tool source and workspace action before exposing SPI, Spring, MCP, or dynamic plugin tools.
 
-**Requirements:** TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06  
+**Requirements:** WORK-03, WORK-07, WORK-08, TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06  
 **UI hint**: no
 
 **Success criteria:**
 1. Tools register with canonical descriptors including schema, provenance, version, scopes, risk level, side effects, and timeout defaults.
-2. All tool calls execute through `ToolExecutionGateway`; no provider or extension path can bypass it.
-3. Gateway validates arguments, enforces timeout/cancellation/payload limits, normalizes results/errors, and emits lifecycle events.
-4. Default policy engine can allow, deny, require approval, require sandbox, or block tool calls.
-5. Audit records include redacted input/output summaries and security-sensitive actions never expose raw secrets by default.
-6. E2E proves successful tool execution, policy deny, approval-required, and secret-redaction paths through API/runtime, events, audit, and persistence.
+2. Workspace-backed file/command/resource actions execute through `WorkspaceGateway` / `CommandExecutionGateway` and remain subject to `ToolExecutionGateway` governance where exposed as tools.
+3. All tool calls execute through `ToolExecutionGateway`; no provider or extension path can bypass it.
+4. Gateway validates arguments, enforces timeout/cancellation/payload limits, supports provision/preview before risky execution, normalizes results/errors, and emits lifecycle events.
+5. Default policy engine can allow, deny, require approval, require sandbox, or block tool/workspace actions.
+6. Audit records include redacted input/output summaries and security-sensitive actions never expose raw secrets by default.
+7. E2E proves successful tool execution, policy deny, approval-required, provision preview, workspace-bound command/file execution, and secret-redaction paths through API/runtime, events, audit, and persistence.
 
 **Research needed:** JSON Schema validation/versioning and policy decision schema.
 
@@ -197,6 +199,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | Requirement Prefix | Count | Phase |
 |--------------------|-------|-------|
 | CORE | 9 | Phase 1 |
+| WORK | 8 | Phase 1, 4, 6 |
 | CLOUD | 6 | Phase 2 |
 | MODEL | 5 | Phase 3 |
 | TOOL | 7 | Phase 4 |
@@ -207,7 +210,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | OPS | 6 | Phase 1, 4, 9 |
 | E2E | 8 | Phase 2, 4, 5, 7, 8 |
 
-**Total mapped:** 67 / 67 ✓
+**Total mapped:** 75 / 75 ✓
 
 ## Deferred After v1
 
