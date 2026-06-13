@@ -39,10 +39,11 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Goal:** Establish a framework-independent Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
 
-**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, OPS-04, OPS-06
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, OPS-04, OPS-06
 
 **Key concerns for planning:**
 - Keep runtime core independent of Spring Boot, Vaadin, PF4J, MCP, and provider SDKs.
+- Use COLA boundaries: Adapter → App → Domain ← Infrastructure; Domain has zero outward dependencies.
 - Keep runtime core generic: no Chat-only, Coding-only, single-provider, single-tool-protocol, or UI-driven assumptions.
 - Define stable domain models before persistence/API/UI.
 - Define event envelope carefully because REST/SSE/Admin/TUI/CLI/audit all depend on it.

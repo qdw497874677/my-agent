@@ -7,26 +7,29 @@
 
 ## Executive Recommendation
 
-Architect the platform as a **modular monolith first, distributed-capable later**: keep the Agent Runtime, registries, policy, persistence, API, and Admin GUI in one deployable Spring Boot Cloud Server for v1, but enforce explicit module boundaries so the execution plane can later split from the control plane. This gives the project a shippable Cloud Server quickly while avoiding a local CLI/TUI-shaped core.
+Architect the platform as a **COLA layered modular monolith first, distributed-capable later**: keep the Agent Runtime, registries, policy, persistence, API, and Web Console in one deployable Spring Boot Cloud Server for v1, but enforce explicit COLA boundaries so the execution plane can later split from the control plane. This gives the project a shippable Cloud Server quickly while avoiding a local CLI/TUI-shaped core.
 
-The core should be a **framework-agnostic Java runtime kernel** wrapped by Spring Boot adapters. The kernel owns Agent Loop semantics, Run/Session/Step state transitions, event emission, model/tool abstractions, and cancellation. Spring Boot owns HTTP/SSE APIs, security, configuration, persistence wiring, observability exporters, plugin lifecycle wiring, and Admin GUI backend. Dynamic plugins, MCP, and model providers should all adapt into the same internal extension contracts instead of each being special-cased inside the Agent Loop.
+The core should be a **framework-agnostic Java runtime kernel in the COLA Domain layer**. Domain owns Agent Loop semantics, Run/Session/Step state transitions, event emission, model/tool abstractions, Gateway/Port interfaces, and cancellation. Adapter owns HTTP/SSE APIs and Web GUI entry points. App owns use-case orchestration such as create run, cancel run, stream events, register tools, connect MCP, and load plugins. Infrastructure owns persistence, model provider adapters, MCP clients, PF4J/dynamic plugin mechanics, observability exporters, and Spring wiring. Dynamic plugins, MCP, and model providers should all adapt into the same internal extension contracts instead of each being special-cased inside the Agent Loop.
 
 The most important architectural decision: **all tool execution must flow through one governed Tool Invocation Pipeline**: discovery → policy check → approval/sandbox hook → timeout/budget → execution → audit → event emission → result persistence. Java SPI tools, Spring Bean tools, dynamic plugin tools, and remote MCP tools must all become `ToolDescriptor + ToolExecutorBinding` records in the internal Tool Registry before an agent can use them. This prevents MCP/dynamic plugins from bypassing cloud safety and audit.
 
-## Recommended Architecture
+## Recommended COLA Architecture
 
 ```mermaid
 flowchart TB
   subgraph Clients[Client Surfaces]
-    Admin[Admin GUI]
+    Web[Agent Web Console]
+    Admin[Admin Governance]
     APIClient[External API Clients]
     FutureCLI[Future CLI/TUI]
   end
 
-  subgraph CloudServer[Spring Boot Cloud Server]
-    API[REST/SSE API Layer]
-    App[Application Services\nRunService, SessionService, PluginService]
-    Runtime[Agent Runtime Kernel\nAgentLoop, Run Orchestrator, Event Bus]
+  subgraph CloudServer[Spring Boot Cloud Server - COLA]
+    Adapter[Adapter Layer\nREST/SSE, Web Console, Admin Governance]
+    App[App Layer\nRunService, SessionService, PluginService]
+    Domain[Domain Layer\nAgent Runtime Kernel, Run, Step, Event, Policy Ports]
+    Infra[Infrastructure Layer\nDB, Provider, MCP, PF4J, OTel]
+    Runtime[Domain Runtime\nAgentLoop, Run State Machine, Event Bus]
     ModelReg[Model Provider Registry]
     ToolPipe[Governed Tool Invocation Pipeline]
     ToolReg[Tool Registry]
@@ -50,10 +53,12 @@ flowchart TB
     OTel[OTel Collector / Metrics Backend]
   end
 
-  Admin --> API
-  APIClient --> API
-  FutureCLI -.same REST/SSE protocol.-> API
-  API --> App
+  Web --> Adapter
+  Admin --> Adapter
+  APIClient --> Adapter
+  FutureCLI -.same REST/SSE protocol.-> Adapter
+  Adapter --> App
+  App --> Domain
   App --> Runtime
   Runtime --> ModelReg --> LLM
   Runtime --> ToolPipe --> ToolReg
@@ -65,7 +70,8 @@ flowchart TB
   PluginMgr --> Policy
   Runtime --> Obs --> OTel
   ToolPipe --> Obs
-  App --> Persist --> DB
+  App --> Infra
+  Infra --> Persist --> DB
   Runtime --> Persist
   Obs --> Persist
   Persist -.later.-> Obj
@@ -74,46 +80,46 @@ flowchart TB
 
 ### Architectural Style
 
-Use a **ports-and-adapters modular monolith**:
+Use **COLA (Adapter → App → Domain ← Infrastructure)**:
 
-- **Domain/runtime modules** define stable interfaces and state machines.
-- **Infrastructure modules** implement model providers, MCP transports, plugin loading, persistence, and observability.
-- **Application modules** coordinate use cases such as create run, cancel run, stream events, install plugin, list tools.
-- **UI/API modules** expose the platform through REST/SSE, Agent Web Console, and Admin Governance; future CLI/TUI must consume the same protocol.
+- **Adapter layer** exposes the platform through REST/SSE, Agent Web Console, Admin Governance, and future CLI/TUI adapters.
+- **App layer** coordinates use cases such as create run, cancel run, stream events, register tools, connect MCP, load plugin, list tools, and approve gated calls.
+- **Domain layer** defines stable Agent Runtime models, state machines, domain services, events, policies, and Gateway/Port interfaces. Domain has zero outward dependencies.
+- **Infrastructure layer** implements Domain Gateway/Port interfaces for model providers, MCP transports, plugin loading, persistence, observability, security integration, and external systems.
 
 Recommended package/module split:
 
-| Module | Role | May Depend On | Must Not Depend On |
-|--------|------|---------------|--------------------|
-| `pi-agent-api` | Public Java extension contracts: `Tool`, `ModelProvider`, `MemoryProvider`, policies, plugin metadata | Java/Jackson validation types only | Spring Boot, DB, HTTP clients |
-| `pi-agent-runtime` | Agent Loop, run state machine, event model, tool/model ports | `pi-agent-api` | Spring, PF4J, MCP SDK, concrete providers |
-| `pi-agent-application` | Use cases: run/session/plugin/model/tool orchestration | runtime, api | Web UI implementation |
-| `pi-agent-server` | Spring Boot REST/SSE, auth, configuration, lifecycle | application, infrastructure | Direct business logic in controllers |
-| `pi-agent-persistence` | JPA/JDBC repositories, migrations, event store | runtime/application ports | Agent loop decisions |
-| `pi-agent-model-openai` | OpenAI-compatible provider adapter | api/runtime ports | Tool governance internals |
-| `pi-agent-tools-core` | Built-in safe tools and tool adapters | api/runtime ports | Admin GUI |
-| `pi-agent-mcp` | MCP client and optional MCP server exporter | api/runtime ports, Spring AI/MCP SDK | Direct agent loop state mutation |
-| `pi-agent-plugins` | SPI, Spring Bean discovery, dynamic JAR/PF4J integration | api/application ports | Direct DB writes, direct model calls |
-| `pi-agent-observability` | OTel spans, Micrometer metrics, audit event sinks | runtime events | Tool/model business logic |
-| `pi-agent-admin-ui` | Minimal Admin GUI static/app resources | server API | Runtime internals |
+| Module | COLA Layer | Role | May Depend On | Must Not Depend On |
+|--------|------------|------|---------------|--------------------|
+| `pi-agent-client` | Client contracts | DTOs, commands, queries, response envelopes, public API types | Java validation/serialization types | Domain internals, Infrastructure |
+| `pi-agent-domain` | Domain | Agent Runtime, Run/Step/Event model, ToolDescriptor, Policy, Gateway/Port interfaces, domain services | Java/Jackson validation types only | Spring, DB, Vaadin, PF4J, MCP SDK, provider SDKs |
+| `pi-agent-app` | App | Use cases: run/session/plugin/model/tool orchestration, command/query executors | domain, client | Web UI implementation, concrete DB/provider SDKs |
+| `pi-agent-adapter-web` | Adapter | Spring Boot REST/SSE controllers, auth boundary, API mapping | app, client | Agent loop decisions, direct tool execution |
+| `pi-agent-adapter-webui` | Adapter | Vaadin Agent Web Console and Admin Governance | app/client APIs | Runtime internals, direct DB access |
+| `pi-agent-infrastructure-persistence` | Infrastructure | JDBC repositories, migrations, event store, read models | domain gateways, app ports | Agent loop decisions |
+| `pi-agent-infrastructure-model-openai` | Infrastructure | OpenAI-compatible provider adapter | domain provider ports | Tool governance internals |
+| `pi-agent-infrastructure-tools` | Infrastructure | Built-in safe tool implementations and tool adapters | domain tool ports | Web UI |
+| `pi-agent-infrastructure-mcp` | Infrastructure | MCP client and optional MCP server exporter | domain tool/provider ports, MCP SDK | Direct runtime state mutation |
+| `pi-agent-infrastructure-plugins` | Infrastructure | SPI, Spring Bean discovery, dynamic JAR/PF4J integration | domain/app extension ports | Direct DB writes, direct model calls |
+| `pi-agent-infrastructure-observability` | Infrastructure | OTel spans, Micrometer metrics, audit event sinks | domain events | Tool/model business logic |
 
 ## Component Boundaries
 
-| Component | Responsibility | Communicates With | Boundary Rule |
-|-----------|----------------|-------------------|---------------|
-| Admin GUI | View runs, events, tool calls, plugin status, model config | REST/SSE API only | No direct DB/runtime access |
-| REST/SSE API Layer | Authenticate/authorize requests; expose run/session/plugin/model endpoints; stream events | Application Services | Controllers do not execute tools or call models directly |
-| Application Services | Transaction/use-case orchestration: create run, cancel run, query history, manage plugins | Runtime Kernel, Persistence, Plugin Manager | Contains workflow coordination, not agent reasoning |
-| Agent Runtime Kernel | Agent Loop, ReAct/step execution, state transitions, event emission, cancellation checks | Model Registry, Tool Pipeline, Session Store/Event Sink | Framework-agnostic and embeddable; no Spring, HTTP, or DB classes |
-| Model Provider Registry | Resolve provider/model config; normalize request/response/stream/tool-call formats | Provider adapters, Runtime | Provider-specific quirks stop at adapter boundary |
-| Governed Tool Invocation Pipeline | Single path for validation, policy, approval, sandbox, timeout, retry, execution, audit | Tool Registry, Policy, Audit/Event Sink | No tool may bypass this pipeline |
-| Tool Registry | Holds normalized tool descriptors, schemas, scopes, provenance, executor bindings | Plugins, MCP Bridge, Built-in tools, Runtime | Registry describes tools; it does not execute them directly |
-| Policy / Approval / Sandbox Ports | Decide whether a tool/model/workspace action is allowed and under what constraints | Tool Pipeline, Admin/API for approvals | Policy is an extension point from v1, even if implementations are minimal |
-| Plugin Manager | Discover/load/start/stop SPI, Spring Bean, and dynamic JAR plugin contributions | Tool Registry, Model Registry, Policy Registry | Plugins contribute capabilities; they do not mutate runtime state directly |
-| MCP Bridge | Maintains MCP clients to remote/local MCP servers; discovers tools/resources/prompts; optionally exports platform tools as MCP server | Tool Registry, Tool Pipeline, MCP servers | MCP is an adapter, not the internal tool model |
-| Session/Run Store | Persist run/session/step/message/tool-call/event records | Runtime, Application Services, Admin queries | Append event records first; derive read models for UI |
-| Observability + Audit | Emit spans, metrics, logs, audit records for model calls, tool calls, agent steps, plugin lifecycle | Runtime events, Tool Pipeline, Spring Boot Actuator/OTel | Must not contain control-flow decisions except sampling/redaction |
-| Workspace/Artifact Store | Constrain files/artifacts/resources available to tools | Tool Pipeline, future memory/RAG | Treat as capability-scoped, not global filesystem |
+| Component | COLA Layer | Responsibility | Communicates With | Boundary Rule |
+|-----------|------------|----------------|-------------------|---------------|
+| Agent Web Console / Admin Governance | Adapter | Agent Catalog, Chat/Run entry, timeline, approvals, governance views | App services through public APIs | No direct DB/runtime access |
+| REST/SSE API Layer | Adapter | Authenticate/authorize requests; expose run/session/plugin/model endpoints; stream events | App Services | Controllers do not execute tools or call models directly |
+| Application Services | App | Transaction/use-case orchestration: create run, cancel run, query history, manage plugins | Domain services/gateways, Infrastructure via ports | Contains workflow coordination, not agent reasoning |
+| Agent Runtime Kernel | Domain | Agent Loop, step execution, state transitions, event emission, cancellation checks | Domain Gateway/Port interfaces | Framework-agnostic and embeddable; no Spring, HTTP, or DB classes |
+| Model Provider Registry | Domain/App + Infrastructure adapters | Resolve provider/model config; normalize request/response/stream/tool-call formats | Provider adapters, Runtime | Provider-specific quirks stop at adapter boundary |
+| Governed Tool Invocation Pipeline | Domain/App | Single path for validation, policy, approval, sandbox, timeout, retry, execution, audit | Tool Registry, Policy, Audit/Event Sink | No tool may bypass this pipeline |
+| Tool Registry | Domain/App | Holds normalized tool descriptors, schemas, scopes, provenance, executor bindings | Plugins, MCP Bridge, Built-in tools, Runtime | Registry describes tools; it does not execute them directly |
+| Policy / Approval / Sandbox Ports | Domain | Decide whether a tool/model/workspace action is allowed and under what constraints | Tool Pipeline, Admin/API for approvals | Policy is an extension point from v1, even if implementations are minimal |
+| Plugin Manager | App + Infrastructure | Discover/load/start/stop SPI, Spring Bean, and dynamic JAR plugin contributions | Tool Registry, Model Registry, Policy Registry | Plugins contribute capabilities; they do not mutate runtime state directly |
+| MCP Bridge | Infrastructure | Maintains MCP clients to remote/local MCP servers; discovers tools/resources/prompts; optionally exports platform tools as MCP server | Tool Registry, Tool Pipeline, MCP servers | MCP is an adapter, not the internal tool model |
+| Session/Run Store | Infrastructure | Persist run/session/step/message/tool-call/event records | Runtime, Application Services, Admin queries | Append event records first; derive read models for UI |
+| Observability + Audit | Infrastructure | Emit spans, metrics, logs, audit records for model calls, tool calls, agent steps, plugin lifecycle | Runtime events, Tool Pipeline, Spring Boot Actuator/OTel | Must not contain control-flow decisions except sampling/redaction |
+| Workspace/Artifact Store | Infrastructure | Constrain files/artifacts/resources available to tools | Tool Pipeline, future memory/RAG | Treat as capability-scoped, not global filesystem |
 
 ## Data Flow
 

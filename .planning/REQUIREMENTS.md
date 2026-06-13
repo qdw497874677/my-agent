@@ -17,6 +17,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
 - [ ] **CORE-07**: Core runtime supports multiple Agent interaction modes, including chat-style message input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution, without treating chat transcript as the only state model.
 - [ ] **CORE-08**: Core runtime models artifacts, attachments, intermediate outputs, and external references separately from messages so non-chat Agents can produce and consume structured work products.
+- [ ] **CORE-09**: Codebase follows COLA layer boundaries where Adapter handles external protocols/UI, App orchestrates use cases, Domain owns runtime models/rules/gateways, and Infrastructure implements external systems without Domain depending outward.
 
 ### Cloud Server API
 
@@ -161,6 +162,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-06 | Phase 1 | Pending |
 | CORE-07 | Phase 1 | Pending |
 | CORE-08 | Phase 1 | Pending |
+| CORE-09 | Phase 1 | Pending |
 | CLOUD-01 | Phase 2 | Pending |
 | CLOUD-02 | Phase 2 | Pending |
 | CLOUD-03 | Phase 2 | Pending |
@@ -219,8 +221,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-08 | Phase 7, Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 66 total
-- Mapped to phases: 66
+- v1 requirements: 67 total
+- Mapped to phases: 67
 - Unmapped: 0 ✓
 
 ---

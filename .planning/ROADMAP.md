@@ -3,8 +3,8 @@
 **Created:** 2026-06-13  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**v1 Requirements:** 66  
-**Mapped:** 66 / 66 ✓
+**v1 Requirements:** 67  
+**Mapped:** 67 / 67 ✓
 
 ## Overview
 
@@ -12,7 +12,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 | # | Phase | Goal | Requirements | UI hint |
 |---|-------|------|--------------|---------|
-| 1 | Runtime Spine and Domain Contracts | Establish Spring-free, UI-agnostic Agent Runtime contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-08, OPS-04, OPS-06 | no |
+| 1 | Runtime Spine and Domain Contracts | Establish COLA-aligned, Spring-free, UI-agnostic Agent Runtime contracts, state model, interaction model, event envelope, cancellation, and testkit | CORE-01..CORE-09, OPS-04, OPS-06 | no |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state, baseline security, and first headless E2E | CLOUD-01..CLOUD-06, E2E-01, E2E-04, E2E-05 | no |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
 | 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, redaction, and security E2E | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06 | no |
@@ -26,9 +26,9 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 ### Phase 1: Runtime Spine and Domain Contracts
 
-**Goal:** Establish a framework-independent and UI-agnostic Java Agent Runtime kernel that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
+**Goal:** Establish a framework-independent and UI-agnostic Java Agent Runtime kernel in the COLA Domain layer that all cloud, GUI, provider, tool, MCP, and plugin work will build on.
 
-**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, OPS-04, OPS-06  
+**Requirements:** CORE-01, CORE-02, CORE-03, CORE-04, CORE-05, CORE-06, CORE-07, CORE-08, CORE-09, OPS-04, OPS-06  
 **UI hint**: no
 
 **Success criteria:**
@@ -37,9 +37,9 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 3. Runtime supports chat-style input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution without using chat transcript as the only state model.
 4. Fake model and fake tool testkit can execute a complete General Agent loop and emit ordered events.
 5. Runtime supports cancellation, max-step/deadline budget hooks, and terminal run states.
-6. Architecture tests verify core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDKs.
+6. Architecture tests verify COLA boundaries: Adapter depends on App, App depends on Domain/Gateways, Infrastructure implements Domain ports, and Domain/core modules do not depend on Spring Boot, Vaadin, PF4J, MCP, DB, or provider SDKs.
 
-**Notes:** This phase is the foundation. Avoid adding real provider SDKs, persistence, UI, MCP, or plugin classloaders here.
+**Notes:** This phase is the foundation. Avoid adding real provider SDKs, persistence, UI, MCP, or plugin classloaders to Domain. Those belong to Infrastructure/Adapter phases.
 
 ---
 
@@ -196,7 +196,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 | Requirement Prefix | Count | Phase |
 |--------------------|-------|-------|
-| CORE | 8 | Phase 1 |
+| CORE | 9 | Phase 1 |
 | CLOUD | 6 | Phase 2 |
 | MODEL | 5 | Phase 3 |
 | TOOL | 7 | Phase 4 |
@@ -207,7 +207,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | OPS | 6 | Phase 1, 4, 9 |
 | E2E | 8 | Phase 2, 4, 5, 7, 8 |
 
-**Total mapped:** 66 / 66 ✓
+**Total mapped:** 67 / 67 ✓
 
 ## Deferred After v1
 
