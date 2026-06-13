@@ -4,19 +4,19 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-06-13T19:05:25.490Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-06-13T19:12:14.489Z"
 progress:
   total_phases: 9
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Executing Phase 01 — 3/5 plans complete
+**Status:** Executing Phase 01 — 5/5 plans complete
 **Current Phase:** 01
 
 ## Project Reference
@@ -40,7 +40,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | Runtime Spine, Workspace, and Domain Contracts | Pending |
+| 1 | Runtime Spine, Workspace, and Domain Contracts | Complete |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Pending |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Pending |
 | 4 | Governed Tool Registry and Invocation Pipeline | Pending |
@@ -93,8 +93,8 @@ Key findings:
 - [x] 01-01-PLAN.md — Java 21 Maven/COLA skeleton and architecture gates completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-01-SUMMARY.md`).
 - [x] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-02-SUMMARY.md`).
 - [x] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-03-SUMMARY.md`).
-- [ ] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop.
-- [ ] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index.
+- [x] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-04-SUMMARY.md`).
+- [x] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-05-SUMMARY.md`).
 
 ## Decisions
 
@@ -110,6 +110,8 @@ Key findings:
 - [Phase 01]: Keep runtime/model/tool/event/policy ports pure Domain contracts with no async framework, provider SDK, Spring, persistence, or host process dependency.
 - [Phase 01]: Implement GeneralAgentLoop in pi-testkit as a synchronous fake runtime for contract verification without real model keys or tools.
 - [Phase 01]: Use exactly one terminal RunEvent as the last observable fake loop outcome.
+- [Phase 01]: Use Java 21 explicitly for Maven verification in this environment because the system Maven launcher defaults to Java 17.
+- [Phase 01]: Keep Phase 1 contract documentation as a downstream boundary document that names deferred provider, persistence, UI, MCP, plugin, shell, filesystem, and durable execution scopes.
 
 ## Performance Metrics
 
@@ -119,18 +121,19 @@ Key findings:
 | Phase 01-runtime-spine-workspace-and-domain-contracts P03 | 6m 34s | 3 tasks | 19 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P02 | 7m 03s | 3 tasks | 22 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P04 | 7m 20s | 3 tasks | 22 files |
+| Phase 01-runtime-spine-workspace-and-domain-contracts P05 | 4m 06s | 3 tasks | 4 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 01-04-PLAN.md
+- **Stopped At:** Completed 01-05-PLAN.md
 
 ## Next Action
 
 Run:
 
 ```text
-/gsd-execute-phase 1 --plan 01-04
+/gsd-verify-work 1
 ```
 
 Context captured:
