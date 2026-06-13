@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-06-13T18:55:08.822Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-06-13T19:05:25.490Z"
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: Pi Java Agent Platform
@@ -107,6 +107,9 @@ Key findings:
 - [Phase 01]: Use nested JDK records in PlatformIds for runtime context IDs.
 - [Phase 01]: Represent generic runtime input and event payload variants with Java sealed interfaces.
 - [Phase 01]: Keep Domain contracts framework-free and serialization-neutral for adapter/client mapping later.
+- [Phase 01]: Keep runtime/model/tool/event/policy ports pure Domain contracts with no async framework, provider SDK, Spring, persistence, or host process dependency.
+- [Phase 01]: Implement GeneralAgentLoop in pi-testkit as a synchronous fake runtime for contract verification without real model keys or tools.
+- [Phase 01]: Use exactly one terminal RunEvent as the last observable fake loop outcome.
 
 ## Performance Metrics
 
@@ -115,11 +118,12 @@ Key findings:
 | 01-runtime-spine-workspace-and-domain-contracts | 01 | 11m 46s | 2 | 16 |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P03 | 6m 34s | 3 tasks | 19 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P02 | 7m 03s | 3 tasks | 22 files |
+| Phase 01-runtime-spine-workspace-and-domain-contracts P04 | 7m 20s | 3 tasks | 22 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 01-02-PLAN.md
+- **Stopped At:** Completed 01-04-PLAN.md
 
 ## Next Action
 

@@ -11,7 +11,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **CORE-01**: Developer can define an Agent with instructions, model configuration, tool allowlist, policies, and runtime limits.
 - [x] **CORE-02**: System represents execution with explicit Session, Run, Step, Message, ToolCall, ToolResult, and RunEvent models.
-- [ ] **CORE-03**: Agent Runtime can execute a General Agent loop that sends messages to a model, receives text/tool-call intents, executes tools, appends results, and continues until completion or failure.
+- [x] **CORE-03**: Agent Runtime can execute a General Agent loop that sends messages to a model, receives text/tool-call intents, executes tools, appends results, and continues until completion or failure.
 - [x] **CORE-04**: Agent Runtime emits ordered, provider-neutral RunEvents with IDs, sequence numbers, timestamps, trace IDs, tenant/user/session/run/step context, event type, payload, and redaction metadata.
 - [x] **CORE-05**: Agent Runtime supports run status transitions, cancellation, deadlines, max-step budgets, and terminal states for completed, failed, cancelled, and policy-blocked runs.
 - [x] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
@@ -100,7 +100,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
 - [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
 - [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
-- [ ] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
+- [x] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
 ### End-to-End Verification
 
@@ -167,7 +167,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | CORE-01 | Phase 1 | Complete |
 | CORE-02 | Phase 1 | Complete |
-| CORE-03 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Complete |
 | CORE-05 | Phase 1 | Complete |
 | CORE-06 | Phase 1 | Complete |
@@ -229,7 +229,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-03 | Phase 4 | Pending |
 | OPS-04 | Phase 1 | Complete |
 | OPS-05 | Phase 4 | Pending |
-| OPS-06 | Phase 1 | Pending |
+| OPS-06 | Phase 1 | Complete |
 | E2E-01 | Phase 2 | Pending |
 | E2E-02 | Phase 4 | Pending |
 | E2E-03 | Phase 4 | Pending |
