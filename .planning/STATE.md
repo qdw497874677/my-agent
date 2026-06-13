@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Pending |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Pending |
 | 4 | Governed Tool Registry and Invocation Pipeline | Pending |
-| 5 | Admin GUI Runtime Cockpit | Pending |
+| 5 | Agent Web Console and Runtime Cockpit | Pending |
 | 6 | Java Extension Surface: SPI and Spring | Pending |
 | 7 | MCP Client Bridge and Governed Remote Tools | Pending |
 | 8 | Controlled Dynamic Plugin JARs | Pending |
@@ -56,7 +56,7 @@ Key findings:
 - Runtime core should be framework-independent; Spring, Spring AI, MCP, PF4J, Vaadin are adapters.
 - Every tool source must normalize into one Tool Registry + Governed Tool Invocation Pipeline.
 - Do not start with MCP or dynamic plugins; they depend on stable tool/policy/event contracts.
-- Admin GUI is a runtime cockpit, not a workflow builder.
+- Web GUI is an Agent Web Console first: Agent Catalog, Chat entry, Run timeline, Tool cards, Approval cards, Session history, plus Admin Governance. It is not a full visual workflow builder in v1.
 
 ## Open Questions
 

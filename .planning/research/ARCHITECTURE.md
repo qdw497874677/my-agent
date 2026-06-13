@@ -79,7 +79,7 @@ Use a **ports-and-adapters modular monolith**:
 - **Domain/runtime modules** define stable interfaces and state machines.
 - **Infrastructure modules** implement model providers, MCP transports, plugin loading, persistence, and observability.
 - **Application modules** coordinate use cases such as create run, cancel run, stream events, install plugin, list tools.
-- **UI/API modules** expose the platform through REST/SSE and Admin GUI only; future CLI/TUI must consume the same protocol.
+- **UI/API modules** expose the platform through REST/SSE, Agent Web Console, and Admin Governance; future CLI/TUI must consume the same protocol.
 
 Recommended package/module split:
 

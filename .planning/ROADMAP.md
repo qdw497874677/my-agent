@@ -3,12 +3,12 @@
 **Created:** 2026-06-13  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**v1 Requirements:** 54  
-**Mapped:** 54 / 54 ✓
+**v1 Requirements:** 56  
+**Mapped:** 56 / 56 ✓
 
 ## Overview
 
-Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent platform: runtime contracts first, Cloud Server and persistence next, model/provider integration, governed tools, Admin GUI, Java extension surfaces, MCP, dynamic plugins, and finally production hardening. The roadmap intentionally avoids starting with MCP/PF4J/TUI because those capabilities depend on stable event, tool, policy, and persistence contracts.
+Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent platform: runtime contracts first, Cloud Server and persistence next, model/provider integration, governed tools, Agent Web Console + Admin Governance, Java extension surfaces, MCP, dynamic plugins, and finally production hardening. The roadmap intentionally avoids starting with MCP/PF4J/TUI because those capabilities depend on stable event, tool, policy, and persistence contracts.
 
 | # | Phase | Goal | Requirements | UI hint |
 |---|-------|------|--------------|---------|
@@ -16,7 +16,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Expose runtime through Spring Boot REST/SSE with durable PostgreSQL state and baseline security | CLOUD-01..CLOUD-06 | no |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Add real streaming model IO, provider registry, usage/error normalization, and credential boundaries | MODEL-01..MODEL-05 | no |
 | 4 | Governed Tool Registry and Invocation Pipeline | Build the single safety gateway for all tool execution with schema, policy, timeout, audit, and redaction | TOOL-01..TOOL-07, OPS-02, OPS-03, OPS-05 | no |
-| 5 | Admin GUI Runtime Cockpit | Provide all-Java operational Admin GUI for runs, timelines, tools, providers, extensions, and cancellation | GUI-01..GUI-06 | yes |
+| 5 | Agent Web Console and Runtime Cockpit | Provide all-Java Agent Catalog, Chat entry, run timeline, tool cards, approval cards, session history, and admin governance views | GUI-01..GUI-08 | yes |
 | 6 | Java Extension Surface: SPI and Spring | Stabilize public extension APIs via Java SPI and Spring Bean/annotation registration | EXT-01..EXT-05 | no |
 | 7 | MCP Client Bridge and Governed Remote Tools | Connect trusted MCP servers and normalize remote tools through the governed tool pipeline | MCP-01..MCP-05 | yes |
 | 8 | Controlled Dynamic Plugin JARs | Load trusted plugin JARs with lifecycle, compatibility checks, health, disable, and quarantine | PLUG-01..PLUG-06 | yes |
@@ -56,7 +56,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 4. Cancellation through REST changes run state and appears in event history.
 5. Health endpoints, structured logs, request correlation IDs, and tenant/user placeholder context are present.
 
-**Notes:** Use API-first patterns so Admin GUI and future TUI/CLI consume the same surface.
+**Notes:** Use API-first patterns so Web Console, Admin Governance, and future TUI/CLI consume the same surface.
 
 ---
 
@@ -96,21 +96,23 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 ---
 
-### Phase 5: Admin GUI Runtime Cockpit
+### Phase 5: Agent Web Console and Runtime Cockpit
 
-**Goal:** Deliver an all-Java operational cockpit for inspecting and controlling runs, tools, providers, extensions, and runtime health.
+**Goal:** Deliver an all-Java Agent Web Console where users can discover Agents, chat, watch execution, handle approvals, continue sessions, and access basic Admin Governance for runtime health and controls.
 
-**Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06  
+**Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07, GUI-08  
 **UI hint**: yes
 
 **Success criteria:**
-1. Admin can view run list with status, timestamps, model, agent definition, usage summary, and terminal state.
-2. Admin can inspect a run timeline with ordered events, steps, model events, tool calls, policy decisions, errors, and terminal result.
-3. Admin can inspect tool-call metadata, provenance, policy decision, redacted inputs/outputs, duration, status, and error details.
-4. Admin can view provider, extension, MCP, plugin, and tool registry health/status placeholders.
-5. Admin can cancel a running run from the GUI, and GUI uses REST/SSE/read-model APIs rather than private runtime access.
+1. User can browse an Agent Catalog and enter a Chat page for a selected Agent.
+2. User can send a message, receive streaming output, and see Run status/timeline updates through SSE.
+3. User can see tool calls as cards with status, risk/side-effect label, progress, redacted result summary, and errors.
+4. User can view/continue Session history and cancel a running Run.
+5. User or Admin can approve/reject gated tool calls through approval cards when ToolPolicy requires approval.
+6. Admin can inspect provider, extension, MCP, plugin, tool registry, policy decision, and audit governance views.
+7. Web GUI uses REST/SSE/read-model APIs rather than private runtime/database access.
 
-**Research needed:** Vaadin + Spring Security + SSE UI patterns if unfamiliar.
+**Research needed:** Vaadin + Spring Security + SSE Chat UI patterns, tool-call card UX, approval-card flow, and Agent Catalog information architecture.
 
 ---
 
@@ -177,7 +179,7 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 **Success criteria:**
 1. Platform emits structured logs, metrics, and OpenTelemetry-compatible spans for run, model, tool, MCP, plugin, and policy lifecycles.
-2. Admin GUI surfaces runtime health and key operational metrics for runs, providers, tools, MCP servers, and plugins.
+2. Web Console/Admin Governance surfaces runtime health and key operational metrics for runs, providers, tools, MCP servers, and plugins.
 3. Trace/run/session IDs are consistently correlated across API responses, SSE events, logs, audit records, and traces.
 4. Production configuration documents cover secrets, policy engine extension, tenancy/RBAC hooks, sandbox strategy, retention/redaction, and deployment.
 5. Regression tests cover critical policy, audit, cancellation, timeout, extension, and event-ordering paths.
@@ -195,10 +197,10 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 | EXT | 5 | Phase 6 |
 | MCP | 5 | Phase 7 |
 | PLUG | 6 | Phase 8 |
-| GUI | 6 | Phase 5 |
+| GUI | 8 | Phase 5 |
 | OPS | 6 | Phase 1, 4, 9 |
 
-**Total mapped:** 54 / 54 ✓
+**Total mapped:** 56 / 56 ✓
 
 ## Deferred After v1
 

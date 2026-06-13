@@ -3,19 +3,19 @@
 
 **Pi Java Agent Platform**
 
-Pi Java Agent Platform 是一个基于 Java 的通用 Agent 基座，用于支撑云上 Agent 服务、Admin GUI、未来 TUI/CLI 客户端和插件生态。它借鉴 earendil-works/pi 的 Agent Loop、Provider Registry、Tool、Session、Extension、Skills 等思想，但面向云端、多租户、可集成、可扩展的产品平台重新设计。
+Pi Java Agent Platform 是一个基于 Java 的通用 Agent 基座，用于支撑云上 Agent 服务、Agent Web Console、Admin Governance、未来 TUI/CLI 客户端和插件生态。它借鉴 earendil-works/pi 的 Agent Loop、Provider Registry、Tool、Session、Extension、Skills 等思想，但面向云端、多租户、可集成、可扩展的产品平台重新设计。
 
-第一阶段的首要交付形态是 Cloud Server：一个可部署的 Java 云上 Agent 服务，提供 Runtime、扩展集成、Run/Session 管理、API/SSE 和最小 Admin GUI。核心实现尽量采用 Java 全栈，避免把 TypeScript pi 的 CLI/TUI 结构直接搬到核心。
+第一阶段的首要交付形态是 Cloud Server + Agent Web Console：一个可部署的 Java 云上 Agent 服务，提供 Runtime、扩展集成、Agent Catalog、Chat 入口、Run/Session 管理、API/SSE、工具执行过程展示和基础 Admin Governance。核心实现尽量采用 Java 全栈，避免把 TypeScript pi 的 CLI/TUI 结构直接搬到核心。
 
 **Core Value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。
 
 ### Constraints
 
-- **Tech stack**: Java 优先，核心 Runtime、Cloud Server、Admin GUI 后端尽量采用 Java 生态 — 便于作为企业级云上 Agent 基座和基础 Jar/SDK。
+- **Tech stack**: Java 优先，核心 Runtime、Cloud Server、Agent Web Console、Admin Governance 后端尽量采用 Java 生态 — 便于作为企业级云上 Agent 基座和基础 Jar/SDK。
 - **Architecture**: Core 不直接依赖具体产品 UI、具体数据库、具体模型厂商或具体插件机制 — 保持 Runtime 可嵌入、可测试、可替换。
 - **Cloud safety**: 工具调用必须具备 Policy、Audit、Timeout、Approval/Sandbox 扩展点 — 云上 Agent 的主要风险来自 Tool 边界。
 - **Extensibility**: Model、Tool、Memory、Workspace、Policy、EventSink、Plugin 都必须可扩展 — v1 核心价值是扩展集成。
-- **Product order**: Cloud Server 和 Admin GUI 优先，TUI/CLI 作为后续客户端 — 避免本地 CLI 体验绑架云端内核设计。
+- **Product order**: Cloud Server、Agent Web Console 和 Admin Governance 优先，TUI/CLI 作为后续客户端 — 避免本地 CLI 体验绑架云端内核设计。
 - **Reference boundary**: pi 是参考设计而非迁移目标 — 避免继承 Node/TUI/本地文件系统的隐含假设。
 <!-- GSD:project-end -->
 

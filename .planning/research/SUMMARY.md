@@ -95,7 +95,7 @@ Explicitly avoid v1 scope creep that changes the product category or compromises
 - **Storing full sensitive tool payloads by default** — use redaction, summaries, and configurable secure retention.
 - **Guaranteed hot unload in v1** — use load/disable/restart-required unload semantics first.
 - **Heavy RAG/knowledge-base product** — define Memory/Retrieval extension points; defer full ingestion/vector features.
-- **Consumer chat app primary UI** — provide API and simple run tester if needed; Admin GUI is operational.
+- **Full consumer chat app as the only UI** — v1 now includes Agent Web Console as the Agent entry and Chat surface, but should not become a standalone consumer chat product detached from runtime governance.
 
 ### Architecture Approach
 
@@ -212,9 +212,9 @@ Based on all research, the roadmap should be dependency-driven: **contracts and 
 
 **Research flag:** Standard patterns plus security-sensitive design. Research policy decision schema and JSON Schema validation/versioning during phase planning.
 
-### Phase 5: Admin GUI Runtime Cockpit and Operational Controls
+### Phase 5: Agent Web Console and Runtime Cockpit
 
-**Rationale:** The Admin GUI should validate operability and governance, not drive architecture. It becomes valuable once runs, events, models, and tool calls exist.
+**Rationale:** The Web GUI should provide the primary Agent entry and Chat experience while preserving operability and governance. It becomes valuable once runs, events, models, and tool calls exist.
 
 **Delivers:**
 - Vaadin Flow operational UI consuming REST/SSE/read models.

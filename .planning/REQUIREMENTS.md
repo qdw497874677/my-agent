@@ -68,14 +68,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs.
 - [ ] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code.
 
-### Admin GUI
+### Agent Web Console and Admin Governance
 
-- [ ] **GUI-01**: Admin can view a list of Agent Runs with status, timestamps, model, agent definition, token/usage summary when available, and terminal state.
-- [ ] **GUI-02**: Admin can inspect a Run timeline showing ordered RunEvents, steps, model events, tool calls, policy decisions, errors, and terminal result.
-- [ ] **GUI-03**: Admin can inspect tool calls with descriptor metadata, provenance, policy decision, redacted input/output summaries, duration, status, and error details.
-- [ ] **GUI-04**: Admin can view provider configuration/status, extension status, MCP server status, plugin status, and tool registry health.
-- [ ] **GUI-05**: Admin can cancel a running Agent Run from the GUI.
-- [ ] **GUI-06**: Admin GUI uses public REST/SSE/read-model APIs rather than private runtime access.
+- [ ] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
+- [ ] **GUI-02**: User can enter an Agent Chat page, send a message, receive streaming model output, and see the current Run status.
+- [ ] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors.
+- [ ] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
+- [ ] **GUI-05**: User can cancel a running Agent Run from the Web Console.
+- [ ] **GUI-06**: User or Admin can approve or reject gated tool calls through an approval card when ToolPolicy requires approval.
+- [ ] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records.
+- [ ] **GUI-08**: Web GUI uses public REST/SSE/read-model APIs rather than private runtime or database access.
 
 ### Observability, Policy, and Security
 
@@ -83,7 +85,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
 - [ ] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
 - [ ] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
-- [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Admin GUI, logs, prompts, and default persisted events.
+- [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
 - [ ] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
 ## v2 Requirements
@@ -92,7 +94,7 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ### Product Clients
 
-- **CLIENT-01**: User can operate the platform through a dedicated TUI client that consumes the same REST/SSE API as Admin GUI.
+- **CLIENT-01**: User can operate the platform through a dedicated TUI client that consumes the same REST/SSE API as Web Console.
 - **CLIENT-02**: User can operate the platform through a CLI client for local developer workflows.
 - **CLIENT-03**: User can run in local mode without Cloud Server for developer testing.
 
@@ -123,8 +125,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | Direct TypeScript pi code port | The product is a Java cloud platform; pi is a reference design, not the implementation target. |
-| Full TUI/CLI in v1 | Cloud Server and Admin GUI are the first product surfaces; future clients must use public APIs. |
-| Dify-style visual workflow builder in v1 | Different product category and high UI complexity; v1 focuses on runtime cockpit and extension governance. |
+| Full TUI/CLI in v1 | Cloud Server and Web Console are the first product surfaces; future clients must use public APIs. |
+| Dify-style visual workflow builder in v1 | Different product category and high UI complexity; v1 focuses on Agent Catalog, Chat entry, runtime cockpit, and extension governance. |
+| Complex Agent Studio in v1 | Full visual agent authoring/versioning/publishing can wait; v1 needs basic Agent entry and run experience first. |
 | Full plugin marketplace in v1 | Marketplace requires trust, distribution, review, billing, moderation, and ecosystem operations. |
 | Unrestricted shell/file/code execution in v1 | Unsafe for cloud by default; require workspace, sandbox, policy, approval, and audit before enabling. |
 | Every model provider in v1 | OpenAI-compatible first validates provider abstraction; other providers come through adapters later. |
@@ -183,6 +186,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GUI-04 | Phase 5 | Pending |
 | GUI-05 | Phase 5 | Pending |
 | GUI-06 | Phase 5 | Pending |
+| GUI-07 | Phase 5 | Pending |
+| GUI-08 | Phase 5 | Pending |
 | OPS-01 | Phase 9 | Pending |
 | OPS-02 | Phase 4 | Pending |
 | OPS-03 | Phase 4 | Pending |
@@ -191,8 +196,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-06 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 54 total
-- Mapped to phases: 54
+- v1 requirements: 56 total
+- Mapped to phases: 56
 - Unmapped: 0 ✓
 
 ---
