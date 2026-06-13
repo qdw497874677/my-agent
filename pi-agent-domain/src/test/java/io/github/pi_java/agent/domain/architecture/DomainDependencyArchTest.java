@@ -27,7 +27,10 @@ class DomainDependencyArchTest {
                         "javax.sql..",
                         "dev.langchain4j..",
                         "com.openai..",
-                        "software.amazon.awssdk.."
+                        "software.amazon.awssdk..",
+                        "io.github.pi_java.agent.app..",
+                        "io.github.pi_java.agent.infrastructure..",
+                        "io.github.pi_java.agent.adapter.."
                 )
                 .check(domainClasses);
     }

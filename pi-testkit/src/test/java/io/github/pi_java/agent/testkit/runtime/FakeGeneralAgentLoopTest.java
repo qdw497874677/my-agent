@@ -4,6 +4,7 @@ import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.agent.InteractionMode;
 import io.github.pi_java.agent.domain.agent.RuntimeLimits;
 import io.github.pi_java.agent.domain.common.PlatformIds.AgentId;
+import io.github.pi_java.agent.domain.event.RunEvent;
 import io.github.pi_java.agent.domain.event.RunEventType;
 import io.github.pi_java.agent.domain.model.ModelResponse;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
@@ -49,8 +50,9 @@ class FakeGeneralAgentLoopTest {
         RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), new CancellationToken()));
 
         assertThat(handle.status()).isEqualTo(RunStatus.SUCCEEDED);
-        events.assertMonotonicSequences();
-        events.assertExactlyOneTerminalEventLast();
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+        assertEveryEventHasVisibilityAndRedaction(events.events());
         assertThat(events.types()).containsSequence(
                 RunEventType.RUN_CREATED,
                 RunEventType.RUN_STARTED,
@@ -78,7 +80,9 @@ class FakeGeneralAgentLoopTest {
 
         assertThat(handle.status()).isEqualTo(RunStatus.FAILED);
         assertThat(handle.failureSummary()).isPresent();
-        events.assertExactlyOneTerminalEventLast();
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+        assertEveryEventHasVisibilityAndRedaction(events.events());
         assertThat(events.last().type()).isEqualTo(RunEventType.RUN_FAILED);
     }
 
@@ -93,7 +97,9 @@ class FakeGeneralAgentLoopTest {
         RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), token));
 
         assertThat(handle.status()).isEqualTo(RunStatus.CANCELLED);
-        events.assertExactlyOneTerminalEventLast();
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+        assertEveryEventHasVisibilityAndRedaction(events.events());
         assertThat(events.last().type()).isEqualTo(RunEventType.RUN_CANCELLED);
     }
 
@@ -111,7 +117,9 @@ class FakeGeneralAgentLoopTest {
 
         assertThat(handle.status()).isEqualTo(RunStatus.CANCELLED);
         assertThat(tools.invocations()).isEmpty();
-        events.assertExactlyOneTerminalEventLast();
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+        assertEveryEventHasVisibilityAndRedaction(events.events());
     }
 
     @Test
@@ -127,7 +135,30 @@ class FakeGeneralAgentLoopTest {
         assertThat(handle.failureSummary().orElseThrow().error().retryable()).isFalse();
         assertThat(handle.failureSummary().orElseThrow().error().recoverable()).isTrue();
         assertThat(handle.failureSummary().orElseThrow().error().userActionRequired()).isFalse();
-        events.assertExactlyOneTerminalEventLast();
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+        assertEveryEventHasVisibilityAndRedaction(events.events());
+    }
+
+    private static void assertMonotonicSequences(List<RunEvent> events) {
+        assertThat(events).isNotEmpty();
+        for (int i = 0; i < events.size(); i++) {
+            assertThat(events.get(i).sequence()).isEqualTo(i + 1L);
+        }
+    }
+
+    private static void assertExactlyOneTerminalEventLast(List<RunEvent> events) {
+        assertThat(events.stream().filter(event -> EventCollector.isTerminal(event.type())).count()).isEqualTo(1);
+        assertThat(EventCollector.isTerminal(events.get(events.size() - 1).type())).isTrue();
+    }
+
+    private static void assertEveryEventHasVisibilityAndRedaction(List<RunEvent> events) {
+        assertThat(events).allSatisfy(event -> {
+            assertThat(event.visibility()).as("visibility for %s", event.type()).isNotNull();
+            assertThat(event.redaction()).as("redaction for %s", event.type()).isNotNull();
+            assertThat(event.redaction().redactedFields()).as("redacted fields for %s", event.type()).isNotNull();
+            assertThat(event.redaction().policyRef()).as("redaction policy for %s", event.type()).isNotBlank();
+        });
     }
 
     private static final Instant START = Instant.parse("2026-06-13T00:00:00Z");
