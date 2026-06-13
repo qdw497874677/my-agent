@@ -9,14 +9,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Runtime Core
 
-- [ ] **CORE-01**: Developer can define an Agent with instructions, model configuration, tool allowlist, policies, and runtime limits.
-- [ ] **CORE-02**: System represents execution with explicit Session, Run, Step, Message, ToolCall, ToolResult, and RunEvent models.
+- [x] **CORE-01**: Developer can define an Agent with instructions, model configuration, tool allowlist, policies, and runtime limits.
+- [x] **CORE-02**: System represents execution with explicit Session, Run, Step, Message, ToolCall, ToolResult, and RunEvent models.
 - [ ] **CORE-03**: Agent Runtime can execute a General Agent loop that sends messages to a model, receives text/tool-call intents, executes tools, appends results, and continues until completion or failure.
-- [ ] **CORE-04**: Agent Runtime emits ordered, provider-neutral RunEvents with IDs, sequence numbers, timestamps, trace IDs, tenant/user/session/run/step context, event type, payload, and redaction metadata.
-- [ ] **CORE-05**: Agent Runtime supports run status transitions, cancellation, deadlines, max-step budgets, and terminal states for completed, failed, cancelled, and policy-blocked runs.
+- [x] **CORE-04**: Agent Runtime emits ordered, provider-neutral RunEvents with IDs, sequence numbers, timestamps, trace IDs, tenant/user/session/run/step context, event type, payload, and redaction metadata.
+- [x] **CORE-05**: Agent Runtime supports run status transitions, cancellation, deadlines, max-step budgets, and terminal states for completed, failed, cancelled, and policy-blocked runs.
 - [x] **CORE-06**: Core runtime contracts remain framework-independent and do not depend on Spring Boot, Vaadin, PF4J, MCP, or provider SDK types.
-- [ ] **CORE-07**: Core runtime supports multiple Agent interaction modes, including chat-style message input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution, without treating chat transcript as the only state model.
-- [ ] **CORE-08**: Core runtime models artifacts, attachments, intermediate outputs, and external references separately from messages so non-chat Agents can produce and consume structured work products.
+- [x] **CORE-07**: Core runtime supports multiple Agent interaction modes, including chat-style message input, task/run input, structured form input, tool-driven execution, and future workflow/planner execution, without treating chat transcript as the only state model.
+- [x] **CORE-08**: Core runtime models artifacts, attachments, intermediate outputs, and external references separately from messages so non-chat Agents can produce and consume structured work products.
 - [x] **CORE-09**: Codebase follows COLA layer boundaries where Adapter handles external protocols/UI, App orchestrates use cases, Domain owns runtime models/rules/gateways, and Infrastructure implements external systems without Domain depending outward.
 
 ### Cloud Server API
@@ -48,11 +48,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workspace and Resources
 
-- [ ] **WORK-01**: Domain defines Workspace, WorkspaceSession, WorkspaceScope, WorkspaceSnapshot, Artifact, Attachment, and Resource/Mount abstractions as first-class runtime concepts.
-- [ ] **WORK-02**: WorkspaceGateway abstracts file/resource/artifact operations without exposing host filesystem assumptions to Domain.
+- [x] **WORK-01**: Domain defines Workspace, WorkspaceSession, WorkspaceScope, WorkspaceSnapshot, Artifact, Attachment, and Resource/Mount abstractions as first-class runtime concepts.
+- [x] **WORK-02**: WorkspaceGateway abstracts file/resource/artifact operations without exposing host filesystem assumptions to Domain.
 - [ ] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment.
-- [ ] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
-- [ ] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
+- [x] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
+- [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
 - [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
 - [ ] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
 - [ ] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
@@ -98,7 +98,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **OPS-01**: Platform emits structured logs, metrics, and OpenTelemetry-compatible trace/span hooks for runs, model calls, tool calls, MCP calls, plugin lifecycle, and policy decisions.
 - [ ] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
 - [ ] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
-- [ ] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
+- [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
 - [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
 - [ ] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
@@ -165,14 +165,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
+| CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 1 | Pending |
-| CORE-04 | Phase 1 | Pending |
-| CORE-05 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Complete |
+| CORE-05 | Phase 1 | Complete |
 | CORE-06 | Phase 1 | Complete |
-| CORE-07 | Phase 1 | Pending |
-| CORE-08 | Phase 1 | Pending |
+| CORE-07 | Phase 1 | Complete |
+| CORE-08 | Phase 1 | Complete |
 | CORE-09 | Phase 1 | Complete |
 | CLOUD-01 | Phase 2 | Pending |
 | CLOUD-02 | Phase 2 | Pending |
@@ -185,11 +185,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODEL-03 | Phase 3 | Pending |
 | MODEL-04 | Phase 3 | Pending |
 | MODEL-05 | Phase 3 | Pending |
-| WORK-01 | Phase 1 | Pending |
-| WORK-02 | Phase 1 | Pending |
+| WORK-01 | Phase 1 | Complete |
+| WORK-02 | Phase 1 | Complete |
 | WORK-03 | Phase 4 | Pending |
-| WORK-04 | Phase 1 | Pending |
-| WORK-05 | Phase 1 | Pending |
+| WORK-04 | Phase 1 | Complete |
+| WORK-05 | Phase 1 | Complete |
 | WORK-06 | Phase 6 | Pending |
 | WORK-07 | Phase 4 | Pending |
 | WORK-08 | Phase 4 | Pending |
@@ -227,7 +227,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-01 | Phase 9 | Pending |
 | OPS-02 | Phase 4 | Pending |
 | OPS-03 | Phase 4 | Pending |
-| OPS-04 | Phase 1 | Pending |
+| OPS-04 | Phase 1 | Complete |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 1 | Pending |
 | E2E-01 | Phase 2 | Pending |

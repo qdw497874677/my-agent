@@ -35,8 +35,8 @@ Pi Java Agent Platform will be built as a dependency-driven Java cloud Agent pla
 
 Plans:
 - [x] 01-01-PLAN.md — Create Java 21 Maven/COLA skeleton and architecture gates.
-- [ ] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts.
-- [ ] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts.
+- [x] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts.
+- [x] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts.
 - [ ] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop.
 - [ ] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index.
 

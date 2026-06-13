@@ -4,18 +4,19 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 status: executing
-last_updated: "2026-06-13T18:44:01.389Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-06-13T18:55:08.822Z"
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Executing Phase 01 — 1/5 plans complete
+**Status:** Executing Phase 01 — 3/5 plans complete
 **Current Phase:** 01
 
 ## Project Reference
@@ -90,8 +91,8 @@ Key findings:
 ## Execution Progress
 
 - [x] 01-01-PLAN.md — Java 21 Maven/COLA skeleton and architecture gates completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-01-SUMMARY.md`).
-- [ ] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts.
-- [ ] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts.
+- [x] 01-02-PLAN.md — Define AgentDefinition, runtime state, error, and RunEvent contracts completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-02-SUMMARY.md`).
+- [x] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-03-SUMMARY.md`).
 - [ ] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop.
 - [ ] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index.
 
@@ -100,24 +101,32 @@ Key findings:
 - 2026-06-13 (Phase 01 Plan 01): Use a Maven parent with explicit dependency/plugin management and no framework BOM in Phase 1 foundation.
 - 2026-06-13 (Phase 01 Plan 01): Keep `pi-agent-domain` production dependencies empty while allowing only test-scoped JUnit, AssertJ, and ArchUnit.
 - 2026-06-13 (Phase 01 Plan 01): Codify COLA dependency direction immediately with ArchUnit before domain implementation starts.
+- [Phase 01]: Model Workspace as a logical runtime boundary using resource and mount IDs instead of host filesystem paths.
+- [Phase 01]: Keep command execution in Domain as a request/result port only; no shell or process implementation belongs in Phase 1 Domain.
+- [Phase 01]: Represent session history as an append-only tree with current leaf reconstruction and separated non-message context lists.
+- [Phase 01]: Use nested JDK records in PlatformIds for runtime context IDs.
+- [Phase 01]: Represent generic runtime input and event payload variants with Java sealed interfaces.
+- [Phase 01]: Keep Domain contracts framework-free and serialization-neutral for adapter/client mapping later.
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 01-runtime-spine-workspace-and-domain-contracts | 01 | 11m 46s | 2 | 16 |
+| Phase 01-runtime-spine-workspace-and-domain-contracts P03 | 6m 34s | 3 tasks | 19 files |
+| Phase 01-runtime-spine-workspace-and-domain-contracts P02 | 7m 03s | 3 tasks | 22 files |
 
 ## Last Session
 
-- **Updated:** 2026-06-13T18:41:21Z
-- **Stopped At:** Completed 01-01-PLAN.md
+- **Updated:** 2026-06-13T18:55:00Z
+- **Stopped At:** Completed 01-02-PLAN.md
 
 ## Next Action
 
 Run:
 
 ```text
-/gsd-execute-phase 1 --plan 01-02
+/gsd-execute-phase 1 --plan 01-04
 ```
 
 Context captured:
