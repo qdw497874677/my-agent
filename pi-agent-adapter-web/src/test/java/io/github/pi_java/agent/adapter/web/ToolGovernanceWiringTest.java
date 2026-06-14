@@ -19,11 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@SpringBootTest(classes = {PiCloudServerApplication.class, CloudRuntimeWiringIntegrationTest.TestRuntimeConfiguration.class})
+@SpringBootTest(classes = {PiCloudServerApplication.class, ToolGovernanceWiringTest.TestRuntimeConfiguration.class})
 @ActiveProfiles("test")
 class ToolGovernanceWiringTest {
 
@@ -78,5 +80,31 @@ class ToolGovernanceWiringTest {
         return new io.github.pi_java.agent.app.context.RequestContext(
                 new io.github.pi_java.agent.app.context.SecurityPrincipalContext("tenant-a", "user-a", java.util.Set.of()),
                 new io.github.pi_java.agent.app.context.CorrelationContext("trace-1", "corr-1", "cause-1"));
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class TestRuntimeConfiguration {
+        @Bean
+        AgentRuntime agentRuntime(ToolExecutionGateway toolExecutionGateway) {
+            return new GatewayAwareTestRuntime(toolExecutionGateway);
+        }
+    }
+
+    private record GatewayAwareTestRuntime(ToolExecutionGateway toolExecutionGateway) implements AgentRuntime {
+        @Override
+        public io.github.pi_java.agent.domain.runtime.RunHandle start(io.github.pi_java.agent.domain.runtime.RunContext context) {
+            return new io.github.pi_java.agent.domain.runtime.RunHandle(context.workspaceScope().runId(),
+                    io.github.pi_java.agent.domain.runtime.RunStatus.SUCCEEDED, java.util.Optional.empty());
+        }
+
+        @Override
+        public void cancel(String runId, String reason) {
+            // No-op for wiring verification.
+        }
+
+        @Override
+        public String toString() {
+            return "GatewayAwareTestRuntime[ToolExecutionGateway=" + toolExecutionGateway.getClass().getSimpleName() + "]";
+        }
     }
 }

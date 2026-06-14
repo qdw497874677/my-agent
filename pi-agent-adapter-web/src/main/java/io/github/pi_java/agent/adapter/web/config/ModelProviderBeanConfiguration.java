@@ -2,6 +2,7 @@ package io.github.pi_java.agent.adapter.web.config;
 
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
 import io.github.pi_java.agent.app.port.model.SecretResolver;
+import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
 import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
 import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
@@ -98,8 +99,9 @@ public class ModelProviderBeanConfiguration {
     @Bean
     @ConditionalOnMissingBean(AgentRuntime.class)
     @ConditionalOnProperty(prefix = "pi.providers.openai-compatible", name = "enabled", havingValue = "true")
-    AgentRuntime openAiCompatibleAgentRuntime(StreamingModelClient streamingModelClient, EventSink eventSink) {
-        return new StreamingOnlyAgentRuntime(streamingModelClient, eventSink);
+    AgentRuntime openAiCompatibleAgentRuntime(StreamingModelClient streamingModelClient, EventSink eventSink,
+                                             ToolExecutionGateway toolExecutionGateway) {
+        return new StreamingOnlyAgentRuntime(streamingModelClient, eventSink, toolExecutionGateway);
     }
 
     private Map<String, String> safeConfigurationProperties(Environment environment) {
@@ -113,10 +115,13 @@ public class ModelProviderBeanConfiguration {
     private static final class StreamingOnlyAgentRuntime implements AgentRuntime {
         private final StreamingModelClient streamingModelClient;
         private final EventSink eventSink;
+        private final ToolExecutionGateway toolExecutionGateway;
 
-        private StreamingOnlyAgentRuntime(StreamingModelClient streamingModelClient, EventSink eventSink) {
+        private StreamingOnlyAgentRuntime(StreamingModelClient streamingModelClient, EventSink eventSink,
+                                          ToolExecutionGateway toolExecutionGateway) {
             this.streamingModelClient = streamingModelClient;
             this.eventSink = eventSink;
+            this.toolExecutionGateway = toolExecutionGateway;
         }
 
         @Override
@@ -135,7 +140,8 @@ public class ModelProviderBeanConfiguration {
 
         @Override
         public String toString() {
-            return "StreamingOnlyAgentRuntime[eventSink=" + eventSink.getClass().getSimpleName() + "]";
+            return "StreamingOnlyAgentRuntime[eventSink=" + eventSink.getClass().getSimpleName()
+                    + ", ToolExecutionGateway=" + toolExecutionGateway.getClass().getSimpleName() + "]";
         }
 
         private final class ModelDeltaPublishingSink implements StreamingModelClient.ModelStreamSink {

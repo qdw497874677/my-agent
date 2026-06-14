@@ -290,4 +290,11 @@ public final class DefaultToolExecutionGateway implements ToolExecutionGateway {
         union.addAll(second);
         return Set.copyOf(union);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultToolExecutionGateway[toolRegistry=" + toolRegistry.getClass().getSimpleName()
+                + ", auditRepository=" + auditRepository.getClass().getSimpleName()
+                + ", eventSink=" + eventSink.getClass().getSimpleName() + "]";
+    }
 }
