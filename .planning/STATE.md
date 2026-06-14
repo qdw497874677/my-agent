@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-status: planning
-stopped_at: Completed 02-13-PLAN.md
-last_updated: "2026-06-14T07:27:41.292Z"
+current_phase: 03
+status: executing
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-06-14T09:46:36.001Z"
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 26
+  completed_plans: 20
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 3
+**Status:** Executing Phase 03
+**Current Phase:** 03
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 02 — cloud-server-persistence-sse-and-baseline-security
+**Current focus:** Phase 03 — model-provider-registry-and-openai-compatible-adapter
 
 ## Workflow Configuration
 
@@ -147,6 +147,12 @@ Key findings:
 - [Phase 02]: Plan 13 uses TestCloudRuntimeConfiguration to provide a test-only no-key AgentRuntime built from pi-testkit GeneralAgentLoop, FakeModelClient, FakeToolInvoker, and FakePolicy.
 - [Phase 02]: Plan 13 treats Docker absence as an environment gate for Testcontainers validation while keeping non-container regressions green locally.
 - [Phase 02]: Plan 13 honors AgentRuntime RunHandle terminal status in DefaultRunDispatcher so max-step, policy, and runtime failures are not incorrectly marked completed.
+- [Phase 03]: Plan 02 uses callback-style StreamingModelClient with Pi-owned ModelStreamSink instead of Flow.Publisher/Reactor to keep Domain framework-free.
+- [Phase 03]: Plan 02 represents provider tool-call streaming only as complete ToolCall intents in Domain; adapter owns fragment aggregation.
+- [Phase 03]: Plan 02 preserves legacy ModelResponse and ModelDeltaPayload constructors so existing fake runtime/testkit code remains source-compatible.
+- [Phase 03]: Plan 01 represents credentials as CredentialRef/SecretRef reference identifiers only; toString emits scheme-level redaction rather than raw reference targets.
+- [Phase 03]: Plan 01 keeps provider registry vocabulary in pi-agent-domain as Spring-free plain Java records with immutable collection copies.
+- [Phase 03]: Plan 01 validates AgentDefinition.modelRef at registry boundaries with explicit provider:model ProviderModelRef parsing while leaving AgentDefinition.modelRef as String.
 
 ## Performance Metrics
 
@@ -170,11 +176,13 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P11 | 5m 38s | 2 tasks | 5 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P12 | 7m 01s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P13 | 9m 06s | 2 tasks | 11 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P02 | 5m 24s | 2 tasks | 10 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P01 | 5m 23s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-13-PLAN.md
+- **Stopped At:** Completed 03-02-PLAN.md
 
 ## Next Action
 
