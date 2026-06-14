@@ -17,6 +17,7 @@
         <module>pi-agent-domain</module>
         <module>pi-agent-app</module>
         <module>pi-agent-infrastructure</module>
+        <module>pi-agent-infrastructure-model-openai</module>
         <module>pi-agent-adapter-web</module>
         <module>pi-testkit</module>
     </modules>
@@ -26,6 +27,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.5.9</spring-boot.version>
+        <spring-ai.version>1.1.5</spring-ai.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
         <testcontainers.version>2.0.3</testcontainers.version>
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <assertj.version>3.26.3</assertj.version>
@@ -47,6 +50,20 @@
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
                 <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bom</artifactId>
+                <version>${resilience4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
