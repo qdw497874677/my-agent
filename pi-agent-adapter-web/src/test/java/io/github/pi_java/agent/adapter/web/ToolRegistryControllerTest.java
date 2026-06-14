@@ -127,14 +127,10 @@ class ToolRegistryControllerTest {
     void toolRegistryControllerIsReadOnlyAndReturnsClientDtos() throws Exception {
         mockMvc.perform(post("/api/tools").header("X-Pi-Dev-Tenant", "tenant-a").header("X-Pi-Dev-User", "user-a"))
                 .andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(put("/api/tools/builtin.read_info").header("X-Pi-Dev-Tenant", "tenant-a").header("X-Pi-Dev-User", "user-a"))
-                .andExpect(status().isMethodNotAllowed());
-        mockMvc.perform(patch("/api/tools/builtin.read_info").header("X-Pi-Dev-Tenant", "tenant-a").header("X-Pi-Dev-User", "user-a"))
-                .andExpect(status().isMethodNotAllowed());
-
         Class<?> controllerClass = Class.forName("io.github.pi_java.agent.adapter.web.controller.ToolRegistryController");
         for (Method method : controllerClass.getDeclaredMethods()) {
             assertThat(method.getReturnType().getName()).doesNotContain("io.github.pi_java.agent.domain");
+            assertThat(method.getDeclaredAnnotations()).noneMatch(annotation -> annotation.annotationType().getSimpleName().matches("PostMapping|PutMapping|PatchMapping|DeleteMapping"));
         }
     }
 
@@ -179,9 +175,10 @@ class ToolRegistryControllerTest {
         assertThat(json.at("/payload/provenance/metadata/executorClass").isMissingNode()).isTrue();
         assertThat(json.at("/payload/policyDecision").asText()).isEqualTo("REQUIRE_APPROVAL");
         assertThat(json.at("/payload/executionStatus").asText()).isEqualTo("PREVIEW_ONLY");
+        assertThat(json.at("/redaction/redacted").asBoolean()).isTrue();
         assertThat(json.toString())
-                .contains("[REDACTED]")
                 .doesNotContain("secret.Executor")
+                .doesNotContain("token-value")
                 .doesNotContain("rawSecret")
                 .doesNotContain("sk-test-secret");
     }
