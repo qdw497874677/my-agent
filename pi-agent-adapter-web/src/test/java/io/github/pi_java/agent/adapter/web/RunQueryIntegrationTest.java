@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.github.pi_java.agent.adapter.web.mapper.RunEventDtoMapper;
 import io.github.pi_java.agent.adapter.web.controller.RunController;
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
@@ -15,9 +18,25 @@ import io.github.pi_java.agent.app.usecase.SessionCommandService;
 import io.github.pi_java.agent.app.usecase.SessionQueryService;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
+import io.github.pi_java.agent.client.event.RunEventDto;
 import io.github.pi_java.agent.client.run.RunResultResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
+import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.SessionId;
+import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TenantId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
+import io.github.pi_java.agent.domain.common.PlatformIds.UserId;
+import io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId;
+import io.github.pi_java.agent.domain.event.EventVisibility;
+import io.github.pi_java.agent.domain.event.RedactionMetadata;
+import io.github.pi_java.agent.domain.event.RunEvent;
+import io.github.pi_java.agent.domain.event.RunEventPayload.ExtensionPayload;
+import io.github.pi_java.agent.domain.event.RunEventType;
 import java.time.Instant;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -94,5 +113,39 @@ class RunQueryIntegrationTest {
                 .andExpect(jsonPath("$.nextAfterSequence").value(8));
 
         verify(runQueryService).listEvents(any(), eq("session-1"), eq("run-1"), eq(7L), eq(25));
+    }
+
+    @Test
+    void mapperPreservesWireNameSequenceCorrelationRedactionAndPayloadIdentity() {
+        RunEvent event = new RunEvent(
+                "event-1",
+                new TenantId("tenant-a"),
+                new UserId("user-a"),
+                new SessionId("session-1"),
+                new RunId("run-1"),
+                new StepId("step-1"),
+                new WorkspaceId("workspace-1"),
+                42L,
+                Instant.parse("2026-06-14T00:00:00Z"),
+                RunEventType.MODEL_DELTA,
+                new TraceId("trace-1"),
+                new CorrelationId("corr-1"),
+                new CausationId("cause-1"),
+                new ExtensionPayload("model.delta.schema", "2", Map.of("text", "hello")),
+                EventVisibility.USER,
+                new RedactionMetadata(true, true, Set.of("secret"), "policy-1"));
+
+        RunEventDto dto = RunEventDtoMapper.toDto(event);
+
+        assertThat(dto.type()).isEqualTo("model.delta");
+        assertThat(dto.sequence()).isEqualTo(42L);
+        assertThat(dto.correlationId()).isEqualTo("corr-1");
+        assertThat(dto.causationId()).isEqualTo("cause-1");
+        assertThat(dto.redaction().redacted()).isTrue();
+        assertThat(dto.redaction().redactedFields()).containsExactly("secret");
+        assertThat(dto.redaction().policy()).isEqualTo("policy-1");
+        assertThat(dto.payloadSchema()).isEqualTo("model.delta.schema");
+        assertThat(dto.payloadVersion()).isEqualTo(2);
+        assertThat(dto.payload()).containsEntry("text", "hello");
     }
 }
