@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-11-PLAN.md
-last_updated: "2026-06-14T06:01:02.808Z"
+stopped_at: Completed 02-12-PLAN.md
+last_updated: "2026-06-14T06:10:30.623Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State: Pi Java Agent Platform
@@ -141,6 +141,9 @@ Key findings:
 - [Phase 02]: Plan 11 keeps live SSE fanout in Adapter Web as an in-memory subscriber registry while durable replay remains owned by RunQueryService/event persistence.
 - [Phase 02]: Plan 11 uses bare per-run RunEvent.sequence as the SSE id and parses Last-Event-ID only when it is a positive long.
 - [Phase 02]: Plan 11 closes SSE subscriptions from completion, timeout, error, send failure, and terminal event paths.
+- [Phase 02]: Plan 12 owns active runtime bean registration through CloudRuntimeBeanConfiguration instead of component scanning infrastructure fanout beans.
+- [Phase 02]: Plan 12 keeps RunController activation abstracted behind RunActivationTrigger, with production wiring delegating to RunWorkerScheduler.triggerAsync().
+- [Phase 02]: Plan 12 provides scheduled polling through a small adapter bean so RunWorkerScheduler remains a plain infrastructure class.
 
 ## Performance Metrics
 
@@ -162,11 +165,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P08 | 7m 22s | 2 tasks | 9 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P10 | 10m 52s | 2 tasks | 6 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P11 | 5m 38s | 2 tasks | 5 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P12 | 7m 01s | 1 tasks | 4 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-11-PLAN.md
+- **Stopped At:** Completed 02-12-PLAN.md
 
 ## Next Action
 
