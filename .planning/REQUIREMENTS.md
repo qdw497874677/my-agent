@@ -30,11 +30,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Model Providers
 
-- [x] **MODEL-01**: Developer can register and resolve model providers through a provider registry using model IDs, provider IDs, capabilities, and credential references.
-- [x] **MODEL-02**: Platform provides an OpenAI-compatible streaming chat adapter usable by the General Agent loop.
-- [x] **MODEL-03**: Model adapter normalizes text deltas, tool-call intents, finish reasons, usage/tokens, latency, and provider errors into platform events and records.
-- [x] **MODEL-04**: Provider configuration uses SecretRef/CredentialRef boundaries so raw secrets are not exposed in logs, prompts, events, or Admin GUI.
-- [x] **MODEL-05**: Provider calls support timeout, cancellation, retry/rate-limit/circuit-breaker hooks, and provider contract tests.
+- [x] **MODEL-01**: Developer can register and resolve model providers through a provider registry using model IDs, provider IDs, capabilities, and credential references. Validated in Phase 3: provider registry contracts and `docs/phase-03-model-provider-contracts.md`.
+- [x] **MODEL-02**: Platform provides an OpenAI-compatible streaming chat adapter usable by the General Agent loop. Validated in Phase 3: OpenAI-compatible `StreamingModelClient` and Cloud Server fake provider E2E.
+- [x] **MODEL-03**: Model adapter normalizes text deltas, tool-call intents, finish reasons, usage/tokens, latency, and provider errors into platform events and records. Validated in Phase 3: fake provider contract tests and persisted `model.delta` replay.
+- [x] **MODEL-04**: Provider configuration uses SecretRef/CredentialRef boundaries so raw secrets are not exposed in logs, prompts, events, or Admin GUI. Validated in Phase 3: secret resolver/redaction tests and no-key E2E secret absence assertions.
+- [x] **MODEL-05**: Provider calls support timeout, cancellation, retry/rate-limit/circuit-breaker hooks, and provider contract tests. Validated in Phase 3: resilience policy hooks plus `OpenAiCompatibleProviderContractTest`.
 
 ### Governed Tools
 
@@ -180,11 +180,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLOUD-04 | Phase 2 | Complete |
 | CLOUD-05 | Phase 2 | Complete |
 | CLOUD-06 | Phase 2 | Complete |
-| MODEL-01 | Phase 3 | Complete |
-| MODEL-02 | Phase 3 | Complete |
-| MODEL-03 | Phase 3 | Complete |
-| MODEL-04 | Phase 3 | Complete |
-| MODEL-05 | Phase 3 | Complete |
+| MODEL-01 | Phase 3 | Complete — validated by provider registry contracts and `docs/phase-03-model-provider-contracts.md` |
+| MODEL-02 | Phase 3 | Complete — validated by OpenAI-compatible streaming adapter and fake Cloud Server provider E2E |
+| MODEL-03 | Phase 3 | Complete — validated by normalization contract tests and persisted `model.delta` replay |
+| MODEL-04 | Phase 3 | Complete — validated by CredentialRef/SecretRef redaction tests and no-key E2E secret absence checks |
+| MODEL-05 | Phase 3 | Complete — validated by timeout/cancellation/resilience contract tests |
 | WORK-01 | Phase 1 | Complete |
 | WORK-02 | Phase 1 | Complete |
 | WORK-03 | Phase 4 | Pending |
