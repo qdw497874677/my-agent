@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-06-14T05:08:14.043Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-06-14T05:14:50.232Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State: Pi Java Agent Platform
@@ -119,6 +119,9 @@ Key findings:
 - [Phase 02]: Plan 03 exposes event replay through run-scoped sequence cursors afterSequence and nextAfterSequence.
 - [Phase 02]: Plan 02 kept pi-agent-client DTOs as plain Java records without Domain imports or Spring/Jakarta annotations.
 - [Phase 02]: Plan 02 represented create-run input generically with inputType plus Map input instead of chat-transcript-only API shape.
+- [Phase 02]: Plan 04 uses plain App-layer records for security and correlation context without Spring or servlet dependencies.
+- [Phase 02]: Plan 04 keeps run use-case methods session-centric by requiring sessionId alongside runId for commands and queries.
+- [Phase 02]: Plan 04 configures Surefire to allow filtered reactor builds where upstream modules have no matching tests.
 
 ## Performance Metrics
 
@@ -132,11 +135,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P01 | 3m 06s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P03 | 2m 24s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P02 | 2m 42s | 1 tasks | 13 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P04 | 3m 30s | 1 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-02-PLAN.md
+- **Stopped At:** Completed 02-04-PLAN.md
 
 ## Next Action
 
