@@ -126,6 +126,18 @@ Plans:
 **Requirements:** WORK-03, WORK-07, WORK-08, TOOL-01, TOOL-02, TOOL-03, TOOL-04, TOOL-05, TOOL-06, TOOL-07, OPS-02, OPS-03, OPS-05, E2E-02, E2E-03, E2E-06  
 **UI hint**: no
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Define framework-free tool descriptor, execution result, preview, and lifecycle event contracts.
+- [ ] 04-02-PLAN.md — Add descriptor-first ToolRegistry, executor binding, query use case, and catalog DTO contracts.
+- [ ] 04-03-PLAN.md — Implement App ToolExecutionGateway orchestration for validation, policy, preview, audit, events, limits, and redaction.
+- [ ] 04-04-PLAN.md — Add Infrastructure JSON Schema validation, in-memory registry, default policy, redaction, payload limits, and preview generation.
+- [ ] 04-05-PLAN.md — Reroute testkit GeneralAgentLoop through ToolExecutionGateway and add gateway-aware fakes.
+- [ ] 04-06-PLAN.md — Implement bounded local-temp workspace, allowlisted command gateway, and safe built-in example tools.
+- [ ] 04-07-PLAN.md — Wire governed tools into Cloud Server, event DTO mapping, and read-only Tool Registry REST API.
+- [ ] 04-08-PLAN.md — Add governed tool Cloud Server E2E, security redaction E2E, docs, and requirement status updates.
+
 **Success criteria:**
 1. Tools register with canonical descriptors including schema, provenance, version, scopes, risk level, side effects, and timeout defaults.
 2. Workspace-backed file/command/resource actions execute through `WorkspaceGateway` / `CommandExecutionGateway` and remain subject to `ToolExecutionGateway` governance where exposed as tools.
