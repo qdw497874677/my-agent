@@ -67,7 +67,7 @@ Plans:
 - [x] 02-02-PLAN.md — Define public session/run REST DTO contracts.
 - [x] 02-03-PLAN.md — Define public RunEvent DTO and event-history contract.
 - [x] 02-04-PLAN.md — Define App request context and use-case interfaces.
-- [ ] 02-05-PLAN.md — Define App persistence, audit, queue, dispatcher, and cancellation ports.
+- [x] 02-05-PLAN.md — Define App persistence, audit, queue, dispatcher, and cancellation ports.
 - [ ] 02-06-PLAN.md — Implement concrete App use-case services and idempotent cancellation orchestration.
 - [ ] 02-07-PLAN.md — Implement PostgreSQL/Flyway/JDBC persistence and persist-then-emit event sink.
 - [ ] 02-08-PLAN.md — Implement DB queue, cancellation registry, and run dispatcher/worker.

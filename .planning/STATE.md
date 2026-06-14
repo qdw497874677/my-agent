@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-06-14T05:14:50.232Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-06-14T05:20:37.775Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State: Pi Java Agent Platform
@@ -122,6 +122,9 @@ Key findings:
 - [Phase 02]: Plan 04 uses plain App-layer records for security and correlation context without Spring or servlet dependencies.
 - [Phase 02]: Plan 04 keeps run use-case methods session-centric by requiring sessionId alongside runId for commands and queries.
 - [Phase 02]: Plan 04 configures Surefire to allow filtered reactor builds where upstream modules have no matching tests.
+- [Phase 02]: Plan 05 keeps persistence and execution contracts in pi-agent-app as plain Java ports depending only on App, Client, and Domain types.
+- [Phase 02]: Plan 05 models queued cancellation as Optional<QueuedRun> cancelQueuedAndReturn(...) so App services can publish exactly one durable terminal event with original queued context.
+- [Phase 02]: Plan 05 makes terminal publishing methods publish*IfAbsent to reserve durable hasTerminalEvent idempotency guards.
 
 ## Performance Metrics
 
@@ -136,11 +139,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P03 | 2m 24s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P02 | 2m 42s | 1 tasks | 13 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P04 | 3m 30s | 1 tasks | 9 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P05 | 3m 01s | 1 tasks | 11 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-04-PLAN.md
+- **Stopped At:** Completed 02-05-PLAN.md
 
 ## Next Action
 
