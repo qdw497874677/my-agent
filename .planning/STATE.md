@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-06-14T09:57:28.558Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-06-14T10:05:06.508Z"
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State: Pi Java Agent Platform
@@ -156,6 +156,9 @@ Key findings:
 - [Phase 03]: Plan 04 keeps FakeStreamingModelClient deterministic and callback-based with scripted actions instead of sleeps, networking, Reactor, or provider SDK dependencies.
 - [Phase 03]: Plan 04 exposes streaming support through a GeneralAgentLoop constructor overload so existing synchronous ModelClient tests remain source-compatible.
 - [Phase 03]: Plan 04 publishes finish/usage metadata as an empty text MODEL_DELTA payload because existing Domain model metadata is carried on ModelDeltaPayload.
+- [Phase 03]: Plan 05 isolates Spring AI OpenAI-compatible and Resilience4j dependencies in pi-agent-infrastructure-model-openai, leaving Domain/App free of provider SDK dependencies.
+- [Phase 03]: Plan 05 models provider configuration as plain Java records first so later Spring @ConfigurationProperties wiring can bind without changing registry behavior.
+- [Phase 03]: Plan 05 resolves env:/config: secrets from injected maps with default string and exception paths exposing only scheme-level redaction.
 
 ## Performance Metrics
 
@@ -182,11 +185,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P02 | 5m 24s | 2 tasks | 10 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P03 | 5m 13s | 2 tasks | 7 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P04 | 7m 05s | 2 tasks | 4 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P05 | 5m 07s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 03-04-PLAN.md
+- **Stopped At:** Completed 03-05-PLAN.md
 
 ## Next Action
 
