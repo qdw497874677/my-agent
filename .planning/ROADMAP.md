@@ -135,7 +135,7 @@ Plans:
 - [x] 04-04-PLAN.md — Add Infrastructure JSON Schema validation, in-memory registry, default policy, redaction, payload limits, and preview generation.
 - [x] 04-05-PLAN.md — Reroute testkit GeneralAgentLoop through ToolExecutionGateway and add gateway-aware fakes.
 - [x] 04-06-PLAN.md — Implement bounded local-temp workspace, allowlisted command gateway, and safe built-in example tools.
-- [ ] 04-07-PLAN.md — Wire governed tools into Cloud Server, event DTO mapping, and read-only Tool Registry REST API.
+- [x] 04-07-PLAN.md — Wire governed tools into Cloud Server, event DTO mapping, and read-only Tool Registry REST API.
 - [ ] 04-08-PLAN.md — Add governed tool Cloud Server E2E, security redaction E2E, docs, and requirement status updates.
 
 **Success criteria:**

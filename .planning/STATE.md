@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-06-14T19:33:23.500Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-06-14T19:46:26.421Z"
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
 ---
 
 # Project State: Pi Java Agent Platform
@@ -188,6 +188,9 @@ Key findings:
 - [Phase 04]: Plan 06 treats local-temp workspace and ProcessBuilder command execution as deterministic dev/test infrastructure only, documented as not a production sandbox.
 - [Phase 04]: Plan 06 exposes built-in examples as ordinary ToolDescriptor plus ToolExecutorBinding registrations rather than special registry APIs.
 - [Phase 04]: Plan 06 marks workspace write and command examples as side-effectful with previewRequired and approvalRecommended metadata.
+- [Phase 04]: Plan 07 exposes the tool catalog through a thin read-only /api/tools controller returning client DTOs only.
+- [Phase 04]: Plan 07 maps ToolLifecyclePayload explicitly as tool.lifecycle schema v1 with redacted public payload maps.
+- [Phase 04]: Plan 07 owns tool governance composition in Adapter configuration and requires the runtime composition to include ToolExecutionGateway.
 
 ## Performance Metrics
 
@@ -224,11 +227,12 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P04 | 15m 18s | 2 tasks | 9 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P05 | 7m 16s | 2 tasks | 7 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P06 | 7m 10s | 2 tasks | 8 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P07 | 9m 41s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 04-06-PLAN.md
+- **Stopped At:** Completed 04-07-PLAN.md
 
 ## Next Action
 
