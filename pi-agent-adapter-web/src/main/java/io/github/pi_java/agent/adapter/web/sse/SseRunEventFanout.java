@@ -8,9 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import org.springframework.stereotype.Component;
 
-@Component
 public class SseRunEventFanout implements RunEventFanout {
 
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, Consumer<RunEventDto>>> subscribersByRunId = new ConcurrentHashMap<>();
