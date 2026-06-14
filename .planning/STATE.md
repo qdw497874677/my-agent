@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-06-14T10:17:38.330Z"
+stopped_at: Completed 03-07-PLAN.md
+last_updated: "2026-06-14T10:28:24.776Z"
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State: Pi Java Agent Platform
@@ -162,6 +162,9 @@ Key findings:
 - [Phase 03]: Plan 06 keeps OpenAI stream parsing behind an OpenAiStreamSource seam so production uses Spring AI while tests remain deterministic and key-free.
 - [Phase 03]: Plan 06 applies retry/rate-limiter/circuit-breaker decorators only before stream iteration begins; after chunks are emitted, failures become provider-neutral error chunks rather than retries.
 - [Phase 03]: Plan 06 resolves raw API keys only while creating adapter model configuration and sanitizes all provider messages before exposing Domain error records.
+- [Phase 03]: Plan 07 keeps provider registry, secret resolver, streaming client, and optional OpenAI-compatible runtime wiring in Adapter configuration only.
+- [Phase 03]: Plan 07 dispatches queued runs with explicit provider:model refs using pi.runtime.default-model-ref and an openai-compatible default-model fallback.
+- [Phase 03]: Plan 07 uses spring-ai-openai instead of the Spring Boot OpenAI starter to avoid no-key auto-configuration failures.
 
 ## Performance Metrics
 
@@ -190,11 +193,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P04 | 7m 05s | 2 tasks | 4 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P05 | 5m 07s | 2 tasks | 8 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P06 | 9m 35s | 2 tasks | 10 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P07 | 7m 46s | 2 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 03-06-PLAN.md
+- **Stopped At:** Completed 03-07-PLAN.md
 
 ## Next Action
 
