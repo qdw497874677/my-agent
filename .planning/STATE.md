@@ -5,12 +5,12 @@ milestone_name: milestone
 current_phase: 02
 status: executing
 stopped_at: Completed 02-09-PLAN.md
-last_updated: "2026-06-14T05:40:53.971Z"
+last_updated: "2026-06-14T05:43:40.272Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State: Pi Java Agent Platform
@@ -132,6 +132,9 @@ Key findings:
 - [Phase 02]: Plan 07 routes live event delivery through Infrastructure RunEventFanout only after TransactionTemplate persistence succeeds.
 - [Phase 02]: Plan 09 kept the web adapter runnable while excluding DataSource/Flyway auto-configuration until Plan 02-12 owns the single runtime composition root.
 - [Phase 02]: Plan 09 uses a dev/test-only safe-header authentication filter while retaining oauth2ResourceServer JWT configuration in every security chain for production readiness.
+- [Phase 02]: Plan 08 keeps worker and scheduler classes as plain Infrastructure classes; Spring bean registration remains deferred to the later composition-root plan.
+- [Phase 02]: Plan 08 extends run_queue with queued-run context and payload columns so cancellation and worker execution can publish terminal events from original run context.
+- [Phase 02]: Plan 08 enforces AgentRuntime.start(context) with a bounded worker Future so timeout handling calls AgentRuntime.cancel and marks TIMED_OUT consistently.
 
 ## Performance Metrics
 
@@ -150,6 +153,7 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P06 | 7m 14s | 2 tasks | 9 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P07 | 9m 55s | 2 tasks | 10 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P09 | 4m 30s | 1 tasks | 8 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P08 | 7m 22s | 2 tasks | 9 files |
 
 ## Last Session
 
