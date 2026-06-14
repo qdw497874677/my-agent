@@ -18,6 +18,7 @@ import io.github.pi_java.agent.domain.common.PlatformIds.AgentId;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.github.pi_java.agent.domain.runtime.RunContext;
+import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.session.SessionContext;
@@ -121,12 +122,12 @@ public class DefaultRunDispatcher implements RunDispatcher {
             runProjectionRepository.markRunning(runId, startedAt);
             auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, Map.of("workerId", workerId));
             RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
-            runRuntimeWithTimeout(context, runId);
+            RunHandle handle = runRuntimeWithTimeout(context, runId);
             Instant finishedAt = clock.instant();
             if (token.isCancellationRequested()) {
                 markCancelled(queuedRun, token, requestContext, finishedAt);
             } else {
-                markCompleted(queuedRun, requestContext, finishedAt);
+                markFromHandle(queuedRun, requestContext, handle, finishedAt);
             }
         } catch (TimeoutException ex) {
             Instant finishedAt = clock.instant();
@@ -146,11 +147,11 @@ public class DefaultRunDispatcher implements RunDispatcher {
         }
     }
 
-    private void runRuntimeWithTimeout(RunContext context, String runId) throws TimeoutException {
+    private RunHandle runRuntimeWithTimeout(RunContext context, String runId) throws TimeoutException {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(() -> agentRuntime.start(context));
+        Future<RunHandle> future = executor.submit(() -> agentRuntime.start(context));
         try {
-            future.get(runTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            return future.get(runTimeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException ex) {
             future.cancel(true);
             throw ex;
@@ -172,6 +173,29 @@ public class DefaultRunDispatcher implements RunDispatcher {
         runProjectionRepository.markTerminalIfNotTerminal(queuedRun.runId(), "COMPLETED", Map.of(), Map.of(), finishedAt);
         runQueue.markTerminal(queuedRun.runId(), "COMPLETED", finishedAt);
         auditRepository.record(requestContext, "run.worker.completed", "run", queuedRun.runId(), queuedRun.sessionId(), queuedRun.runId(), Map.of("publishedTerminalEvent", published));
+    }
+
+    private void markFromHandle(QueuedRun queuedRun, RequestContext requestContext, RunHandle handle, Instant finishedAt) {
+        if (handle.status() == RunStatus.SUCCEEDED) {
+            markCompleted(queuedRun, requestContext, finishedAt);
+            return;
+        }
+        if (handle.status() == RunStatus.CANCELLED) {
+            markCancelled(queuedRun, cancellationRegistry.tokenFor(queuedRun.runId()), requestContext, finishedAt);
+            return;
+        }
+        if (handle.status() == RunStatus.POLICY_BLOCKED) {
+            publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishFailedIfAbsent(queuedRun, "POLICY_BLOCKED", "policy blocked", finishedAt));
+            runProjectionRepository.markTerminalIfNotTerminal(queuedRun.runId(), "POLICY_BLOCKED", Map.of(), Map.of("reason", "policy blocked"), finishedAt);
+            runQueue.markTerminal(queuedRun.runId(), "POLICY_BLOCKED", finishedAt);
+            auditRepository.record(requestContext, "run.worker.policy_blocked", "run", queuedRun.runId(), queuedRun.sessionId(), queuedRun.runId(), Map.of());
+            return;
+        }
+        publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishFailedIfAbsent(queuedRun, handle.status().name(),
+                handle.failureSummary().map(io.github.pi_java.agent.domain.error.FailureSummary::message).orElse(handle.status().name()), finishedAt));
+        runProjectionRepository.markTerminalIfNotTerminal(queuedRun.runId(), "FAILED", Map.of(), Map.of("status", handle.status().name()), finishedAt);
+        runQueue.markTerminal(queuedRun.runId(), "FAILED", finishedAt);
+        auditRepository.record(requestContext, "run.worker.failed", "run", queuedRun.runId(), queuedRun.sessionId(), queuedRun.runId(), Map.of("status", handle.status().name()));
     }
 
     private void markCancelled(QueuedRun queuedRun, CancellationToken token, RequestContext requestContext, Instant finishedAt) {

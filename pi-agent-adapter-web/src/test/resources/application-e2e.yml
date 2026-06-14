@@ -1,0 +1,17 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  flyway:
+    enabled: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+pi:
+  runtime:
+    worker:
+      id: e2e-worker
+      poll-delay-ms: 100
+    run-timeout-ms: 750
+  sse:
+    timeout-millis: 5000
