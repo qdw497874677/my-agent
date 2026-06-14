@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-06-14T10:05:06.508Z"
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-06-14T10:17:38.330Z"
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State: Pi Java Agent Platform
@@ -159,6 +159,9 @@ Key findings:
 - [Phase 03]: Plan 05 isolates Spring AI OpenAI-compatible and Resilience4j dependencies in pi-agent-infrastructure-model-openai, leaving Domain/App free of provider SDK dependencies.
 - [Phase 03]: Plan 05 models provider configuration as plain Java records first so later Spring @ConfigurationProperties wiring can bind without changing registry behavior.
 - [Phase 03]: Plan 05 resolves env:/config: secrets from injected maps with default string and exception paths exposing only scheme-level redaction.
+- [Phase 03]: Plan 06 keeps OpenAI stream parsing behind an OpenAiStreamSource seam so production uses Spring AI while tests remain deterministic and key-free.
+- [Phase 03]: Plan 06 applies retry/rate-limiter/circuit-breaker decorators only before stream iteration begins; after chunks are emitted, failures become provider-neutral error chunks rather than retries.
+- [Phase 03]: Plan 06 resolves raw API keys only while creating adapter model configuration and sanitizes all provider messages before exposing Domain error records.
 
 ## Performance Metrics
 
@@ -186,11 +189,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P03 | 5m 13s | 2 tasks | 7 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P04 | 7m 05s | 2 tasks | 4 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P05 | 5m 07s | 2 tasks | 8 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P06 | 9m 35s | 2 tasks | 10 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 03-05-PLAN.md
+- **Stopped At:** Completed 03-06-PLAN.md
 
 ## Next Action
 
