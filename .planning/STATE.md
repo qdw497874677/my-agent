@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-06-14T18:46:01.556Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-06-14T18:53:16.198Z"
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 34
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State: Pi Java Agent Platform
@@ -43,7 +43,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 | 1 | Runtime Spine, Workspace, and Domain Contracts | Complete |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Complete |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Complete |
-| 4 | Governed Tool Registry and Invocation Pipeline | Pending |
+| 4 | Governed Tool Registry and Invocation Pipeline | In Progress |
 | 5 | Agent Web Console and Runtime Cockpit | Pending |
 | 6 | Java Extension Surface: SPI and Spring | Pending |
 | 7 | MCP Client Bridge and Governed Remote Tools | Pending |
@@ -172,6 +172,9 @@ Key findings:
 - [Phase 04]: Plan 01 uses plain JDK Map/Set/Optional/Duration records for tool schema, descriptor, preview, and execution results so Domain remains framework-free and JSON-schema-library-neutral.
 - [Phase 04]: Plan 01 preserves legacy ToolCall/ToolResult and adds ToolExecutionRequest/ToolExecutionResult as gateway-facing contracts for later ToolExecutionGateway work.
 - [Phase 04]: Plan 01 represents tool lifecycle events with stable tool.* wire names plus ToolLifecyclePayload carrying descriptor ref, provenance/version, redacted summaries, policy decision, preview, execution status, and error category.
+- [Phase 04]: Plan 02 keeps ToolExecutorBinding in App as a low-level executor seam behind ToolRegistry resolution so future ToolExecutionGateway can be the only governance caller.
+- [Phase 04]: Plan 02 returns public tool catalog data as pi-agent-client records instead of Domain records so REST/Admin/Web Console surfaces do not leak Domain or executor implementation types.
+- [Phase 04]: Plan 02 exposes source provenance as string metadata in client DTOs while preserving descriptor-first normalization and avoiding source-specific registry methods.
 
 ## Performance Metrics
 
@@ -203,11 +206,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P07 | 7m 46s | 2 tasks | 7 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P08 | 16m 45s | 3 tasks | 9 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P01 | 5m 00s | 2 tasks | 14 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P02 | 4m 52s | 2 tasks | 8 files |
 
 ## Last Session
 
-- **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 04-01-PLAN.md
+- **Updated:** 2026-06-14T18:53:16Z
+- **Stopped At:** Completed 04-02-PLAN.md
 
 ## Next Action
 

@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Governed Tools
 
 - [x] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults.
-- [ ] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway.
+- [x] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway.
 - [ ] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution.
 - [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
 - [ ] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
@@ -194,7 +194,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-07 | Phase 4 | Pending |
 | WORK-08 | Phase 4 | Pending |
 | TOOL-01 | Phase 4 | Complete |
-| TOOL-02 | Phase 4 | Pending |
+| TOOL-02 | Phase 4 | Complete |
 | TOOL-03 | Phase 4 | Pending |
 | TOOL-04 | Phase 4 | Complete |
 | TOOL-05 | Phase 4 | Pending |
