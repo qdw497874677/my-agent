@@ -15,6 +15,7 @@ import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.agent.InteractionMode;
 import io.github.pi_java.agent.domain.agent.RuntimeLimits;
 import io.github.pi_java.agent.domain.common.PlatformIds.AgentId;
+import io.github.pi_java.agent.domain.model.ProviderModelRef;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.github.pi_java.agent.domain.runtime.RunContext;
@@ -65,7 +66,22 @@ public class DefaultRunDispatcher implements RunDispatcher {
             Clock clock,
             Duration runTimeout) {
         this(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher, cancellationRegistry,
-                auditRepository, agentRuntime, clock, runTimeout, defaultAgentDefinition(runTimeout), new RuntimeLimits(runTimeout, 64, 64));
+                auditRepository, agentRuntime, clock, runTimeout, "openai-compatible:gpt-4.1-mini");
+    }
+
+    public DefaultRunDispatcher(
+            RunQueue runQueue,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            RunTerminalEventPublisher runTerminalEventPublisher,
+            CancellationRegistry cancellationRegistry,
+            AuditRepository auditRepository,
+            AgentRuntime agentRuntime,
+            Clock clock,
+            Duration runTimeout,
+            String modelRef) {
+        this(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher, cancellationRegistry,
+                auditRepository, agentRuntime, clock, runTimeout, defaultAgentDefinition(runTimeout, modelRef), new RuntimeLimits(runTimeout, 64, 64));
     }
 
     public DefaultRunDispatcher(
@@ -121,6 +137,7 @@ public class DefaultRunDispatcher implements RunDispatcher {
             }
             runProjectionRepository.markRunning(runId, startedAt);
             auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, Map.of("workerId", workerId));
+            validateModelRef(agentDefinition.modelRef());
             RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
             RunHandle handle = runRuntimeWithTimeout(context, runId);
             Instant finishedAt = clock.instant();
@@ -239,9 +256,13 @@ public class DefaultRunDispatcher implements RunDispatcher {
         return new RequestContext(new SecurityPrincipalContext(run.tenantId(), run.userId(), Set.of()), new CorrelationContext(run.traceId(), run.correlationId(), run.runId()));
     }
 
-    private static AgentDefinition defaultAgentDefinition(Duration runTimeout) {
+    private static AgentDefinition defaultAgentDefinition(Duration runTimeout, String modelRef) {
         RuntimeLimits limits = new RuntimeLimits(runTimeout, 64, 64);
-        return new AgentDefinition(new AgentId("default-agent"), "Default Agent", "Execute queued run", "default-model", Set.of(), Set.of("default"), limits, Set.of(InteractionMode.CHAT, InteractionMode.TASK), "default-workspace-policy", "default-output-policy");
+        return new AgentDefinition(new AgentId("default-agent"), "Default Agent", "Execute queued run", modelRef, Set.of(), Set.of("default"), limits, Set.of(InteractionMode.CHAT, InteractionMode.TASK), "default-workspace-policy", "default-output-policy");
+    }
+
+    private static String validateModelRef(String modelRef) {
+        return ProviderModelRef.parse(modelRef).canonical();
     }
 
     private static String message(Throwable ex) {

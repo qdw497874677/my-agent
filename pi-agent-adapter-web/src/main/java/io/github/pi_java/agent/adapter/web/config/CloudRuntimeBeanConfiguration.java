@@ -146,9 +146,10 @@ public class CloudRuntimeBeanConfiguration {
             AuditRepository auditRepository,
             AgentRuntime agentRuntime,
             Clock clock,
-            @Value("${pi.runtime.run-timeout-ms:30000}") long runTimeoutMs) {
+            @Value("${pi.runtime.run-timeout-ms:30000}") long runTimeoutMs,
+            @Value("${pi.runtime.default-model-ref:openai-compatible:${pi.providers.openai-compatible.default-model-id:gpt-4.1-mini}}") String defaultModelRef) {
         return new DefaultRunDispatcher(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher,
-                cancellationRegistry, auditRepository, agentRuntime, clock, Duration.ofMillis(runTimeoutMs));
+                cancellationRegistry, auditRepository, agentRuntime, clock, Duration.ofMillis(runTimeoutMs), defaultModelRef);
     }
 
     @Bean
