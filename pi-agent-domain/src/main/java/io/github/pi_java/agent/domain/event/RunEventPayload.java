@@ -4,19 +4,24 @@ import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
 import io.github.pi_java.agent.domain.error.FailureSummary;
 import io.github.pi_java.agent.domain.model.ModelFinishReason;
 import io.github.pi_java.agent.domain.model.ModelUsage;
+import io.github.pi_java.agent.domain.policy.PolicyDecision;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.runtime.StepStatus;
+import io.github.pi_java.agent.domain.tool.ProvisionPreview;
 import io.github.pi_java.agent.domain.tool.ToolCall;
+import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
+import io.github.pi_java.agent.domain.tool.ToolProvenance;
 import io.github.pi_java.agent.domain.tool.ToolResult;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public sealed interface RunEventPayload permits RunEventPayload.RunLifecyclePayload,
         RunEventPayload.StepLifecyclePayload, RunEventPayload.ModelDeltaPayload,
         RunEventPayload.ToolProposedPayload, RunEventPayload.ToolCompletedPayload,
-        RunEventPayload.PolicyDecidedPayload, RunEventPayload.WorkspaceSnapshotPayload,
+        RunEventPayload.ToolLifecyclePayload, RunEventPayload.PolicyDecidedPayload, RunEventPayload.WorkspaceSnapshotPayload,
         RunEventPayload.ArtifactCreatedPayload, RunEventPayload.MessageAppendedPayload,
         RunEventPayload.ExtensionPayload {
 
@@ -60,6 +65,50 @@ public sealed interface RunEventPayload permits RunEventPayload.RunLifecyclePayl
     record ToolCompletedPayload(ToolResult toolResult) implements RunEventPayload {
         public ToolCompletedPayload {
             Objects.requireNonNull(toolResult, "toolResult must not be null");
+        }
+    }
+
+    record ToolLifecyclePayload(
+            String toolCallId,
+            String toolId,
+            String descriptorVersion,
+            ToolProvenance provenance,
+            Map<String, Object> redactedInputSummary,
+            Map<String, Object> redactedOutputSummary,
+            Optional<PolicyDecision> policyDecision,
+            Optional<ToolExecutionStatus> executionStatus,
+            Optional<ProvisionPreview> preview,
+            Optional<String> errorCategory
+    ) implements RunEventPayload {
+        public ToolLifecyclePayload(
+                String toolCallId,
+                String toolId,
+                String descriptorVersion,
+                ToolProvenance provenance,
+                Map<String, Object> redactedInputSummary,
+                Map<String, Object> redactedOutputSummary,
+                PolicyDecision policyDecision,
+                ToolExecutionStatus executionStatus,
+                ProvisionPreview preview,
+                String errorCategory
+        ) {
+            this(toolCallId, toolId, descriptorVersion, provenance, redactedInputSummary, redactedOutputSummary,
+                    Optional.ofNullable(policyDecision), Optional.ofNullable(executionStatus), Optional.ofNullable(preview),
+                    Optional.ofNullable(errorCategory));
+        }
+
+        public ToolLifecyclePayload {
+            toolCallId = requireNonBlank(toolCallId, "toolCallId");
+            toolId = requireNonBlank(toolId, "toolId");
+            descriptorVersion = requireNonBlank(descriptorVersion, "descriptorVersion");
+            Objects.requireNonNull(provenance, "provenance must not be null");
+            redactedInputSummary = Map.copyOf(Objects.requireNonNull(redactedInputSummary, "redactedInputSummary must not be null"));
+            redactedOutputSummary = Map.copyOf(Objects.requireNonNull(redactedOutputSummary, "redactedOutputSummary must not be null"));
+            policyDecision = Objects.requireNonNull(policyDecision, "policyDecision must not be null");
+            executionStatus = Objects.requireNonNull(executionStatus, "executionStatus must not be null");
+            preview = Objects.requireNonNull(preview, "preview must not be null");
+            errorCategory = Objects.requireNonNull(errorCategory, "errorCategory must not be null");
+            errorCategory.ifPresent(value -> requireNonBlank(value, "errorCategory"));
         }
     }
 
