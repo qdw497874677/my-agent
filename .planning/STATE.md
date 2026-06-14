@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-06-14T09:46:36.001Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-06-14T09:55:43.493Z"
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 26
-  completed_plans: 19
+  completed_plans: 21
 ---
 
 # Project State: Pi Java Agent Platform
@@ -150,6 +150,9 @@ Key findings:
 - [Phase 03]: Plan 02 uses callback-style StreamingModelClient with Pi-owned ModelStreamSink instead of Flow.Publisher/Reactor to keep Domain framework-free.
 - [Phase 03]: Plan 02 represents provider tool-call streaming only as complete ToolCall intents in Domain; adapter owns fragment aggregation.
 - [Phase 03]: Plan 02 preserves legacy ModelResponse and ModelDeltaPayload constructors so existing fake runtime/testkit code remains source-compatible.
+- [Phase 03]: Plan 03 keeps model provider registry and secret resolution as App ports over Domain records, with no Spring, provider SDK, or persistence types in App.
+- [Phase 03]: Plan 03 exposes ResolvedSecret.rawValue only from the SecretResolver boundary while default string/error paths carry redacted metadata only.
+- [Phase 03]: Plan 03 uses Optional for unknown provider/model registry resolution so callers never receive null and Adapter can map API errors later.
 
 ## Performance Metrics
 
@@ -174,11 +177,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P12 | 7m 01s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P13 | 9m 06s | 2 tasks | 11 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P02 | 5m 24s | 2 tasks | 10 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P03 | 5m 13s | 2 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 03-02-PLAN.md
+- **Stopped At:** Completed 03-03-PLAN.md
 
 ## Next Action
 
