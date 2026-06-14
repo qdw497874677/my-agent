@@ -109,6 +109,54 @@ class ModelProviderRegistryContractsTest {
         assertThat(resolution.toString()).doesNotContain("secret");
     }
 
+    @Test
+    void provider_model_ref_parses_explicit_provider_model_syntax() {
+        ProviderModelRef ref = ProviderModelRef.parse("openai-compatible:gpt-4.1-mini");
+
+        assertThat(ref.providerId()).isEqualTo("openai-compatible");
+        assertThat(ref.modelId()).isEqualTo("gpt-4.1-mini");
+        assertThat(ref.canonical()).isEqualTo("openai-compatible:gpt-4.1-mini");
+        assertThat(ref.toString()).isEqualTo("openai-compatible:gpt-4.1-mini");
+    }
+
+    @Test
+    void provider_model_ref_rejects_invalid_syntax() {
+        assertThatThrownBy(() -> ProviderModelRef.parse(null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse(" ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse(":gpt-4.1-mini")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse("openai-compatible:")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse("openai-compatible:gpt:extra")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse("openai-compatible gpt-4.1-mini")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse(" openai-compatible:gpt-4.1-mini ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse("openai-compatible: ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ProviderModelRef.parse(" :gpt-4.1-mini")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void credential_and_secret_refs_store_references_and_redact_string_output() {
+        CredentialRef credentialRef = CredentialRef.of("env:OPENAI_API_KEY");
+        SecretRef secretRef = SecretRef.of("config:pi.providers.openai.api-key");
+
+        assertThat(credentialRef.scheme()).isEqualTo("env");
+        assertThat(credentialRef.ref()).isEqualTo("env:OPENAI_API_KEY");
+        assertThat(secretRef.scheme()).isEqualTo("config");
+        assertThat(secretRef.ref()).isEqualTo("config:pi.providers.openai.api-key");
+
+        assertThat(credentialRef.toString()).contains("env:***");
+        assertThat(credentialRef.toString()).doesNotContain("OPENAI_API_KEY");
+        assertThat(secretRef.toString()).contains("config:***");
+        assertThat(secretRef.toString()).doesNotContain("pi.providers.openai.api-key");
+    }
+
+    @Test
+    void credential_and_secret_refs_reject_unusable_reference_syntax() {
+        assertThatThrownBy(() -> CredentialRef.of(null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> CredentialRef.of(" ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> CredentialRef.of("OPENAI_API_KEY")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> CredentialRef.of("env:")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> SecretRef.of(":OPENAI_API_KEY")).isInstanceOf(IllegalArgumentException.class);
+    }
+
     private static ProviderDescriptor providerDescriptor(CredentialRef credentialRef) {
         return new ProviderDescriptor(
                 "openai-compatible",
