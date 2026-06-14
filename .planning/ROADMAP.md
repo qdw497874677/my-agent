@@ -69,7 +69,7 @@ Plans:
 - [x] 02-04-PLAN.md — Define App request context and use-case interfaces.
 - [x] 02-05-PLAN.md — Define App persistence, audit, queue, dispatcher, and cancellation ports.
 - [x] 02-06-PLAN.md — Implement concrete App use-case services and idempotent cancellation orchestration.
-- [ ] 02-07-PLAN.md — Implement PostgreSQL/Flyway/JDBC persistence and persist-then-emit event sink.
+- [x] 02-07-PLAN.md — Implement PostgreSQL/Flyway/JDBC persistence and persist-then-emit event sink.
 - [ ] 02-08-PLAN.md — Implement DB queue, cancellation registry, and run dispatcher/worker.
 - [ ] 02-09-PLAN.md — Build Spring Boot shell, security baseline, and correlation filter.
 - [ ] 02-10-PLAN.md — Implement session-centric REST controllers and event mapper.
