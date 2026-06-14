@@ -125,10 +125,19 @@ CREATE TABLE audit_records (
 
 CREATE TABLE run_queue (
     run_id text PRIMARY KEY,
+    session_id text NOT NULL,
+    tenant_id text NOT NULL,
+    user_id text NOT NULL,
+    workspace_id text NOT NULL,
+    trace_id text NOT NULL,
+    correlation_id text NOT NULL,
+    input_type text NOT NULL,
+    input jsonb NOT NULL DEFAULT '{}'::jsonb,
     status text NOT NULL,
     available_at timestamptz NOT NULL,
     lease_owner text,
     lease_until timestamptz,
+    cancel_reason text,
     attempt_count int NOT NULL DEFAULT 0,
     created_at timestamptz NOT NULL,
     updated_at timestamptz NOT NULL
