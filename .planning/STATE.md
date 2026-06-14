@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-07-PLAN.md
-last_updated: "2026-06-14T05:33:23.693Z"
+stopped_at: Completed 02-09-PLAN.md
+last_updated: "2026-06-14T05:40:53.971Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State: Pi Java Agent Platform
@@ -130,6 +130,8 @@ Key findings:
 - [Phase 02]: Plan 06 uses queued-run context for queued cancellation terminal events to preserve tenant/user/session/run/workspace/trace/correlation IDs.
 - [Phase 02]: Plan 07 stores RunEvent payloads as JSONB with explicit payload_schema/payload_version instead of Java class-name serialization.
 - [Phase 02]: Plan 07 routes live event delivery through Infrastructure RunEventFanout only after TransactionTemplate persistence succeeds.
+- [Phase 02]: Plan 09 kept the web adapter runnable while excluding DataSource/Flyway auto-configuration until Plan 02-12 owns the single runtime composition root.
+- [Phase 02]: Plan 09 uses a dev/test-only safe-header authentication filter while retaining oauth2ResourceServer JWT configuration in every security chain for production readiness.
 
 ## Performance Metrics
 
@@ -147,11 +149,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P05 | 3m 01s | 1 tasks | 11 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P06 | 7m 14s | 2 tasks | 9 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P07 | 9m 55s | 2 tasks | 10 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P09 | 4m 30s | 1 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-07-PLAN.md
+- **Stopped At:** Completed 02-09-PLAN.md
 
 ## Next Action
 
