@@ -99,12 +99,18 @@ public final class FakeStreamingModelClient implements StreamingModelClient {
         return this;
     }
 
+    public FakeStreamingModelClient nextStream() {
+        actions.add((request, cancellationToken, sink, client) -> client.stopCurrentStream = true);
+        return this;
+    }
+
     @Override
     public void stream(ModelRequest request, CancellationToken cancellationToken, ModelStreamSink sink) {
         Objects.requireNonNull(request, "request must not be null");
         Objects.requireNonNull(cancellationToken, "cancellationToken must not be null");
         Objects.requireNonNull(sink, "sink must not be null");
-        while (!actions.isEmpty()) {
+        stopCurrentStream = false;
+        while (!actions.isEmpty() && !stopCurrentStream) {
             if (cancellationToken.isCancellationRequested()) {
                 sink.accept(new ModelStreamChunk.Cancelled(providerId, modelId, modelRef(request), nextSequence(), Duration.ZERO,
                         cancellationToken.reason().orElse("cancelled")));
@@ -117,6 +123,8 @@ public final class FakeStreamingModelClient implements StreamingModelClient {
     private long nextSequence() {
         return ++sequence;
     }
+
+    private boolean stopCurrentStream;
 
     private static String modelRef(ModelRequest request) {
         return request.context().agentDefinition().modelRef();
