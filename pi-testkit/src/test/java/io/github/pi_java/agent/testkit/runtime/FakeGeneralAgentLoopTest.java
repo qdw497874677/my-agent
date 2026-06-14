@@ -13,6 +13,7 @@ import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.session.SessionContext;
+import io.github.pi_java.agent.domain.policy.PolicyDecision;
 import io.github.pi_java.agent.domain.tool.ToolCall;
 import io.github.pi_java.agent.domain.tool.ToolResult;
 import io.github.pi_java.agent.domain.workspace.WorkspaceScope;
@@ -25,6 +26,8 @@ import io.github.pi_java.agent.testkit.FakeToolInvoker;
 import io.github.pi_java.agent.testkit.GeneralAgentLoop;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -58,12 +61,63 @@ class FakeGeneralAgentLoopTest {
                 RunEventType.RUN_STARTED,
                 RunEventType.MODEL_REQUESTED,
                 RunEventType.TOOL_PROPOSED,
-                RunEventType.POLICY_DECIDED,
+                RunEventType.TOOL_POLICY_DECIDED,
+                RunEventType.TOOL_STARTED,
                 RunEventType.TOOL_COMPLETED,
                 RunEventType.MODEL_REQUESTED,
                 RunEventType.MODEL_DELTA,
                 RunEventType.RUN_COMPLETED);
         assertThat(tools.invocations()).hasSize(1);
+    }
+
+    @Test
+    void denied_tool_call_is_gateway_routed_and_skips_executor_side_effect() {
+        EventCollector events = new EventCollector();
+        ToolCall toolCall = new ToolCall("tool-call-1", nullRunId(), nullStepId(), "lookup", Map.of("q", "pi"), START);
+        FakeModelClient model = new FakeModelClient().script(new ModelResponse.ToolCallIntent(toolCall));
+        FakeToolInvoker tools = new FakeToolInvoker().register("lookup", new ToolResult("tool-call-1", true, "found pi", null, START));
+        GeneralAgentLoop loop = new GeneralAgentLoop(model, tools, new FakePolicy(PolicyDecision.DENY), events,
+                new DeterministicIds(), new DeterministicClock(START));
+
+        RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), new CancellationToken()));
+
+        assertThat(handle.status()).isEqualTo(RunStatus.POLICY_BLOCKED);
+        assertThat(tools.invocations()).isEmpty();
+        assertThat(events.types()).contains(RunEventType.TOOL_PROPOSED, RunEventType.TOOL_POLICY_DECIDED,
+                RunEventType.TOOL_DENIED, RunEventType.RUN_POLICY_BLOCKED);
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+    }
+
+    @Test
+    void approval_required_tool_call_is_gateway_routed_and_skips_executor_side_effect() {
+        EventCollector events = new EventCollector();
+        ToolCall toolCall = new ToolCall("tool-call-1", nullRunId(), nullStepId(), "lookup", Map.of("q", "pi"), START);
+        FakeModelClient model = new FakeModelClient().script(new ModelResponse.ToolCallIntent(toolCall));
+        FakeToolInvoker tools = new FakeToolInvoker().register("lookup", new ToolResult("tool-call-1", true, "found pi", null, START));
+        GeneralAgentLoop loop = new GeneralAgentLoop(model, tools, new FakePolicy(PolicyDecision.REQUIRE_APPROVAL), events,
+                new DeterministicIds(), new DeterministicClock(START));
+
+        RunHandle handle = loop.start(context(new RuntimeLimits(Duration.ofMinutes(1), 4, 2), new CancellationToken()));
+
+        assertThat(handle.status()).isEqualTo(RunStatus.POLICY_BLOCKED);
+        assertThat(tools.invocations()).isEmpty();
+        assertThat(events.types()).contains(RunEventType.TOOL_PROPOSED, RunEventType.TOOL_POLICY_DECIDED,
+                RunEventType.TOOL_PREVIEW_GENERATED, RunEventType.TOOL_APPROVAL_REQUIRED, RunEventType.RUN_POLICY_BLOCKED);
+        assertMonotonicSequences(events.events());
+        assertExactlyOneTerminalEventLast(events.events());
+    }
+
+    @Test
+    void general_agent_loop_source_does_not_directly_invoke_legacy_tool_invoker() throws Exception {
+        Path sourcePath = Path.of("src/main/java/io/github/pi_java/agent/testkit/GeneralAgentLoop.java");
+        if (!Files.exists(sourcePath)) {
+            sourcePath = Path.of("pi-testkit/src/main/java/io/github/pi_java/agent/testkit/GeneralAgentLoop.java");
+        }
+        String source = Files.readString(sourcePath);
+
+        assertThat(source).contains("toolExecutionGateway.execute");
+        assertThat(source).doesNotContain("toolInvoker.invoke");
     }
 
     @Test

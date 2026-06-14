@@ -1,9 +1,15 @@
 package io.github.pi_java.agent.testkit;
 
+import io.github.pi_java.agent.app.context.CorrelationContext;
+import io.github.pi_java.agent.app.context.RequestContext;
+import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
+import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
+import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway.ToolExecutionCommand;
 import io.github.pi_java.agent.domain.common.IdGenerator;
 import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
 import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
 import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.SessionId;
 import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
 import io.github.pi_java.agent.domain.common.PlatformIds.TenantId;
 import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
@@ -25,16 +31,20 @@ import io.github.pi_java.agent.domain.model.ModelStreamChunk;
 import io.github.pi_java.agent.domain.model.ModelUsage;
 import io.github.pi_java.agent.domain.model.ProviderErrorSummary;
 import io.github.pi_java.agent.domain.model.StreamingModelClient;
-import io.github.pi_java.agent.domain.policy.PolicyDecision;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.github.pi_java.agent.domain.runtime.RunContext;
 import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.tool.ToolCall;
+import io.github.pi_java.agent.domain.tool.ToolExecutionRequest;
+import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
+import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
 import io.github.pi_java.agent.domain.tool.ToolInvoker;
 import io.github.pi_java.agent.domain.tool.ToolResult;
 
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +53,7 @@ import java.util.Set;
 public final class GeneralAgentLoop implements AgentRuntime {
     private final ModelClient modelClient;
     private final StreamingModelClient streamingModelClient;
-    private final ToolInvoker toolInvoker;
+    private final ToolExecutionGateway toolExecutionGateway;
     private final FakePolicy policy;
     private final EventSink eventSink;
     private final IdGenerator ids;
@@ -54,7 +64,7 @@ public final class GeneralAgentLoop implements AgentRuntime {
                             EventSink eventSink, IdGenerator ids, DeterministicClock clock) {
         this.modelClient = modelClient;
         this.streamingModelClient = null;
-        this.toolInvoker = toolInvoker;
+        this.toolExecutionGateway = new LazyFakeToolExecutionGateway(toolInvoker, policy, eventSink, clock);
         this.policy = policy;
         this.eventSink = eventSink;
         this.ids = ids;
@@ -65,7 +75,29 @@ public final class GeneralAgentLoop implements AgentRuntime {
                             EventSink eventSink, IdGenerator ids, DeterministicClock clock) {
         this.modelClient = null;
         this.streamingModelClient = streamingModelClient;
-        this.toolInvoker = toolInvoker;
+        this.toolExecutionGateway = new LazyFakeToolExecutionGateway(toolInvoker, policy, eventSink, clock);
+        this.policy = policy;
+        this.eventSink = eventSink;
+        this.ids = ids;
+        this.clock = clock;
+    }
+
+    public GeneralAgentLoop(ModelClient modelClient, ToolExecutionGateway toolExecutionGateway, FakePolicy policy,
+                            EventSink eventSink, IdGenerator ids, DeterministicClock clock) {
+        this.modelClient = modelClient;
+        this.streamingModelClient = null;
+        this.toolExecutionGateway = toolExecutionGateway;
+        this.policy = policy;
+        this.eventSink = eventSink;
+        this.ids = ids;
+        this.clock = clock;
+    }
+
+    public GeneralAgentLoop(StreamingModelClient streamingModelClient, ToolExecutionGateway toolExecutionGateway, FakePolicy policy,
+                            EventSink eventSink, IdGenerator ids, DeterministicClock clock) {
+        this.modelClient = null;
+        this.streamingModelClient = streamingModelClient;
+        this.toolExecutionGateway = toolExecutionGateway;
         this.policy = policy;
         this.eventSink = eventSink;
         this.ids = ids;
@@ -187,24 +219,55 @@ public final class GeneralAgentLoop implements AgentRuntime {
     }
 
     private ToolOutcome executeToolCall(RunContext context, RunId runId, StepId stepId, ToolCall toolCall) {
-            publish(context, runId, stepId, RunEventType.TOOL_PROPOSED,
-                    new RunEventPayload.ToolProposedPayload(toolCall));
-            PolicyDecision decision = policy.decide(toolCall);
-            publish(context, runId, stepId, RunEventType.POLICY_DECIDED,
-                    new RunEventPayload.PolicyDecidedPayload("fake-policy", decision.name(), "fake policy decision"));
-            if (decision != PolicyDecision.ALLOW) {
-                FailureSummary summary = failure(PiError.Category.POLICY, "policy blocked", false, false, true);
-                publish(context, runId, stepId, RunEventType.RUN_POLICY_BLOCKED,
-                        new RunEventPayload.RunLifecyclePayload(RunStatus.POLICY_BLOCKED, summary));
-                return ToolOutcome.terminal(new RunHandle(runId.value(), RunStatus.POLICY_BLOCKED, Optional.of(summary)));
+        if (context.cancellationToken().isCancellationRequested()) {
+            return ToolOutcome.terminal(cancelled(context, runId));
+        }
+        ToolExecutionRequest request = new ToolExecutionRequest(toolCall.toolCallId(), runId, stepId, toolCall.toolName(),
+                "v1", toolCall.arguments(), toolCall.requestedAt());
+        ToolExecutionResult result = toolExecutionGateway.execute(new ToolExecutionCommand(requestContext(context),
+                new SessionId(context.workspaceScope().sessionId()), new WorkspaceId(context.workspaceScope().workspaceId()),
+                request, context.cancellationToken()));
+        if (result.status() == ToolExecutionStatus.SUCCESS) {
+            return ToolOutcome.continueWith(new ToolResult(toolCall.toolCallId(), true, result.summary(), null, clock.peek()));
+        }
+        FailureSummary summary = failure(PiError.Category.POLICY, result.summary(), false, false, true);
+        publish(context, runId, stepId, RunEventType.RUN_POLICY_BLOCKED,
+                new RunEventPayload.RunLifecyclePayload(RunStatus.POLICY_BLOCKED, summary));
+        return ToolOutcome.terminal(new RunHandle(runId.value(), RunStatus.POLICY_BLOCKED, Optional.of(summary)));
+    }
+
+    private RequestContext requestContext(RunContext context) {
+        return new RequestContext(
+                new SecurityPrincipalContext(context.workspaceScope().tenantId(), context.workspaceScope().userId(), Set.of()),
+                new CorrelationContext(context.traceId(), context.traceId(), context.traceId()));
+    }
+
+    private final class LazyFakeToolExecutionGateway implements ToolExecutionGateway {
+        private final ToolInvokerBackedGatewayFactory factory;
+        private ToolExecutionGateway delegate;
+
+        private LazyFakeToolExecutionGateway(ToolInvoker toolInvoker, FakePolicy policy, EventSink eventSink, DeterministicClock clock) {
+            this.factory = new ToolInvokerBackedGatewayFactory(toolInvoker, policy, GeneralAgentLoop.this::publish, clock);
+        }
+
+        @Override
+        public ToolExecutionResult execute(ToolExecutionCommand command) {
+            if (delegate == null) {
+                delegate = factory.create(command);
             }
-            if (context.cancellationToken().isCancellationRequested()) {
-                return ToolOutcome.terminal(cancelled(context, runId));
+            return delegate.execute(command);
+        }
+    }
+
+    private record ToolInvokerBackedGatewayFactory(ToolInvoker toolInvoker, FakePolicy policy, EventSink eventSink,
+                                                   DeterministicClock clock) {
+        private ToolExecutionGateway create(ToolExecutionCommand command) {
+            if (!(toolInvoker instanceof FakeToolInvoker fakeToolInvoker)) {
+                throw new IllegalArgumentException("legacy ToolInvoker constructors require FakeToolInvoker for gateway compatibility");
             }
-            ToolResult toolResult = toolInvoker.invoke(toolCall, context, context.cancellationToken());
-            publish(context, runId, stepId, RunEventType.TOOL_COMPLETED,
-                    new RunEventPayload.ToolCompletedPayload(toolResult));
-            return ToolOutcome.continueWith(toolResult);
+            return FakeToolExecutionGateway.fromInvoker(fakeToolInvoker, policy, eventSink, null,
+                    Clock.fixed(clock.peek(), ZoneOffset.UTC));
+        }
     }
 
     @Override
@@ -270,6 +333,17 @@ public final class GeneralAgentLoop implements AgentRuntime {
                 payload,
                 EventVisibility.USER,
                 new RedactionMetadata(false, false, Set.of(), "fake-redaction"));
+        publish(event);
+    }
+
+    private void publish(RunEvent event) {
+        if (event.sequence() < sequence) {
+            event = new RunEvent(event.eventId(), event.tenantId(), event.userId(), event.sessionId(), event.runId(),
+                    event.stepId(), event.workspaceId(), ++sequence, event.timestamp(), event.type(), event.traceId(),
+                    event.correlationId(), event.causationId(), event.payload(), event.visibility(), event.redaction());
+        } else {
+            sequence = event.sequence();
+        }
         eventSink.publish(event);
     }
 

@@ -22,7 +22,7 @@ public final class FakeToolExecutorBinding implements ToolExecutorBinding {
 
     public FakeToolExecutorBinding(FakeToolInvoker toolInvoker, RunContext context) {
         this.toolInvoker = Objects.requireNonNull(toolInvoker, "toolInvoker must not be null");
-        this.context = Objects.requireNonNull(context, "context must not be null");
+        this.context = context;
     }
 
     @Override
