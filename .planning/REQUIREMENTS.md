@@ -30,10 +30,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Model Providers
 
-- [x] **MODEL-01**: Developer can register and resolve model providers through a provider registry using model IDs, provider IDs, capabilities, and credential references.
+- [ ] **MODEL-01**: Developer can register and resolve model providers through a provider registry using model IDs, provider IDs, capabilities, and credential references.
 - [x] **MODEL-02**: Platform provides an OpenAI-compatible streaming chat adapter usable by the General Agent loop.
 - [x] **MODEL-03**: Model adapter normalizes text deltas, tool-call intents, finish reasons, usage/tokens, latency, and provider errors into platform events and records.
-- [x] **MODEL-04**: Provider configuration uses SecretRef/CredentialRef boundaries so raw secrets are not exposed in logs, prompts, events, or Admin GUI.
+- [ ] **MODEL-04**: Provider configuration uses SecretRef/CredentialRef boundaries so raw secrets are not exposed in logs, prompts, events, or Admin GUI.
 - [x] **MODEL-05**: Provider calls support timeout, cancellation, retry/rate-limit/circuit-breaker hooks, and provider contract tests.
 
 ### Governed Tools
@@ -180,10 +180,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLOUD-04 | Phase 2 | Complete |
 | CLOUD-05 | Phase 2 | Complete |
 | CLOUD-06 | Phase 2 | Complete |
-| MODEL-01 | Phase 3 | Complete |
+| MODEL-01 | Phase 3 | Pending |
 | MODEL-02 | Phase 3 | Complete |
 | MODEL-03 | Phase 3 | Complete |
-| MODEL-04 | Phase 3 | Complete |
+| MODEL-04 | Phase 3 | Pending |
 | MODEL-05 | Phase 3 | Complete |
 | WORK-01 | Phase 1 | Complete |
 | WORK-02 | Phase 1 | Complete |

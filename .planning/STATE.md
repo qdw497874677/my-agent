@@ -10,7 +10,7 @@ progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 26
-  completed_plans: 20
+  completed_plans: 19
 ---
 
 # Project State: Pi Java Agent Platform
@@ -150,9 +150,6 @@ Key findings:
 - [Phase 03]: Plan 02 uses callback-style StreamingModelClient with Pi-owned ModelStreamSink instead of Flow.Publisher/Reactor to keep Domain framework-free.
 - [Phase 03]: Plan 02 represents provider tool-call streaming only as complete ToolCall intents in Domain; adapter owns fragment aggregation.
 - [Phase 03]: Plan 02 preserves legacy ModelResponse and ModelDeltaPayload constructors so existing fake runtime/testkit code remains source-compatible.
-- [Phase 03]: Plan 01 represents credentials as CredentialRef/SecretRef reference identifiers only; toString emits scheme-level redaction rather than raw reference targets.
-- [Phase 03]: Plan 01 keeps provider registry vocabulary in pi-agent-domain as Spring-free plain Java records with immutable collection copies.
-- [Phase 03]: Plan 01 validates AgentDefinition.modelRef at registry boundaries with explicit provider:model ProviderModelRef parsing while leaving AgentDefinition.modelRef as String.
 
 ## Performance Metrics
 
@@ -177,7 +174,6 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P12 | 7m 01s | 1 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P13 | 9m 06s | 2 tasks | 11 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P02 | 5m 24s | 2 tasks | 10 files |
-| Phase 03-model-provider-registry-and-openai-compatible-adapter P01 | 5m 23s | 2 tasks | 9 files |
 
 ## Last Session
 
