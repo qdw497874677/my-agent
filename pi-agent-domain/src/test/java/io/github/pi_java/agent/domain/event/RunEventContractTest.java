@@ -11,7 +11,11 @@ import io.github.pi_java.agent.domain.common.PlatformIds.UserId;
 import io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId;
 import io.github.pi_java.agent.domain.model.ModelFinishReason;
 import io.github.pi_java.agent.domain.model.ModelUsage;
+import io.github.pi_java.agent.domain.policy.PolicyDecision;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
+import io.github.pi_java.agent.domain.tool.ProvisionPreview;
+import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
+import io.github.pi_java.agent.domain.tool.ToolProvenance;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -83,6 +87,51 @@ class RunEventContractTest {
                 .collect(Collectors.toSet());
 
         assertThat(families).contains("run", "step", "model", "tool", "policy", "workspace", "artifact", "message");
+    }
+
+    @Test
+    void tool_lifecycle_event_taxonomy_exposes_public_stable_wire_names() {
+        assertThat(RunEventType.TOOL_PROPOSED.wireName()).isEqualTo("tool.proposed");
+        assertThat(RunEventType.TOOL_POLICY_DECIDED.wireName()).isEqualTo("tool.policy_decided");
+        assertThat(RunEventType.TOOL_PREVIEW_GENERATED.wireName()).isEqualTo("tool.preview_generated");
+        assertThat(RunEventType.TOOL_APPROVAL_REQUIRED.wireName()).isEqualTo("tool.approval_required");
+        assertThat(RunEventType.TOOL_STARTED.wireName()).isEqualTo("tool.started");
+        assertThat(RunEventType.TOOL_UPDATED.wireName()).isEqualTo("tool.updated");
+        assertThat(RunEventType.TOOL_COMPLETED.wireName()).isEqualTo("tool.completed");
+        assertThat(RunEventType.TOOL_FAILED.wireName()).isEqualTo("tool.failed");
+        assertThat(RunEventType.TOOL_DENIED.wireName()).isEqualTo("tool.denied");
+        assertThat(RunEventType.TOOL_CANCELLED.wireName()).isEqualTo("tool.cancelled");
+    }
+
+    @Test
+    void tool_lifecycle_payloads_carry_redacted_summaries_policy_preview_and_error_category() {
+        ToolProvenance provenance = new ToolProvenance(
+                ToolProvenance.SourceKind.BUILT_IN,
+                "pi",
+                "builtin.workspace.write",
+                Map.of("owner", "domain"));
+        RunEventPayload.ToolLifecyclePayload payload = new RunEventPayload.ToolLifecyclePayload(
+                "call-1",
+                "workspace.write",
+                "1.0.0",
+                provenance,
+                Map.of("path", "notes.md", "secret", "<redacted>"),
+                Map.of("artifactId", "artifact-1"),
+                PolicyDecision.REQUIRE_APPROVAL,
+                ToolExecutionStatus.APPROVAL_REQUIRED,
+                new ProvisionPreview("preview-1", "Would write one workspace resource", Set.of("workspace.write"), true, Map.of("path", "notes.md")),
+                "POLICY_APPROVAL_REQUIRED");
+
+        assertThat(payload.toolCallId()).isEqualTo("call-1");
+        assertThat(payload.toolId()).isEqualTo("workspace.write");
+        assertThat(payload.descriptorVersion()).isEqualTo("1.0.0");
+        assertThat(payload.provenance()).isEqualTo(provenance);
+        assertThat(payload.redactedInputSummary()).containsEntry("secret", "<redacted>");
+        assertThat(payload.redactedOutputSummary()).containsEntry("artifactId", "artifact-1");
+        assertThat(payload.policyDecision()).contains(PolicyDecision.REQUIRE_APPROVAL);
+        assertThat(payload.executionStatus()).contains(ToolExecutionStatus.APPROVAL_REQUIRED);
+        assertThat(payload.preview()).isPresent();
+        assertThat(payload.errorCategory()).contains("POLICY_APPROVAL_REQUIRED");
     }
 
     @Test
