@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-12-PLAN.md
-last_updated: "2026-06-14T06:10:30.623Z"
+stopped_at: Completed 02-13-PLAN.md
+last_updated: "2026-06-14T06:22:14.626Z"
 progress:
   total_phases: 9
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State: Pi Java Agent Platform
@@ -41,7 +41,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 | Phase | Name | Status |
 |-------|------|--------|
 | 1 | Runtime Spine, Workspace, and Domain Contracts | Complete |
-| 2 | Cloud Server, Persistence, SSE, and Baseline Security | Pending |
+| 2 | Cloud Server, Persistence, SSE, and Baseline Security | Complete |
 | 3 | Model Provider Registry and OpenAI-Compatible Adapter | Pending |
 | 4 | Governed Tool Registry and Invocation Pipeline | Pending |
 | 5 | Agent Web Console and Runtime Cockpit | Pending |
@@ -144,6 +144,9 @@ Key findings:
 - [Phase 02]: Plan 12 owns active runtime bean registration through CloudRuntimeBeanConfiguration instead of component scanning infrastructure fanout beans.
 - [Phase 02]: Plan 12 keeps RunController activation abstracted behind RunActivationTrigger, with production wiring delegating to RunWorkerScheduler.triggerAsync().
 - [Phase 02]: Plan 12 provides scheduled polling through a small adapter bean so RunWorkerScheduler remains a plain infrastructure class.
+- [Phase 02]: Plan 13 uses TestCloudRuntimeConfiguration to provide a test-only no-key AgentRuntime built from pi-testkit GeneralAgentLoop, FakeModelClient, FakeToolInvoker, and FakePolicy.
+- [Phase 02]: Plan 13 treats Docker absence as an environment gate for Testcontainers validation while keeping non-container regressions green locally.
+- [Phase 02]: Plan 13 honors AgentRuntime RunHandle terminal status in DefaultRunDispatcher so max-step, policy, and runtime failures are not incorrectly marked completed.
 
 ## Performance Metrics
 
@@ -166,11 +169,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P10 | 10m 52s | 2 tasks | 6 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P11 | 5m 38s | 2 tasks | 5 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P12 | 7m 01s | 1 tasks | 4 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P13 | 9m 06s | 2 tasks | 11 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-12-PLAN.md
+- **Stopped At:** Completed 02-13-PLAN.md
 
 ## Next Action
 
