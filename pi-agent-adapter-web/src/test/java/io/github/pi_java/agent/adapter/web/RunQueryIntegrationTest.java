@@ -35,6 +35,7 @@ import io.github.pi_java.agent.domain.event.RedactionMetadata;
 import io.github.pi_java.agent.domain.event.RunEvent;
 import io.github.pi_java.agent.domain.event.RunEventPayload.ExtensionPayload;
 import io.github.pi_java.agent.domain.event.RunEventType;
+import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import java.time.Instant;
 import java.util.Set;
 import java.util.List;
@@ -44,8 +45,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest(classes = PiCloudServerApplication.class)
 @AutoConfigureMockMvc
@@ -69,6 +72,15 @@ class RunQueryIntegrationTest {
 
     @MockBean
     private RunController.RunActivationTrigger runActivationTrigger;
+
+    @MockBean
+    private JdbcTemplate jdbcTemplate;
+
+    @MockBean
+    private TransactionTemplate transactionTemplate;
+
+    @MockBean
+    private AgentRuntime agentRuntime;
 
     @Test
     void queryEndpointsExposeCloud03Resources() throws Exception {

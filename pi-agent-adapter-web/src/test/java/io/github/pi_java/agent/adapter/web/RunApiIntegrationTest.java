@@ -20,6 +20,7 @@ import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
+import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.Map;
@@ -30,8 +31,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest(classes = PiCloudServerApplication.class)
 @AutoConfigureMockMvc
@@ -58,6 +61,15 @@ class RunApiIntegrationTest {
 
     @MockBean
     private RunController.RunActivationTrigger runActivationTrigger;
+
+    @MockBean
+    private JdbcTemplate jdbcTemplate;
+
+    @MockBean
+    private TransactionTemplate transactionTemplate;
+
+    @MockBean
+    private AgentRuntime agentRuntime;
 
     @Test
     void createRunRequiresAuthAndReturnsAccepted() throws Exception {
