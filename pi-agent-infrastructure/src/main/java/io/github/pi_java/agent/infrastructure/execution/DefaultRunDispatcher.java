@@ -1,0 +1,231 @@
+package io.github.pi_java.agent.infrastructure.execution;
+
+import io.github.pi_java.agent.app.context.CorrelationContext;
+import io.github.pi_java.agent.app.context.RequestContext;
+import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
+import io.github.pi_java.agent.app.port.execution.CancellationRegistry;
+import io.github.pi_java.agent.app.port.execution.QueuedRun;
+import io.github.pi_java.agent.app.port.execution.RunDispatcher;
+import io.github.pi_java.agent.app.port.execution.RunQueue;
+import io.github.pi_java.agent.app.port.execution.RunTerminalEventPublisher;
+import io.github.pi_java.agent.app.port.persistence.AuditRepository;
+import io.github.pi_java.agent.app.port.persistence.RunEventStore;
+import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
+import io.github.pi_java.agent.domain.agent.AgentDefinition;
+import io.github.pi_java.agent.domain.agent.InteractionMode;
+import io.github.pi_java.agent.domain.agent.RuntimeLimits;
+import io.github.pi_java.agent.domain.common.PlatformIds.AgentId;
+import io.github.pi_java.agent.domain.runtime.AgentRuntime;
+import io.github.pi_java.agent.domain.runtime.CancellationToken;
+import io.github.pi_java.agent.domain.runtime.RunContext;
+import io.github.pi_java.agent.domain.runtime.RunInput;
+import io.github.pi_java.agent.domain.runtime.RunStatus;
+import io.github.pi_java.agent.domain.session.SessionContext;
+import io.github.pi_java.agent.domain.workspace.WorkspaceScope;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+public class DefaultRunDispatcher implements RunDispatcher {
+
+    private static final Set<String> TERMINAL_STATUSES = Set.of("COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT");
+
+    private final RunQueue runQueue;
+    private final RunProjectionRepository runProjectionRepository;
+    private final RunEventStore runEventStore;
+    private final RunTerminalEventPublisher runTerminalEventPublisher;
+    private final CancellationRegistry cancellationRegistry;
+    private final AuditRepository auditRepository;
+    private final AgentRuntime agentRuntime;
+    private final Clock clock;
+    private final Duration runTimeout;
+    private final AgentDefinition agentDefinition;
+    private final RuntimeLimits runtimeLimits;
+
+    public DefaultRunDispatcher(
+            RunQueue runQueue,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            RunTerminalEventPublisher runTerminalEventPublisher,
+            CancellationRegistry cancellationRegistry,
+            AuditRepository auditRepository,
+            AgentRuntime agentRuntime,
+            Clock clock,
+            Duration runTimeout) {
+        this(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher, cancellationRegistry,
+                auditRepository, agentRuntime, clock, runTimeout, defaultAgentDefinition(runTimeout), new RuntimeLimits(runTimeout, 64, 64));
+    }
+
+    public DefaultRunDispatcher(
+            RunQueue runQueue,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            RunTerminalEventPublisher runTerminalEventPublisher,
+            CancellationRegistry cancellationRegistry,
+            AuditRepository auditRepository,
+            AgentRuntime agentRuntime,
+            Clock clock,
+            Duration runTimeout,
+            AgentDefinition agentDefinition,
+            RuntimeLimits runtimeLimits) {
+        this.runQueue = Objects.requireNonNull(runQueue, "runQueue must not be null");
+        this.runProjectionRepository = Objects.requireNonNull(runProjectionRepository, "runProjectionRepository must not be null");
+        this.runEventStore = Objects.requireNonNull(runEventStore, "runEventStore must not be null");
+        this.runTerminalEventPublisher = Objects.requireNonNull(runTerminalEventPublisher, "runTerminalEventPublisher must not be null");
+        this.cancellationRegistry = Objects.requireNonNull(cancellationRegistry, "cancellationRegistry must not be null");
+        this.auditRepository = Objects.requireNonNull(auditRepository, "auditRepository must not be null");
+        this.agentRuntime = Objects.requireNonNull(agentRuntime, "agentRuntime must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.runTimeout = Objects.requireNonNull(runTimeout, "runTimeout must not be null");
+        this.agentDefinition = Objects.requireNonNull(agentDefinition, "agentDefinition must not be null");
+        this.runtimeLimits = Objects.requireNonNull(runtimeLimits, "runtimeLimits must not be null");
+    }
+
+    @Override
+    public void dispatch(String workerId) {
+        runQueue.claimNext(workerId, clock.instant()).ifPresent(queuedRun -> dispatchClaimed(workerId, queuedRun));
+    }
+
+    @Override
+    public void dispatchRun(String workerId, String runId) {
+        QueuedRun claimed = runQueue.claimNext(workerId, clock.instant()).orElse(null);
+        if (claimed == null) {
+            return;
+        }
+        if (!claimed.runId().equals(runId)) {
+            throw new IllegalStateException("Claimed run " + claimed.runId() + " did not match requested run " + runId);
+        }
+        dispatchClaimed(workerId, claimed);
+    }
+
+    void dispatchClaimed(String workerId, QueuedRun queuedRun) {
+        Instant startedAt = clock.instant();
+        String runId = queuedRun.runId();
+        CancellationToken token = cancellationRegistry.tokenFor(runId);
+        RequestContext requestContext = requestContext(queuedRun);
+        try {
+            if (!runQueue.markRunning(runId, startedAt)) {
+                return;
+            }
+            runProjectionRepository.markRunning(runId, startedAt);
+            auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, Map.of("workerId", workerId));
+            RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
+            runRuntimeWithTimeout(context, runId);
+            Instant finishedAt = clock.instant();
+            if (token.isCancellationRequested()) {
+                markCancelled(queuedRun, token, requestContext, finishedAt);
+            } else {
+                markCompleted(queuedRun, requestContext, finishedAt);
+            }
+        } catch (TimeoutException ex) {
+            Instant finishedAt = clock.instant();
+            agentRuntime.cancel(runId, "timeout");
+            publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishTimedOutIfAbsent(queuedRun, "timeout", finishedAt));
+            runProjectionRepository.markTerminalIfNotTerminal(runId, "TIMED_OUT", Map.of(), Map.of("reason", "timeout"), finishedAt);
+            runQueue.markTerminal(runId, "TIMED_OUT", finishedAt);
+            auditRepository.record(requestContext, "run.worker.timed_out", "run", runId, queuedRun.sessionId(), runId, Map.of("reason", "timeout"));
+        } catch (RuntimeException ex) {
+            Instant finishedAt = clock.instant();
+            publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishFailedIfAbsent(queuedRun, ex.getClass().getSimpleName(), message(ex), finishedAt));
+            runProjectionRepository.markTerminalIfNotTerminal(runId, "FAILED", Map.of(), Map.of("errorType", ex.getClass().getSimpleName(), "message", message(ex)), finishedAt);
+            runQueue.markTerminal(runId, "FAILED", finishedAt);
+            auditRepository.record(requestContext, "run.worker.failed", "run", runId, queuedRun.sessionId(), runId, Map.of("errorType", ex.getClass().getSimpleName(), "message", message(ex)));
+        } finally {
+            cancellationRegistry.remove(runId);
+        }
+    }
+
+    private void runRuntimeWithTimeout(RunContext context, String runId) throws TimeoutException {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<?> future = executor.submit(() -> agentRuntime.start(context));
+        try {
+            future.get(runTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException ex) {
+            future.cancel(true);
+            throw ex;
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while dispatching run " + runId, ex);
+        } catch (java.util.concurrent.ExecutionException ex) {
+            if (ex.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new RuntimeException(ex.getCause());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private void markCompleted(QueuedRun queuedRun, RequestContext requestContext, Instant finishedAt) {
+        boolean published = publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishCompletedIfAbsent(queuedRun, finishedAt));
+        runProjectionRepository.markTerminalIfNotTerminal(queuedRun.runId(), "COMPLETED", Map.of(), Map.of(), finishedAt);
+        runQueue.markTerminal(queuedRun.runId(), "COMPLETED", finishedAt);
+        auditRepository.record(requestContext, "run.worker.completed", "run", queuedRun.runId(), queuedRun.sessionId(), queuedRun.runId(), Map.of("publishedTerminalEvent", published));
+    }
+
+    private void markCancelled(QueuedRun queuedRun, CancellationToken token, RequestContext requestContext, Instant finishedAt) {
+        String reason = token.reason().orElse("cancelled");
+        boolean hadTerminalEvent = runEventStore.hasTerminalEvent(queuedRun.runId());
+        publishTerminalIfNeeded(queuedRun, () -> runTerminalEventPublisher.publishCancelledIfAbsent(queuedRun, reason, finishedAt));
+        runProjectionRepository.markTerminalIfNotTerminal(queuedRun.runId(), "CANCELLED", Map.of(), Map.of("reason", reason), finishedAt);
+        runQueue.markTerminal(queuedRun.runId(), "CANCELLED", finishedAt);
+        if (!hadTerminalEvent) {
+            auditRepository.record(requestContext, "run.worker.cancelled", "run", queuedRun.runId(), queuedRun.sessionId(), queuedRun.runId(), Map.of("reason", reason));
+        }
+    }
+
+    private boolean publishTerminalIfNeeded(QueuedRun queuedRun, TerminalPublisher publisher) {
+        if (runEventStore.hasTerminalEvent(queuedRun.runId())) {
+            return false;
+        }
+        return publisher.publish();
+    }
+
+    private static RunInput runInput(QueuedRun run) {
+        Object text = run.input().get("text");
+        return switch (run.inputType().toLowerCase()) {
+            case "chat" -> new RunInput.ChatInput(text == null || text.toString().isBlank() ? "chat" : text.toString());
+            case "task" -> new RunInput.TaskInput(String.valueOf(run.input().getOrDefault("objective", text == null ? "task" : text)));
+            case "tool" -> new RunInput.ToolDrivenInput(String.valueOf(run.input().getOrDefault("toolName", "tool")), run.input());
+            case "workflow" -> new RunInput.WorkflowPlannerInput(String.valueOf(run.input().getOrDefault("planRequest", text == null ? "plan" : text)));
+            default -> new RunInput.StructuredFormInput(run.input());
+        };
+    }
+
+    private static SessionContext sessionContext(QueuedRun run) {
+        return new SessionContext(List.of(), List.of(), List.of(), List.of(), List.of(), java.util.Optional.of(workspaceScope(run)), List.of());
+    }
+
+    private static WorkspaceScope workspaceScope(QueuedRun run) {
+        return new WorkspaceScope(run.tenantId(), run.userId(), run.sessionId(), run.runId(), run.workspaceId(), Set.of(), Set.of());
+    }
+
+    private static RequestContext requestContext(QueuedRun run) {
+        return new RequestContext(new SecurityPrincipalContext(run.tenantId(), run.userId(), Set.of()), new CorrelationContext(run.traceId(), run.correlationId(), run.runId()));
+    }
+
+    private static AgentDefinition defaultAgentDefinition(Duration runTimeout) {
+        RuntimeLimits limits = new RuntimeLimits(runTimeout, 64, 64);
+        return new AgentDefinition(new AgentId("default-agent"), "Default Agent", "Execute queued run", "default-model", Set.of(), Set.of("default"), limits, Set.of(InteractionMode.CHAT, InteractionMode.TASK), "default-workspace-policy", "default-output-policy");
+    }
+
+    private static String message(Throwable ex) {
+        return ex.getMessage() == null || ex.getMessage().isBlank() ? ex.getClass().getSimpleName() : ex.getMessage();
+    }
+
+    @FunctionalInterface
+    private interface TerminalPublisher {
+        boolean publish();
+    }
+}
