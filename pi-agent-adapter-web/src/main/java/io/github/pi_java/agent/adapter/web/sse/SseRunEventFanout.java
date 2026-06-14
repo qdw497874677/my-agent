@@ -54,7 +54,7 @@ public class SseRunEventFanout implements RunEventFanout {
         }
     }
 
-    int subscriberCount(String runId) {
+    public int subscriberCount(String runId) {
         ConcurrentHashMap<String, Consumer<RunEventDto>> subscribers = subscribersByRunId.get(runId);
         return subscribers == null ? 0 : subscribers.size();
     }
