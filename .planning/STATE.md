@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-06-14T18:53:16.198Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-06-14T19:04:29.633Z"
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 34
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State: Pi Java Agent Platform
@@ -175,6 +175,9 @@ Key findings:
 - [Phase 04]: Plan 02 keeps ToolExecutorBinding in App as a low-level executor seam behind ToolRegistry resolution so future ToolExecutionGateway can be the only governance caller.
 - [Phase 04]: Plan 02 returns public tool catalog data as pi-agent-client records instead of Domain records so REST/Admin/Web Console surfaces do not leak Domain or executor implementation types.
 - [Phase 04]: Plan 02 exposes source provenance as string metadata in client DTOs while preserving descriptor-first normalization and avoiding source-specific registry methods.
+- [Phase 04]: Plan 03 keeps validation, policy evaluation, preview generation, payload limiting, and redaction as App-layer ports so concrete implementations remain replaceable.
+- [Phase 04]: Plan 03 preserves REQUIRE_APPROVAL and REQUIRE_SANDBOX as non-executing gateway outcomes instead of converting them to generic deny.
+- [Phase 04]: Plan 03 emits and audits redacted summary-level lifecycle data from the gateway while leaving raw tool output out of default events and audits.
 
 ## Performance Metrics
 
@@ -207,11 +210,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P08 | 16m 45s | 3 tasks | 9 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P01 | 5m 00s | 2 tasks | 14 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P02 | 4m 52s | 2 tasks | 8 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P03 | 8m 42s | 2 tasks | 8 files |
 
 ## Last Session
 
-- **Updated:** 2026-06-14T18:53:16Z
-- **Stopped At:** Completed 04-02-PLAN.md
+- **Updated:** 2026-06-14T19:04:29Z
+- **Stopped At:** Completed 04-03-PLAN.md
 
 ## Next Action
 

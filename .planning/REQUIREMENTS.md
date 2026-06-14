@@ -40,9 +40,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults.
 - [x] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway.
-- [ ] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution.
+- [x] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution.
 - [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
-- [ ] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
+- [x] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
 - [x] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
 - [ ] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
 
@@ -55,7 +55,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
 - [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
 - [ ] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
-- [ ] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
+- [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
 
 ### Extension Fabric
 
@@ -96,8 +96,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Observability, Policy, and Security
 
 - [ ] **OPS-01**: Platform emits structured logs, metrics, and OpenTelemetry-compatible trace/span hooks for runs, model calls, tool calls, MCP calls, plugin lifecycle, and policy decisions.
-- [ ] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
-- [ ] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
+- [x] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
+- [x] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
 - [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
 - [x] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
 - [x] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
@@ -192,12 +192,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-05 | Phase 1 | Complete |
 | WORK-06 | Phase 6 | Pending |
 | WORK-07 | Phase 4 | Pending |
-| WORK-08 | Phase 4 | Pending |
+| WORK-08 | Phase 4 | Complete |
 | TOOL-01 | Phase 4 | Complete |
 | TOOL-02 | Phase 4 | Complete |
-| TOOL-03 | Phase 4 | Pending |
+| TOOL-03 | Phase 4 | Complete |
 | TOOL-04 | Phase 4 | Complete |
-| TOOL-05 | Phase 4 | Pending |
+| TOOL-05 | Phase 4 | Complete |
 | TOOL-06 | Phase 4 | Complete |
 | TOOL-07 | Phase 4 | Pending |
 | EXT-01 | Phase 6 | Pending |
@@ -225,8 +225,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GUI-07 | Phase 5 | Pending |
 | GUI-08 | Phase 5 | Pending |
 | OPS-01 | Phase 9 | Pending |
-| OPS-02 | Phase 4 | Pending |
-| OPS-03 | Phase 4 | Pending |
+| OPS-02 | Phase 4 | Complete |
+| OPS-03 | Phase 4 | Complete |
 | OPS-04 | Phase 1 | Complete |
 | OPS-05 | Phase 4 | Complete |
 | OPS-06 | Phase 1 | Complete |
