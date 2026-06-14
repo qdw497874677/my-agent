@@ -73,7 +73,7 @@ Each task was committed atomically:
 1. **Task 1: Implement session and query use-case services** - `341ed43` (feat)
 2. **Task 2: Implement run create and idempotent cancellation orchestration** - `692be17` (feat)
 
-**Plan metadata:** pending final docs commit
+**Plan metadata:** `4f57a9e` (initial docs/state/roadmap commit)
 
 ## Files Created/Modified
 
