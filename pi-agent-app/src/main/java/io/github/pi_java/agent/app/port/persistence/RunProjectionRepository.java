@@ -31,6 +31,9 @@ public interface RunProjectionRepository {
             Map<String, Object> failure,
             Instant finishedAt);
 
+    default void updateLastEventSequence(String runId, long sequence, Instant updatedAt) {
+    }
+
     RunDetailResponse getRunDetail(RequestContext context, String sessionId, String runId);
 
     PageResponse<Map<String, Object>> listSteps(RequestContext context, String sessionId, String runId, int limit);

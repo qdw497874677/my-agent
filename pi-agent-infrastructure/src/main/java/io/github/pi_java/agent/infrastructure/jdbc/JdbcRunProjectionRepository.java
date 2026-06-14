@@ -112,6 +112,7 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
         return updated > 0;
     }
 
+    @Override
     public void updateLastEventSequence(String runId, long sequence, Instant updatedAt) {
         jdbcTemplate.update("""
                         UPDATE runs SET last_event_sequence = GREATEST(last_event_sequence, ?), updated_at = ?

@@ -18,6 +18,7 @@ import io.github.pi_java.agent.domain.event.RedactionMetadata;
 import io.github.pi_java.agent.domain.event.RunEvent;
 import io.github.pi_java.agent.domain.event.RunEventPayload;
 import io.github.pi_java.agent.domain.event.RunEventType;
+import io.github.pi_java.agent.infrastructure.event.PersistingEventSink;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,6 +130,33 @@ class JdbcPersistenceIntegrationTest {
         assertThat(row).containsEntry("user_id", "user-1");
         assertThat(row).containsEntry("trace_id", "trace-1");
         assertThat(row).containsEntry("correlation_id", "correlation-1");
+    }
+
+    @Test
+    void persistingEventSinkDoesNotFanoutWhenAppendFails() {
+        eventStore.append(event("event-5", "run-5", 1, RunEventType.RUN_CREATED));
+        List<RunEvent> published = new ArrayList<>();
+        PersistingEventSink sink = new PersistingEventSink(transactionTemplate, eventStore, runProjectionRepository, published::add);
+
+        assertThatThrownBy(() -> sink.publish(event("event-6", "run-5", 1, RunEventType.RUN_STARTED)))
+                .isInstanceOf(RuntimeException.class);
+
+        assertThat(published).isEmpty();
+    }
+
+    @Test
+    void persistingEventSinkPersistsBeforeFanout() {
+        List<RunEvent> published = new ArrayList<>();
+        PersistingEventSink sink = new PersistingEventSink(transactionTemplate, eventStore, runProjectionRepository, event -> {
+            assertThat(eventStore.listByRun(event.runId().value(), 0, 10)).extracting(RunEvent::eventId).contains(event.eventId());
+            published.add(event);
+        });
+
+        RunEvent event = event("event-7", "run-7", 1, RunEventType.RUN_COMPLETED);
+        sink.publish(event);
+
+        assertThat(published).containsExactly(event);
+        assertThat(eventStore.hasTerminalEvent("run-7")).isTrue();
     }
 
     private static RequestContext requestContext() {
