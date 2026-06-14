@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-06-14T19:04:29.633Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-06-14T19:23:09.279Z"
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 34
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # Project State: Pi Java Agent Platform
@@ -178,6 +178,10 @@ Key findings:
 - [Phase 04]: Plan 03 keeps validation, policy evaluation, preview generation, payload limiting, and redaction as App-layer ports so concrete implementations remain replaceable.
 - [Phase 04]: Plan 03 preserves REQUIRE_APPROVAL and REQUIRE_SANDBOX as non-executing gateway outcomes instead of converting them to generic deny.
 - [Phase 04]: Plan 03 emits and audits redacted summary-level lifecycle data from the gateway while leaving raw tool output out of default events and audits.
+- [Phase 04]: Keep networknt JSON Schema validation in Infrastructure only and expose only safe validation summaries through the App validator port.
+- [Phase 04]: Use conservative default policy semantics: safe read-only allowed, side-effectful and unscoped tools require preview/approval, destructive or critical tools block by default.
+- [Phase 04]: Generate provision previews as static impact estimates only; preview generation must not execute tool bindings, workspace writes, or processes.
+- [Phase 04]: Return payload summaries and truncation metadata for oversized payloads instead of propagating unbounded raw arguments/results.
 
 ## Performance Metrics
 
@@ -211,11 +215,12 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P01 | 5m 00s | 2 tasks | 14 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P02 | 4m 52s | 2 tasks | 8 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P03 | 8m 42s | 2 tasks | 8 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P04 | 15m 18s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 04-03-PLAN.md
+- **Stopped At:** Completed 04-04-PLAN.md
 
 ## Next Action
 

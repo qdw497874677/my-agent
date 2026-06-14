@@ -132,7 +132,7 @@ Plans:
 - [x] 04-01-PLAN.md — Define framework-free tool descriptor, execution result, preview, and lifecycle event contracts.
 - [x] 04-02-PLAN.md — Add descriptor-first ToolRegistry, executor binding, query use case, and catalog DTO contracts.
 - [x] 04-03-PLAN.md — Implement App ToolExecutionGateway orchestration for validation, policy, preview, audit, events, limits, and redaction.
-- [ ] 04-04-PLAN.md — Add Infrastructure JSON Schema validation, in-memory registry, default policy, redaction, payload limits, and preview generation.
+- [x] 04-04-PLAN.md — Add Infrastructure JSON Schema validation, in-memory registry, default policy, redaction, payload limits, and preview generation.
 - [ ] 04-05-PLAN.md — Reroute testkit GeneralAgentLoop through ToolExecutionGateway and add gateway-aware fakes.
 - [ ] 04-06-PLAN.md — Implement bounded local-temp workspace, allowlisted command gateway, and safe built-in example tools.
 - [ ] 04-07-PLAN.md — Wire governed tools into Cloud Server, event DTO mapping, and read-only Tool Registry REST API.
