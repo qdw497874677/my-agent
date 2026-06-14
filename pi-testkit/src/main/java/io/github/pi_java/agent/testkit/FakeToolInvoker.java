@@ -33,4 +33,8 @@ public final class FakeToolInvoker implements ToolInvoker {
     public List<ToolCall> invocations() {
         return List.copyOf(invocations);
     }
+
+    public List<String> registeredToolNames() {
+        return List.copyOf(resultsByToolName.keySet());
+    }
 }
