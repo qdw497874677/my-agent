@@ -12,6 +12,7 @@ public final class OpenAiProviderErrorMapper {
     private static final Pattern BEARER = Pattern.compile("(?i)Bearer\\s+[^\\s,;]+");
     private static final Pattern OPENAI_KEY = Pattern.compile("sk-[A-Za-z0-9_\\-]+", Pattern.CASE_INSENSITIVE);
     private static final Pattern AUTH_HEADER = Pattern.compile("(?i)authorization\\s*[:=]\\s*[^\\s,;]+(?:\\s+[^\\s,;]+)?");
+    private static final Pattern API_KEY_ASSIGNMENT = Pattern.compile("(?i)api[_-]?key\\s*[:=]\\s*[^\\s,;]+");
 
     private OpenAiProviderErrorMapper() {
     }
@@ -35,6 +36,12 @@ public final class OpenAiProviderErrorMapper {
     }
 
     public static ProviderErrorSummary fromThrowable(Throwable throwable, String configuredSecret, boolean retryableBeforeStream) {
+        if (throwable != null) {
+            Integer httpStatus = extractHttpStatus(throwable);
+            if (httpStatus != null && retryableBeforeStream) {
+                return fromHttpStatus(httpStatus, throwable.getMessage(), configuredSecret);
+            }
+        }
         String safe = sanitize(throwable == null ? "Provider call failed" : throwable.getMessage(), configuredSecret);
         if (safe.toLowerCase().contains("timeout")) {
             return summary("provider_timeout", safe, null, retryableBeforeStream, true, false);
@@ -58,10 +65,33 @@ public final class OpenAiProviderErrorMapper {
             sanitized = sanitized.replace(configuredSecret, "[REDACTED]");
         }
         sanitized = AUTH_HEADER.matcher(sanitized).replaceAll("[REDACTED_AUTHORIZATION]");
+        sanitized = API_KEY_ASSIGNMENT.matcher(sanitized).replaceAll("[REDACTED_API_KEY]");
         sanitized = OPENAI_KEY.matcher(sanitized).replaceAll("[REDACTED_SECRET]");
         sanitized = BEARER.matcher(sanitized).replaceAll("[REDACTED_BEARER]");
         sanitized = sanitized.replaceAll("(?i)authorization", "auth");
+        sanitized = sanitized.replaceAll("(?i)api[_-]?key", "api credential");
         return sanitized.isBlank() ? "Provider error" : sanitized;
+    }
+
+    private static Integer extractHttpStatus(Throwable throwable) {
+        Class<?> current = throwable.getClass();
+        while (current != null) {
+            try {
+                java.lang.reflect.Method method = current.getDeclaredMethod("status");
+                method.setAccessible(true);
+                Object value = method.invoke(throwable);
+                if (value instanceof Number number) {
+                    int status = number.intValue();
+                    if (status >= 100 && status <= 599) {
+                        return status;
+                    }
+                }
+            } catch (ReflectiveOperationException ignored) {
+                // Keep provider SDK details optional; most HTTP exceptions do not expose a common type.
+            }
+            current = current.getSuperclass();
+        }
+        return null;
     }
 
     static ProviderErrorSummary invalidToolCallArguments(String message) {
