@@ -64,8 +64,8 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Add Phase 2 Maven dependency and verification foundation.
-- [ ] 02-02-PLAN.md — Define public session/run REST DTO contracts.
-- [ ] 02-03-PLAN.md — Define public RunEvent DTO and event-history contract.
+- [x] 02-02-PLAN.md — Define public session/run REST DTO contracts.
+- [x] 02-03-PLAN.md — Define public RunEvent DTO and event-history contract.
 - [ ] 02-04-PLAN.md — Define App request context and use-case interfaces.
 - [ ] 02-05-PLAN.md — Define App persistence, audit, queue, dispatcher, and cancellation ports.
 - [ ] 02-06-PLAN.md — Implement concrete App use-case services and idempotent cancellation orchestration.

@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-06-14T05:02:43.228Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-06-14T05:08:14.043Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 6
+  completed_plans: 8
 ---
 
 # Project State: Pi Java Agent Platform
@@ -114,6 +114,11 @@ Key findings:
 - [Phase 01]: Keep Phase 1 contract documentation as a downstream boundary document that names deferred provider, persistence, UI, MCP, plugin, shell, filesystem, and durable execution scopes.
 - [Phase 02]: Plan 01 imported Spring Boot and Testcontainers through root dependencyManagement while keeping module dependencies explicit.
 - [Phase 02]: Plan 01 kept Spring/JDBC/Flyway/Security dependencies only in outer Client/Infrastructure/Adapter modules; Domain and App production dependencies remain framework-isolated.
+- [Phase 02]: Plan 03 keeps event history REST and SSE on one shared RunEventDto envelope in pi-agent-client.
+- [Phase 02]: Plan 03 keeps client event DTOs provider-neutral and free of Domain imports so adapter-web owns Domain-to-public mapping later.
+- [Phase 02]: Plan 03 exposes event replay through run-scoped sequence cursors afterSequence and nextAfterSequence.
+- [Phase 02]: Plan 02 kept pi-agent-client DTOs as plain Java records without Domain imports or Spring/Jakarta annotations.
+- [Phase 02]: Plan 02 represented create-run input generically with inputType plus Map input instead of chat-transcript-only API shape.
 
 ## Performance Metrics
 
@@ -125,11 +130,13 @@ Key findings:
 | Phase 01-runtime-spine-workspace-and-domain-contracts P04 | 7m 20s | 3 tasks | 22 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P05 | 4m 06s | 3 tasks | 4 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P01 | 3m 06s | 1 tasks | 4 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P03 | 2m 24s | 1 tasks | 4 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P02 | 2m 42s | 1 tasks | 13 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-01-PLAN.md
+- **Stopped At:** Completed 02-02-PLAN.md
 
 ## Next Action
 
