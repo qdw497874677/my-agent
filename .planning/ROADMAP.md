@@ -106,7 +106,7 @@ Plans:
 - [x] 03-05-PLAN.md — Add isolated OpenAI-compatible provider infrastructure module, config, registry, and secret resolver.
 - [x] 03-06-PLAN.md — Implement Spring AI-backed OpenAI-compatible StreamingModelClient with normalization and resilience.
 - [x] 03-07-PLAN.md — Wire provider registry/adapter into Cloud Server composition and explicit provider:model dispatch.
-- [ ] 03-08-PLAN.md — Add fake provider contract tests, Cloud Server E2E, optional smoke test, and downstream docs.
+- [x] 03-08-PLAN.md — Add fake provider contract tests, Cloud Server E2E, optional smoke test, and downstream docs.
 
 **Success criteria:**
 1. Provider registry resolves model IDs, provider IDs, capability descriptors, and credential references.

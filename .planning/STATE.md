@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 03
-status: executing
-stopped_at: Completed 03-07-PLAN.md
-last_updated: "2026-06-14T10:28:24.776Z"
+status: completed
+stopped_at: Completed 03-08-PLAN.md
+last_updated: "2026-06-14T10:47:56.399Z"
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Executing Phase 03
+**Status:** Completed Phase 03
 **Current Phase:** 03
 
 ## Project Reference
@@ -42,7 +42,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 |-------|------|--------|
 | 1 | Runtime Spine, Workspace, and Domain Contracts | Complete |
 | 2 | Cloud Server, Persistence, SSE, and Baseline Security | Complete |
-| 3 | Model Provider Registry and OpenAI-Compatible Adapter | Pending |
+| 3 | Model Provider Registry and OpenAI-Compatible Adapter | Complete |
 | 4 | Governed Tool Registry and Invocation Pipeline | Pending |
 | 5 | Agent Web Console and Runtime Cockpit | Pending |
 | 6 | Java Extension Surface: SPI and Spring | Pending |
@@ -95,6 +95,7 @@ Key findings:
 - [x] 01-03-PLAN.md — Define Workspace, Artifact/Attachment, and append-only Session tree contracts completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-03-SUMMARY.md`).
 - [x] 01-04-PLAN.md — Implement runtime ports and reusable fake General Agent testkit loop completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-04-SUMMARY.md`).
 - [x] 01-05-PLAN.md — Harden Phase 1 verification and write downstream contract index completed (`.planning/phases/01-runtime-spine-workspace-and-domain-contracts/01-05-SUMMARY.md`).
+- [x] 03-08-PLAN.md — Phase 3 provider contract tests, Cloud Server fake provider E2E, optional smoke gate, and downstream docs completed (`.planning/phases/03-model-provider-registry-and-openai-compatible-adapter/03-08-SUMMARY.md`).
 
 ## Decisions
 
@@ -165,6 +166,9 @@ Key findings:
 - [Phase 03]: Plan 07 keeps provider registry, secret resolver, streaming client, and optional OpenAI-compatible runtime wiring in Adapter configuration only.
 - [Phase 03]: Plan 07 dispatches queued runs with explicit provider:model refs using pi.runtime.default-model-ref and an openai-compatible default-model fallback.
 - [Phase 03]: Plan 07 uses spring-ai-openai instead of the Spring Boot OpenAI starter to avoid no-key auto-configuration failures.
+- [Phase 03]: Plan 08 uses fake OpenAI-compatible stream fixtures and injected OpenAiSpringAiModelFactory for no-key provider E2E.
+- [Phase 03]: Plan 08 publishes provider TextDelta and Finished chunks as normalized model.delta events through the existing EventSink path.
+- [Phase 03]: Plan 08 uses in-memory Cloud Server E2E persistence/queue fallback when Docker/Testcontainers are unavailable.
 
 ## Performance Metrics
 
@@ -194,11 +198,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P05 | 5m 07s | 2 tasks | 8 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P06 | 9m 35s | 2 tasks | 10 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P07 | 7m 46s | 2 tasks | 7 files |
+| Phase 03-model-provider-registry-and-openai-compatible-adapter P08 | 16m 45s | 3 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 03-07-PLAN.md
+- **Stopped At:** Completed 03-08-PLAN.md
 
 ## Next Action
 
