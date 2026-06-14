@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-10-PLAN.md
-last_updated: "2026-06-14T05:53:07.358Z"
+stopped_at: Completed 02-11-PLAN.md
+last_updated: "2026-06-14T06:01:02.808Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State: Pi Java Agent Platform
@@ -138,6 +138,9 @@ Key findings:
 - [Phase 02]: Plan 10 keeps REST controllers thin: they build RequestContext from PiPrincipal plus CorrelationFilter attributes and immediately delegate to App use cases.
 - [Phase 02]: Plan 10 exposes run activation as RunActivationTrigger instead of wiring concrete worker/dispatcher behavior in the web adapter.
 - [Phase 02]: Plan 10 maps Domain RunEvent to client RunEventDto explicitly using RunEventType.wireName and payload schema/version fields.
+- [Phase 02]: Plan 11 keeps live SSE fanout in Adapter Web as an in-memory subscriber registry while durable replay remains owned by RunQueryService/event persistence.
+- [Phase 02]: Plan 11 uses bare per-run RunEvent.sequence as the SSE id and parses Last-Event-ID only when it is a positive long.
+- [Phase 02]: Plan 11 closes SSE subscriptions from completion, timeout, error, send failure, and terminal event paths.
 
 ## Performance Metrics
 
@@ -158,11 +161,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P09 | 4m 30s | 1 tasks | 8 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P08 | 7m 22s | 2 tasks | 9 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P10 | 10m 52s | 2 tasks | 6 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P11 | 5m 38s | 2 tasks | 5 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-10-PLAN.md
+- **Stopped At:** Completed 02-11-PLAN.md
 
 ## Next Action
 

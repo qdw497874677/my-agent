@@ -73,7 +73,7 @@ Plans:
 - [x] 02-08-PLAN.md — Implement DB queue, cancellation registry, and run dispatcher/worker.
 - [x] 02-09-PLAN.md — Build Spring Boot shell, security baseline, and correlation filter.
 - [x] 02-10-PLAN.md — Implement session-centric REST controllers and event mapper.
-- [ ] 02-11-PLAN.md — Implement SSE replay-before-subscribe streaming and subscription cleanup.
+- [x] 02-11-PLAN.md — Implement SSE replay-before-subscribe streaming and subscription cleanup.
 - [ ] 02-12-PLAN.md — Wire the single Spring runtime composition root and worker activation path.
 - [ ] 02-13-PLAN.md — Add headless E2E, API docs, and requirement status updates.
 
