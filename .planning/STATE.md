@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-status: planning
-stopped_at: Phase 2 context gathered
-last_updated: "2026-06-14T03:29:54.482Z"
+current_phase: 02
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-06-14T05:02:43.228Z"
 progress:
   total_phases: 9
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 18
+  completed_plans: 6
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 2
+**Status:** Executing Phase 02
+**Current Phase:** 02
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 01 — runtime-spine-workspace-and-domain-contracts
+**Current focus:** Phase 02 — cloud-server-persistence-sse-and-baseline-security
 
 ## Workflow Configuration
 
@@ -112,6 +112,8 @@ Key findings:
 - [Phase 01]: Use exactly one terminal RunEvent as the last observable fake loop outcome.
 - [Phase 01]: Use Java 21 explicitly for Maven verification in this environment because the system Maven launcher defaults to Java 17.
 - [Phase 01]: Keep Phase 1 contract documentation as a downstream boundary document that names deferred provider, persistence, UI, MCP, plugin, shell, filesystem, and durable execution scopes.
+- [Phase 02]: Plan 01 imported Spring Boot and Testcontainers through root dependencyManagement while keeping module dependencies explicit.
+- [Phase 02]: Plan 01 kept Spring/JDBC/Flyway/Security dependencies only in outer Client/Infrastructure/Adapter modules; Domain and App production dependencies remain framework-isolated.
 
 ## Performance Metrics
 
@@ -122,11 +124,12 @@ Key findings:
 | Phase 01-runtime-spine-workspace-and-domain-contracts P02 | 7m 03s | 3 tasks | 22 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P04 | 7m 20s | 3 tasks | 22 files |
 | Phase 01-runtime-spine-workspace-and-domain-contracts P05 | 4m 06s | 3 tasks | 4 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P01 | 3m 06s | 1 tasks | 4 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Phase 2 context gathered
+- **Stopped At:** Completed 02-01-PLAN.md
 
 ## Next Action
 

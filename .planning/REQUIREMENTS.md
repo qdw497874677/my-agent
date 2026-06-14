@@ -21,12 +21,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cloud Server API
 
-- [ ] **CLOUD-01**: User can create an Agent Run through an authenticated REST API.
-- [ ] **CLOUD-02**: User can stream RunEvents from an Agent Run through SSE using the same event envelope persisted by the platform.
-- [ ] **CLOUD-03**: User can query run status, run detail, event history, step history, messages, tool calls, and terminal result through REST APIs.
-- [ ] **CLOUD-04**: User can cancel a running Agent Run through REST API and observe cancellation in run state and event stream.
-- [ ] **CLOUD-05**: Cloud Server exposes baseline authentication/security context, tenant/user placeholders, request correlation IDs, structured logs, and health endpoints.
-- [ ] **CLOUD-06**: Cloud Server stores run/session/event/audit state durably using a PostgreSQL-backed implementation with migrations.
+- [x] **CLOUD-01**: User can create an Agent Run through an authenticated REST API.
+- [x] **CLOUD-02**: User can stream RunEvents from an Agent Run through SSE using the same event envelope persisted by the platform.
+- [x] **CLOUD-03**: User can query run status, run detail, event history, step history, messages, tool calls, and terminal result through REST APIs.
+- [x] **CLOUD-04**: User can cancel a running Agent Run through REST API and observe cancellation in run state and event stream.
+- [x] **CLOUD-05**: Cloud Server exposes baseline authentication/security context, tenant/user placeholders, request correlation IDs, structured logs, and health endpoints.
+- [x] **CLOUD-06**: Cloud Server stores run/session/event/audit state durably using a PostgreSQL-backed implementation with migrations.
 
 ### Model Providers
 
@@ -104,11 +104,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### End-to-End Verification
 
-- [ ] **E2E-01**: Platform provides a headless E2E test harness that can create an Agent Run through API/runtime entry points, stream events, persist state, and assert terminal status without real model keys.
+- [x] **E2E-01**: Platform provides a headless E2E test harness that can create an Agent Run through API/runtime entry points, stream events, persist state, and assert terminal status without real model keys.
 - [ ] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway.
 - [ ] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution.
-- [ ] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
-- [ ] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
+- [x] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
+- [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
 - [ ] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default.
 - [ ] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views.
 - [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline.
@@ -174,12 +174,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-07 | Phase 1 | Complete |
 | CORE-08 | Phase 1 | Complete |
 | CORE-09 | Phase 1 | Complete |
-| CLOUD-01 | Phase 2 | Pending |
-| CLOUD-02 | Phase 2 | Pending |
-| CLOUD-03 | Phase 2 | Pending |
-| CLOUD-04 | Phase 2 | Pending |
-| CLOUD-05 | Phase 2 | Pending |
-| CLOUD-06 | Phase 2 | Pending |
+| CLOUD-01 | Phase 2 | Complete |
+| CLOUD-02 | Phase 2 | Complete |
+| CLOUD-03 | Phase 2 | Complete |
+| CLOUD-04 | Phase 2 | Complete |
+| CLOUD-05 | Phase 2 | Complete |
+| CLOUD-06 | Phase 2 | Complete |
 | MODEL-01 | Phase 3 | Pending |
 | MODEL-02 | Phase 3 | Pending |
 | MODEL-03 | Phase 3 | Pending |
@@ -230,11 +230,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-04 | Phase 1 | Complete |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 1 | Complete |
-| E2E-01 | Phase 2 | Pending |
+| E2E-01 | Phase 2 | Complete |
 | E2E-02 | Phase 4 | Pending |
 | E2E-03 | Phase 4 | Pending |
-| E2E-04 | Phase 2 | Pending |
-| E2E-05 | Phase 2 | Pending |
+| E2E-04 | Phase 2 | Complete |
+| E2E-05 | Phase 2 | Complete |
 | E2E-06 | Phase 4 | Pending |
 | E2E-07 | Phase 5 | Pending |
 | E2E-08 | Phase 7, Phase 8 | Pending |

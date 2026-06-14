@@ -60,14 +60,22 @@ Plans:
 **Requirements:** CLOUD-01, CLOUD-02, CLOUD-03, CLOUD-04, CLOUD-05, CLOUD-06, E2E-01, E2E-04, E2E-05  
 **UI hint**: no
 
-**Plans:** 5 plans
+**Plans:** 13 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Create cloud DTO/dependency/test scaffold and API contract foundation.
-- [ ] 02-02-PLAN.md — Define App use cases, ports, security/correlation context, and queue abstractions.
-- [ ] 02-03-PLAN.md — Implement PostgreSQL/Flyway/JDBC event store, read models, DB queue, and persist-then-emit sink.
-- [ ] 02-04-PLAN.md — Build Spring Boot REST/SSE/security/correlation web adapter.
-- [ ] 02-05-PLAN.md — Add headless E2E, cancellation/replay hardening, docs, and requirement status.
+- [x] 02-01-PLAN.md — Add Phase 2 Maven dependency and verification foundation.
+- [ ] 02-02-PLAN.md — Define public session/run REST DTO contracts.
+- [ ] 02-03-PLAN.md — Define public RunEvent DTO and event-history contract.
+- [ ] 02-04-PLAN.md — Define App request context and use-case interfaces.
+- [ ] 02-05-PLAN.md — Define App persistence, audit, queue, dispatcher, and cancellation ports.
+- [ ] 02-06-PLAN.md — Implement concrete App use-case services and idempotent cancellation orchestration.
+- [ ] 02-07-PLAN.md — Implement PostgreSQL/Flyway/JDBC persistence and persist-then-emit event sink.
+- [ ] 02-08-PLAN.md — Implement DB queue, cancellation registry, and run dispatcher/worker.
+- [ ] 02-09-PLAN.md — Build Spring Boot shell, security baseline, and correlation filter.
+- [ ] 02-10-PLAN.md — Implement session-centric REST controllers and event mapper.
+- [ ] 02-11-PLAN.md — Implement SSE replay-before-subscribe streaming and subscription cleanup.
+- [ ] 02-12-PLAN.md — Wire the single Spring runtime composition root and worker activation path.
+- [ ] 02-13-PLAN.md — Add headless E2E, API docs, and requirement status updates.
 
 **Success criteria:**
 1. Authenticated REST API can create a run, fetch run detail, fetch status, list events, list steps/messages/tool calls, and cancel a run.
