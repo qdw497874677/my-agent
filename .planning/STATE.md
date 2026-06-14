@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-06-14T05:20:37.775Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-06-14T05:30:37.270Z"
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 18
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State: Pi Java Agent Platform
@@ -125,6 +125,9 @@ Key findings:
 - [Phase 02]: Plan 05 keeps persistence and execution contracts in pi-agent-app as plain Java ports depending only on App, Client, and Domain types.
 - [Phase 02]: Plan 05 models queued cancellation as Optional<QueuedRun> cancelQueuedAndReturn(...) so App services can publish exactly one durable terminal event with original queued context.
 - [Phase 02]: Plan 05 makes terminal publishing methods publish*IfAbsent to reserve durable hasTerminalEvent idempotency guards.
+- [Phase 02]: Plan 06 kept concrete App use-case services as plain Java constructor-injected classes with no Spring/JDBC/Servlet/SSE imports.
+- [Phase 02]: Plan 06 routes App-created terminal run events through DefaultRunTerminalEventPublisher guarded by RunEventStore.hasTerminalEvent.
+- [Phase 02]: Plan 06 uses queued-run context for queued cancellation terminal events to preserve tenant/user/session/run/workspace/trace/correlation IDs.
 
 ## Performance Metrics
 
@@ -140,11 +143,12 @@ Key findings:
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P02 | 2m 42s | 1 tasks | 13 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P04 | 3m 30s | 1 tasks | 9 files |
 | Phase 02-cloud-server-persistence-sse-and-baseline-security P05 | 3m 01s | 1 tasks | 11 files |
+| Phase 02-cloud-server-persistence-sse-and-baseline-security P06 | 7m 14s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Completed 02-05-PLAN.md
+- **Stopped At:** Completed 02-06-PLAN.md
 
 ## Next Action
 
