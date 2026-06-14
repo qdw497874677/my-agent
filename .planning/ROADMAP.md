@@ -96,6 +96,18 @@ Plans:
 **Requirements:** MODEL-01, MODEL-02, MODEL-03, MODEL-04, MODEL-05  
 **UI hint**: no
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Define provider/model registry Domain contracts and secret-reference value objects.
+- [ ] 03-02-PLAN.md — Define provider-neutral streaming model chunks, metadata, errors, and event payloads.
+- [ ] 03-03-PLAN.md — Add App provider registry and SecretResolver ports plus provider query use case.
+- [ ] 03-04-PLAN.md — Evolve the fake General Agent loop and testkit for streaming model contracts.
+- [ ] 03-05-PLAN.md — Add isolated OpenAI-compatible provider infrastructure module, config, registry, and secret resolver.
+- [ ] 03-06-PLAN.md — Implement Spring AI-backed OpenAI-compatible StreamingModelClient with normalization and resilience.
+- [ ] 03-07-PLAN.md — Wire provider registry/adapter into Cloud Server composition and explicit provider:model dispatch.
+- [ ] 03-08-PLAN.md — Add fake provider contract tests, Cloud Server E2E, optional smoke test, and downstream docs.
+
 **Success criteria:**
 1. Provider registry resolves model IDs, provider IDs, capability descriptors, and credential references.
 2. OpenAI-compatible streaming chat adapter can run through the General Agent loop.
