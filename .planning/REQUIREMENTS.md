@@ -44,17 +44,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
 - [x] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
 - [x] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
-- [ ] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
+- [x] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
 
 ### Workspace and Resources
 
 - [x] **WORK-01**: Domain defines Workspace, WorkspaceSession, WorkspaceScope, WorkspaceSnapshot, Artifact, Attachment, and Resource/Mount abstractions as first-class runtime concepts.
 - [x] **WORK-02**: WorkspaceGateway abstracts file/resource/artifact operations without exposing host filesystem assumptions to Domain.
-- [ ] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment.
+- [x] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment.
 - [x] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
 - [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
 - [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
-- [ ] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
+- [x] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
 - [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
 
 ### Extension Fabric
@@ -105,8 +105,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### End-to-End Verification
 
 - [x] **E2E-01**: Platform provides a headless E2E test harness that can create an Agent Run through API/runtime entry points, stream events, persist state, and assert terminal status without real model keys.
-- [ ] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway.
-- [ ] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution.
+- [x] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway.
+- [x] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution.
 - [x] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
 - [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
 - [ ] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default.
@@ -187,11 +187,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODEL-05 | Phase 3 | Complete — validated by timeout/cancellation/resilience contract tests |
 | WORK-01 | Phase 1 | Complete |
 | WORK-02 | Phase 1 | Complete |
-| WORK-03 | Phase 4 | Pending |
+| WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 1 | Complete |
 | WORK-05 | Phase 1 | Complete |
 | WORK-06 | Phase 6 | Pending |
-| WORK-07 | Phase 4 | Pending |
+| WORK-07 | Phase 4 | Complete |
 | WORK-08 | Phase 4 | Complete |
 | TOOL-01 | Phase 4 | Complete |
 | TOOL-02 | Phase 4 | Complete |
@@ -199,7 +199,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-04 | Phase 4 | Complete |
 | TOOL-05 | Phase 4 | Complete |
 | TOOL-06 | Phase 4 | Complete |
-| TOOL-07 | Phase 4 | Pending |
+| TOOL-07 | Phase 4 | Complete |
 | EXT-01 | Phase 6 | Pending |
 | EXT-02 | Phase 6 | Pending |
 | EXT-03 | Phase 6 | Pending |
@@ -231,8 +231,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-05 | Phase 4 | Complete |
 | OPS-06 | Phase 1 | Complete |
 | E2E-01 | Phase 2 | Complete |
-| E2E-02 | Phase 4 | Pending |
-| E2E-03 | Phase 4 | Pending |
+| E2E-02 | Phase 4 | Complete |
+| E2E-03 | Phase 4 | Complete |
 | E2E-04 | Phase 2 | Complete |
 | E2E-05 | Phase 2 | Complete |
 | E2E-06 | Phase 4 | Pending |

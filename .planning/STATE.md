@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-06-14T19:23:09.279Z"
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-06-14T19:33:23.500Z"
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 34
-  completed_plans: 30
+  completed_plans: 32
 ---
 
 # Project State: Pi Java Agent Platform
@@ -182,6 +182,12 @@ Key findings:
 - [Phase 04]: Use conservative default policy semantics: safe read-only allowed, side-effectful and unscoped tools require preview/approval, destructive or critical tools block by default.
 - [Phase 04]: Generate provision previews as static impact estimates only; preview generation must not execute tool bindings, workspace writes, or processes.
 - [Phase 04]: Return payload summaries and truncation metadata for oversized payloads instead of propagating unbounded raw arguments/results.
+- [Phase 04]: Plan 05 keeps legacy FakeToolInvoker source-compatible but wraps it behind FakeToolExecutorBinding for gateway-aware paths.
+- [Phase 04]: Plan 05 uses DefaultToolExecutionGateway in the testkit fake gateway so fake E2E observes governed lifecycle events.
+- [Phase 04]: Plan 05 normalizes gateway-emitted event sequence numbers in GeneralAgentLoop to keep a single monotonic run event stream.
+- [Phase 04]: Plan 06 treats local-temp workspace and ProcessBuilder command execution as deterministic dev/test infrastructure only, documented as not a production sandbox.
+- [Phase 04]: Plan 06 exposes built-in examples as ordinary ToolDescriptor plus ToolExecutorBinding registrations rather than special registry APIs.
+- [Phase 04]: Plan 06 marks workspace write and command examples as side-effectful with previewRequired and approvalRecommended metadata.
 
 ## Performance Metrics
 
@@ -216,11 +222,13 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P02 | 4m 52s | 2 tasks | 8 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P03 | 8m 42s | 2 tasks | 8 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P04 | 15m 18s | 2 tasks | 9 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P05 | 7m 16s | 2 tasks | 7 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P06 | 7m 10s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 04-04-PLAN.md
+- **Stopped At:** Completed 04-06-PLAN.md
 
 ## Next Action
 
