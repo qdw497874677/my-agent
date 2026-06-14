@@ -3,10 +3,25 @@ package io.github.pi_java.agent.adapter.web.config;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
 import io.github.pi_java.agent.app.port.model.SecretResolver;
 import io.github.pi_java.agent.domain.agent.AgentDefinition;
+import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.SessionId;
+import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TenantId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
+import io.github.pi_java.agent.domain.common.PlatformIds.UserId;
+import io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId;
+import io.github.pi_java.agent.domain.event.EventVisibility;
 import io.github.pi_java.agent.domain.event.EventSink;
+import io.github.pi_java.agent.domain.event.RedactionMetadata;
+import io.github.pi_java.agent.domain.event.RunEvent;
+import io.github.pi_java.agent.domain.event.RunEventPayload;
+import io.github.pi_java.agent.domain.event.RunEventType;
 import io.github.pi_java.agent.domain.model.CredentialRef;
 import io.github.pi_java.agent.domain.model.ModelCapabilities;
 import io.github.pi_java.agent.domain.model.ProviderModelRef;
+import io.github.pi_java.agent.domain.model.ModelStreamChunk;
 import io.github.pi_java.agent.domain.model.StreamingModelClient;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.RunContext;
@@ -27,6 +42,9 @@ import org.springframework.core.env.Environment;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration(proxyBeanMethods = false)
 public class ModelProviderBeanConfiguration {
@@ -65,8 +83,16 @@ public class ModelProviderBeanConfiguration {
 
     @Bean
     @ConditionalOnProperty(prefix = "pi.providers.openai-compatible", name = "enabled", havingValue = "true")
-    StreamingModelClient openAiCompatibleStreamingModelClient(OpenAiProviderProperties properties, SecretResolver secretResolver) {
-        return new OpenAiCompatibleStreamingModelClient(properties, secretResolver, OpenAiSpringAiModelFactory.springAi());
+    @ConditionalOnMissingBean(OpenAiSpringAiModelFactory.class)
+    OpenAiSpringAiModelFactory openAiSpringAiModelFactory() {
+        return OpenAiSpringAiModelFactory.springAi();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "pi.providers.openai-compatible", name = "enabled", havingValue = "true")
+    StreamingModelClient openAiCompatibleStreamingModelClient(OpenAiProviderProperties properties, SecretResolver secretResolver,
+                                                             OpenAiSpringAiModelFactory openAiSpringAiModelFactory) {
+        return new OpenAiCompatibleStreamingModelClient(properties, secretResolver, openAiSpringAiModelFactory);
     }
 
     @Bean
@@ -98,8 +124,7 @@ public class ModelProviderBeanConfiguration {
             AgentDefinition definition = context.agentDefinition();
             ProviderModelRef.parse(definition.modelRef());
             streamingModelClient.stream(new io.github.pi_java.agent.domain.model.ModelRequest(context, List.of()),
-                    context.cancellationToken(), chunk -> {
-                    });
+                    context.cancellationToken(), new ModelDeltaPublishingSink(context));
             return new RunHandle(context.workspaceScope().runId(), RunStatus.SUCCEEDED, Optional.empty());
         }
 
@@ -111,6 +136,46 @@ public class ModelProviderBeanConfiguration {
         @Override
         public String toString() {
             return "StreamingOnlyAgentRuntime[eventSink=" + eventSink.getClass().getSimpleName() + "]";
+        }
+
+        private final class ModelDeltaPublishingSink implements StreamingModelClient.ModelStreamSink {
+            private final RunContext context;
+            private final AtomicLong sequence = new AtomicLong(1);
+
+            private ModelDeltaPublishingSink(RunContext context) {
+                this.context = context;
+            }
+
+            @Override
+            public void accept(ModelStreamChunk chunk) {
+                if (chunk instanceof ModelStreamChunk.TextDelta textDelta) {
+                    publish(new RunEventPayload.ModelDeltaPayload(textDelta.modelRef(), textDelta.textDelta(),
+                            textDelta.providerId(), textDelta.modelId(), null, null, textDelta.latency()));
+                } else if (chunk instanceof ModelStreamChunk.Finished finished) {
+                    publish(new RunEventPayload.ModelDeltaPayload(finished.modelRef(), "", finished.providerId(),
+                            finished.modelId(), finished.finishReason(), finished.usage(), finished.latency()));
+                }
+            }
+
+            private void publish(RunEventPayload.ModelDeltaPayload payload) {
+                eventSink.publish(new RunEvent(
+                        "evt-" + UUID.randomUUID(),
+                        new TenantId(context.workspaceScope().tenantId()),
+                        new UserId(context.workspaceScope().userId()),
+                        new SessionId(context.workspaceScope().sessionId()),
+                        new RunId(context.workspaceScope().runId()),
+                        new StepId("model-step"),
+                        new WorkspaceId(context.workspaceScope().workspaceId()),
+                        sequence.getAndIncrement(),
+                        java.time.Instant.now(),
+                        RunEventType.MODEL_DELTA,
+                        new TraceId(context.traceId()),
+                        new CorrelationId(context.traceId()),
+                        new CausationId("model-stream"),
+                        payload,
+                        EventVisibility.USER,
+                        new RedactionMetadata(false, false, Set.of(), "provider-runtime")));
+            }
         }
     }
 }
