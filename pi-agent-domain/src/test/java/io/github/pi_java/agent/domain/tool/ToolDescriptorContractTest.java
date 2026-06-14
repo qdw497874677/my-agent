@@ -22,26 +22,26 @@ class ToolDescriptorContractTest {
         ToolProvenance provenance = new ToolProvenance(ToolProvenance.SourceKind.BUILT_IN, "pi", "builtin.info", Map.of());
 
         assertThatIllegalArgumentException().isThrownBy(() -> new ToolDescriptor(
-                " ", "Info", "desc", inputSchema, null, provenance, "1.0.0",
+                " ", "Info", "desc", inputSchema, (ToolSchema) null, provenance, "1.0.0",
                 Set.of("info:read"), ToolRiskLevel.LOW, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
         assertThatIllegalArgumentException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", " ", "desc", inputSchema, null, provenance, "1.0.0",
+                "tool.info", " ", "desc", inputSchema, (ToolSchema) null, provenance, "1.0.0",
                 Set.of("info:read"), ToolRiskLevel.LOW, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
         assertThatIllegalArgumentException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", "Info", "desc", inputSchema, null, provenance, " ",
+                "tool.info", "Info", "desc", inputSchema, (ToolSchema) null, provenance, " ",
                 Set.of("info:read"), ToolRiskLevel.LOW, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
 
         assertThatNullPointerException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", "Info", "desc", null, null, provenance, "1.0.0",
+                "tool.info", "Info", "desc", null, (ToolSchema) null, provenance, "1.0.0",
                 Set.of("info:read"), ToolRiskLevel.LOW, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
         assertThatNullPointerException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", "Info", "desc", inputSchema, null, null, "1.0.0",
+                "tool.info", "Info", "desc", inputSchema, (ToolSchema) null, null, "1.0.0",
                 Set.of("info:read"), ToolRiskLevel.LOW, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
         assertThatNullPointerException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", "Info", "desc", inputSchema, null, provenance, "1.0.0",
+                "tool.info", "Info", "desc", inputSchema, (ToolSchema) null, provenance, "1.0.0",
                 Set.of("info:read"), null, ToolSideEffect.READ_ONLY, Duration.ofSeconds(5), Map.of()));
         assertThatNullPointerException().isThrownBy(() -> new ToolDescriptor(
-                "tool.info", "Info", "desc", inputSchema, null, provenance, "1.0.0",
+                "tool.info", "Info", "desc", inputSchema, (ToolSchema) null, provenance, "1.0.0",
                 Set.of("info:read"), ToolRiskLevel.LOW, null, Duration.ofSeconds(5), Map.of()));
     }
 
