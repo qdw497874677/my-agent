@@ -38,24 +38,24 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Governed Tools
 
-- [x] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults.
-- [x] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway.
-- [x] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution.
-- [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
-- [x] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
-- [x] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
-- [x] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
+- [x] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults. Validated in Phase 4: `ToolDescriptor`, built-in registrations, `/api/tools`, and `docs/phase-04-governed-tool-contracts.md`.
+- [x] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway. Validated in Phase 4: `GeneralAgentLoop` gateway routing and `CloudServerGovernedToolE2ETest` product-path execution.
+- [x] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution. Validated in Phase 4: gateway orchestration, Networknt validator boundary, and focused gateway/E2E tests.
+- [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks. Validated in Phase 4: payload limiter/redactor implementations and `GovernedToolSecurityRedactionE2ETest`.
+- [x] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call. Validated in Phase 4: default policy evaluator plus deny/approval Cloud Server E2E.
+- [x] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states. Validated in Phase 4: `tool.lifecycle` event DTOs, in-memory/JDBC audit path, and Cloud Server E2E event/audit assertions.
+- [x] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access. Validated in Phase 4: `builtin.info`, `builtin.workspace.write`, `builtin.workspace.command`, and bounded local-temp documentation.
 
 ### Workspace and Resources
 
 - [x] **WORK-01**: Domain defines Workspace, WorkspaceSession, WorkspaceScope, WorkspaceSnapshot, Artifact, Attachment, and Resource/Mount abstractions as first-class runtime concepts.
 - [x] **WORK-02**: WorkspaceGateway abstracts file/resource/artifact operations without exposing host filesystem assumptions to Domain.
-- [x] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment.
+- [x] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment. Validated in Phase 4: `AllowlistedCommandExecutionGateway`, `WorkspaceCommandTool`, and workspace-bound command E2E.
 - [x] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
 - [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
 - [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
-- [x] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model.
-- [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions.
+- [x] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model. Validated in Phase 4: local-temp workspace limitations and allowlisted command-only built-in.
+- [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions. Validated in Phase 4: `ProvisionPreview`, preview events/audit, and approval-required no-execution E2E.
 
 ### Extension Fabric
 
@@ -96,20 +96,20 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Observability, Policy, and Security
 
 - [ ] **OPS-01**: Platform emits structured logs, metrics, and OpenTelemetry-compatible trace/span hooks for runs, model calls, tool calls, MCP calls, plugin lifecycle, and policy decisions.
-- [x] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
-- [x] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
+- [x] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls. Validated in Phase 4: tool decision/preview/execution audit assertions in Cloud Server E2E.
+- [x] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks. Validated in Phase 4: `DefaultToolPolicyEvaluator` and App `ToolPolicyEvaluator` port.
 - [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
-- [x] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
+- [x] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events. Validated in Phase 4: `GovernedToolSecurityRedactionE2ETest` fake-secret absence checks across REST, RunEvents, audit, and persisted payload strings.
 - [x] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
 ### End-to-End Verification
 
 - [x] **E2E-01**: Platform provides a headless E2E test harness that can create an Agent Run through API/runtime entry points, stream events, persist state, and assert terminal status without real model keys.
-- [x] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway.
-- [x] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution.
+- [x] **E2E-02**: Headless E2E verifies the successful model-to-tool-to-model loop using FakeModelProvider and FakeTool through ToolExecutionGateway. Validated in Phase 4: `CloudServerGovernedToolE2ETest` safe read-only and workspace command success paths.
+- [x] **E2E-03**: Headless E2E verifies ToolPolicy deny and require-approval paths, including event stream, audit records, and prevention of unauthorized tool execution. Validated in Phase 4: `CloudServerGovernedToolE2ETest` deny and approval-required no-side-effect paths.
 - [x] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
 - [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
-- [ ] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default.
+- [x] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default. Validated in Phase 4: `GovernedToolSecurityRedactionE2ETest` covers default API/event/audit/persisted payload paths; Web Console display consumes the same redacted APIs in Phase 5.
 - [ ] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views.
 - [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline.
 
@@ -235,7 +235,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-03 | Phase 4 | Complete |
 | E2E-04 | Phase 2 | Complete |
 | E2E-05 | Phase 2 | Complete |
-| E2E-06 | Phase 4 | Pending |
+| E2E-06 | Phase 4 | Complete — validated by `GovernedToolSecurityRedactionE2ETest` fake-secret absence checks across REST, event history, persisted RunEvents, audit records, and safe exception paths |
 | E2E-07 | Phase 5 | Pending |
 | E2E-08 | Phase 7, Phase 8 | Pending |
 
