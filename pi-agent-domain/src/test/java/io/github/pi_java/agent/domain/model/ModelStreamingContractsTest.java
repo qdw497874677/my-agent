@@ -71,4 +71,21 @@ class ModelStreamingContractsTest {
         assertThat(chunks).hasSize(1);
         assertThat(chunks.getFirst()).isInstanceOf(ModelStreamChunk.TextDelta.class);
     }
+
+    @Test
+    void model_response_preserves_legacy_constructors_and_can_carry_normalized_metadata() {
+        ModelUsage usage = new ModelUsage(3, 5, 8);
+        ModelResponse.FinalText legacy = new ModelResponse.FinalText("done");
+        ModelResponse.FinalText enriched = new ModelResponse.FinalText(
+                "done", "openai-compatible", "gpt-4.1-mini", "openai-compatible:gpt-4.1-mini",
+                ModelFinishReason.STOP, usage, Duration.ofMillis(120));
+
+        assertThat(legacy.text()).isEqualTo("done");
+        assertThat(legacy.usage()).isNull();
+        assertThat(enriched.providerId()).isEqualTo("openai-compatible");
+        assertThat(enriched.modelId()).isEqualTo("gpt-4.1-mini");
+        assertThat(enriched.finishReason()).isEqualTo(ModelFinishReason.STOP);
+        assertThat(enriched.usage()).isEqualTo(usage);
+        assertThat(enriched.latency()).isEqualTo(Duration.ofMillis(120));
+    }
 }

@@ -9,10 +9,13 @@ import io.github.pi_java.agent.domain.common.PlatformIds.TenantId;
 import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
 import io.github.pi_java.agent.domain.common.PlatformIds.UserId;
 import io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId;
+import io.github.pi_java.agent.domain.model.ModelFinishReason;
+import io.github.pi_java.agent.domain.model.ModelUsage;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
@@ -121,5 +124,28 @@ class RunEventContractTest {
         assertThat(event.redaction()).isNotNull();
         assertThat(event.redaction().redactedFields()).isEmpty();
         assertThat(event.redaction().policyRef()).isEqualTo("redact.none");
+    }
+
+    @Test
+    void model_delta_payload_preserves_legacy_constructor_and_accepts_normalized_metadata() {
+        ModelUsage usage = new ModelUsage(2, 4, 6);
+        RunEventPayload.ModelDeltaPayload legacy = new RunEventPayload.ModelDeltaPayload("fake:model", "hi");
+        RunEventPayload.ModelDeltaPayload enriched = new RunEventPayload.ModelDeltaPayload(
+                "openai-compatible:gpt-4.1-mini",
+                "hello",
+                "openai-compatible",
+                "gpt-4.1-mini",
+                ModelFinishReason.STOP,
+                usage,
+                Duration.ofMillis(75));
+
+        assertThat(legacy.modelRef()).isEqualTo("fake:model");
+        assertThat(legacy.textDelta()).isEqualTo("hi");
+        assertThat(legacy.providerId()).isNull();
+        assertThat(enriched.providerId()).isEqualTo("openai-compatible");
+        assertThat(enriched.modelId()).isEqualTo("gpt-4.1-mini");
+        assertThat(enriched.finishReason()).isEqualTo(ModelFinishReason.STOP);
+        assertThat(enriched.usage()).isEqualTo(usage);
+        assertThat(enriched.latency()).isEqualTo(Duration.ofMillis(75));
     }
 }
