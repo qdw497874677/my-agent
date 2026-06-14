@@ -38,12 +38,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Governed Tools
 
-- [ ] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults.
+- [x] **TOOL-01**: Developer can register tools with canonical ToolDescriptor metadata including name, description, input schema, output schema or type, provenance, version, scopes, risk level, side-effect classification, and timeout defaults.
 - [ ] **TOOL-02**: All tool calls from built-in tools, SPI tools, Spring Bean tools, dynamic plugin tools, and MCP tools execute through one ToolExecutionGateway.
 - [ ] **TOOL-03**: ToolExecutionGateway validates arguments against schema before execution and normalizes success/failure results after execution.
-- [ ] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
+- [x] **TOOL-04**: ToolExecutionGateway enforces timeout, cancellation, max payload limits, error classification, redaction, and result summarization hooks.
 - [ ] **TOOL-05**: ToolExecutionGateway invokes ToolPolicy before execution and can allow, deny, require approval, require sandbox, or block a tool call.
-- [ ] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
+- [x] **TOOL-06**: Platform records audit entries and RunEvents for tool call proposed, policy decided, started, updated, completed, failed, denied, and cancelled states.
 - [ ] **TOOL-07**: v1 includes safe built-in example tools that demonstrate read-only and side-effectful classifications without unrestricted shell/file access.
 
 ### Workspace and Resources
@@ -99,7 +99,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls.
 - [ ] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks.
 - [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
-- [ ] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
+- [x] **OPS-05**: Platform prevents raw secrets and sensitive payloads from being displayed in Web Console, Admin Governance views, logs, prompts, and default persisted events.
 - [x] **OPS-06**: Platform exposes testkit utilities including fake model providers, fake tools, fake policies, and conformance tests for extensions.
 
 ### End-to-End Verification
@@ -193,12 +193,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-06 | Phase 6 | Pending |
 | WORK-07 | Phase 4 | Pending |
 | WORK-08 | Phase 4 | Pending |
-| TOOL-01 | Phase 4 | Pending |
+| TOOL-01 | Phase 4 | Complete |
 | TOOL-02 | Phase 4 | Pending |
 | TOOL-03 | Phase 4 | Pending |
-| TOOL-04 | Phase 4 | Pending |
+| TOOL-04 | Phase 4 | Complete |
 | TOOL-05 | Phase 4 | Pending |
-| TOOL-06 | Phase 4 | Pending |
+| TOOL-06 | Phase 4 | Complete |
 | TOOL-07 | Phase 4 | Pending |
 | EXT-01 | Phase 6 | Pending |
 | EXT-02 | Phase 6 | Pending |
@@ -228,7 +228,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-02 | Phase 4 | Pending |
 | OPS-03 | Phase 4 | Pending |
 | OPS-04 | Phase 1 | Complete |
-| OPS-05 | Phase 4 | Pending |
+| OPS-05 | Phase 4 | Complete |
 | OPS-06 | Phase 1 | Complete |
 | E2E-01 | Phase 2 | Complete |
 | E2E-02 | Phase 4 | Pending |

@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-status: planning
-stopped_at: Phase 4 plans created (8 plans), ready for execution
-last_updated: "2026-06-14T14:40:27.124Z"
+current_phase: 04
+status: executing
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-06-14T18:46:01.556Z"
 progress:
   total_phases: 9
   completed_phases: 3
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 34
+  completed_plans: 27
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 4
+**Status:** Executing Phase 04
+**Current Phase:** 04
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 03 — model-provider-registry-and-openai-compatible-adapter
+**Current focus:** Phase 04 — governed-tool-registry-workspace-and-invocation-pipeline
 
 ## Workflow Configuration
 
@@ -169,6 +169,9 @@ Key findings:
 - [Phase 03]: Plan 08 uses fake OpenAI-compatible stream fixtures and injected OpenAiSpringAiModelFactory for no-key provider E2E.
 - [Phase 03]: Plan 08 publishes provider TextDelta and Finished chunks as normalized model.delta events through the existing EventSink path.
 - [Phase 03]: Plan 08 uses in-memory Cloud Server E2E persistence/queue fallback when Docker/Testcontainers are unavailable.
+- [Phase 04]: Plan 01 uses plain JDK Map/Set/Optional/Duration records for tool schema, descriptor, preview, and execution results so Domain remains framework-free and JSON-schema-library-neutral.
+- [Phase 04]: Plan 01 preserves legacy ToolCall/ToolResult and adds ToolExecutionRequest/ToolExecutionResult as gateway-facing contracts for later ToolExecutionGateway work.
+- [Phase 04]: Plan 01 represents tool lifecycle events with stable tool.* wire names plus ToolLifecyclePayload carrying descriptor ref, provenance/version, redacted summaries, policy decision, preview, execution status, and error category.
 
 ## Performance Metrics
 
@@ -199,11 +202,12 @@ Key findings:
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P06 | 9m 35s | 2 tasks | 10 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P07 | 7m 46s | 2 tasks | 7 files |
 | Phase 03-model-provider-registry-and-openai-compatible-adapter P08 | 16m 45s | 3 tasks | 9 files |
+| Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P01 | 5m 00s | 2 tasks | 14 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-13T18:55:00Z
-- **Stopped At:** Phase 4 context gathered
+- **Stopped At:** Completed 04-01-PLAN.md
 
 ## Next Action
 

@@ -129,7 +129,7 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Define framework-free tool descriptor, execution result, preview, and lifecycle event contracts.
+- [x] 04-01-PLAN.md — Define framework-free tool descriptor, execution result, preview, and lifecycle event contracts.
 - [ ] 04-02-PLAN.md — Add descriptor-first ToolRegistry, executor binding, query use case, and catalog DTO contracts.
 - [ ] 04-03-PLAN.md — Implement App ToolExecutionGateway orchestration for validation, policy, preview, audit, events, limits, and redaction.
 - [ ] 04-04-PLAN.md — Add Infrastructure JSON Schema validation, in-memory registry, default policy, redaction, payload limits, and preview generation.
