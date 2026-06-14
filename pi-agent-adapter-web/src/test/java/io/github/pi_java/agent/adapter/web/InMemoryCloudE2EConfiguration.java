@@ -70,9 +70,8 @@ public class InMemoryCloudE2EConfiguration {
 
     @Bean
     @Primary
-    AuditRepository auditRepository() {
-        return (context, action, resourceType, resourceId, sessionId, runId, details) -> {
-        };
+    AuditRepository auditRepository(InMemoryStores stores) {
+        return stores::recordAudit;
     }
 
     @Bean
@@ -100,6 +99,7 @@ public class InMemoryCloudE2EConfiguration {
         private final Map<String, SessionResponse> sessions = new ConcurrentHashMap<>();
         private final Map<String, RunRecord> runs = new ConcurrentHashMap<>();
         private final Map<String, List<RunEvent>> events = new ConcurrentHashMap<>();
+        private final ConcurrentLinkedQueue<AuditRecord> audits = new ConcurrentLinkedQueue<>();
         private final ConcurrentLinkedQueue<QueuedRun> queue = new ConcurrentLinkedQueue<>();
 
         public SessionResponse create(RequestContext context, CreateSessionRequest request, String sessionId, Instant now) {
@@ -212,6 +212,16 @@ public class InMemoryCloudE2EConfiguration {
             return isTerminal(runs.get(runId).response().status());
         }
 
+        public void recordAudit(RequestContext context, String action, String resourceType, String resourceId,
+                                String sessionId, String runId, Map<String, Object> details) {
+            audits.add(new AuditRecord(context.tenantId(), context.userId(), action, resourceType, resourceId,
+                    sessionId, runId, Map.copyOf(details)));
+        }
+
+        public List<AuditRecord> auditsForRun(String runId) {
+            return audits.stream().filter(audit -> runId.equals(audit.runId())).toList();
+        }
+
         private void updateStatus(String runId, String status, Instant updatedAt, Map<String, Object> result, Map<String, Object> failure) {
             Map<String, Object> safeResult = result == null ? Map.of() : result;
             Map<String, Object> safeFailure = failure == null ? Map.of() : failure;
@@ -234,6 +244,10 @@ public class InMemoryCloudE2EConfiguration {
         }
 
         private record RunRecord(RunResponse response, CreateRunRequest request, Map<String, Object> result, Map<String, Object> failure) {
+        }
+
+        public record AuditRecord(String tenantId, String userId, String action, String resourceType, String resourceId,
+                                  String sessionId, String runId, Map<String, Object> details) {
         }
     }
 
