@@ -60,6 +60,15 @@ Plans:
 **Requirements:** CLOUD-01, CLOUD-02, CLOUD-03, CLOUD-04, CLOUD-05, CLOUD-06, E2E-01, E2E-04, E2E-05  
 **UI hint**: no
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Create cloud DTO/dependency/test scaffold and API contract foundation.
+- [ ] 02-02-PLAN.md — Define App use cases, ports, security/correlation context, and queue abstractions.
+- [ ] 02-03-PLAN.md — Implement PostgreSQL/Flyway/JDBC event store, read models, DB queue, and persist-then-emit sink.
+- [ ] 02-04-PLAN.md — Build Spring Boot REST/SSE/security/correlation web adapter.
+- [ ] 02-05-PLAN.md — Add headless E2E, cancellation/replay hardening, docs, and requirement status.
+
 **Success criteria:**
 1. Authenticated REST API can create a run, fetch run detail, fetch status, list events, list steps/messages/tool calls, and cancel a run.
 2. SSE stream emits the same provider-neutral RunEvent envelope stored in persistence.
