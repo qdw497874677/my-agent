@@ -2,11 +2,14 @@ package io.github.pi_java.agent.domain.event;
 
 import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
 import io.github.pi_java.agent.domain.error.FailureSummary;
+import io.github.pi_java.agent.domain.model.ModelFinishReason;
+import io.github.pi_java.agent.domain.model.ModelUsage;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.runtime.StepStatus;
 import io.github.pi_java.agent.domain.tool.ToolCall;
 import io.github.pi_java.agent.domain.tool.ToolResult;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,10 +34,20 @@ public sealed interface RunEventPayload permits RunEventPayload.RunLifecyclePayl
         }
     }
 
-    record ModelDeltaPayload(String modelRef, String textDelta) implements RunEventPayload {
+    record ModelDeltaPayload(String modelRef, String textDelta, String providerId, String modelId,
+                             ModelFinishReason finishReason, ModelUsage usage, Duration latency) implements RunEventPayload {
+        public ModelDeltaPayload(String modelRef, String textDelta) {
+            this(modelRef, textDelta, null, null, null, null, null);
+        }
+
         public ModelDeltaPayload {
             modelRef = requireNonBlank(modelRef, "modelRef");
             textDelta = Objects.requireNonNull(textDelta, "textDelta must not be null");
+            requireNonBlankIfPresent(providerId, "providerId");
+            requireNonBlankIfPresent(modelId, "modelId");
+            if (latency != null && latency.isNegative()) {
+                throw new IllegalArgumentException("latency must not be negative");
+            }
         }
     }
 
@@ -92,5 +105,11 @@ public sealed interface RunEventPayload permits RunEventPayload.RunLifecyclePayl
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
         return value;
+    }
+
+    private static void requireNonBlankIfPresent(String value, String fieldName) {
+        if (value != null && value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank when present");
+        }
     }
 }
