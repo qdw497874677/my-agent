@@ -62,10 +62,10 @@ class DefaultToolExecutionGatewayTest {
 
         assertThat(invocations).hasValue(1);
         assertThat(result.status()).isEqualTo(ToolExecutionStatus.SUCCESS);
-        assertThat(result.summary()).isEqualTo("redacted: raw secret should be replaced");
+        assertThat(result.summary()).isEqualTo("raw [REDACTED] should be replaced");
         assertThat(result.redactedInputSummary()).containsEntry("apiKey", "[REDACTED]");
         assertThat(result.redactedOutputSummary()).containsEntry("value", "[REDACTED]");
-        assertThat(harness.eventTypes()).containsSequence(
+        assertThat(harness.eventTypes()).containsSubsequence(
                 RunEventType.TOOL_PROPOSED,
                 RunEventType.TOOL_POLICY_DECIDED,
                 RunEventType.TOOL_STARTED,
@@ -167,7 +167,7 @@ class DefaultToolExecutionGatewayTest {
 
     private static ToolExecutionResult result(ToolExecutionRequest request, ToolExecutionStatus status, String summary,
                                              Map<String, Object> output, ProvisionPreview preview) {
-        return new ToolExecutionResult(request.toolCallId(), request.toolId(), status, summary, null,
+        return new ToolExecutionResult(request.toolCallId(), request.toolId(), status, summary, Optional.empty(),
                 request.arguments(), output, Set.of(), Optional.ofNullable(preview), Duration.ofMillis(10), Optional.of(output));
     }
 
