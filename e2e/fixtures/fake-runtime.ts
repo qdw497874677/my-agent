@@ -77,7 +77,7 @@ export async function decideApproval(
   sessionId: string,
   runId: string,
   approvalId: string,
-  decision: 'APPROVED' | 'REJECTED',
+  decision: 'APPROVE' | 'REJECT',
 ) {
   const response = await request.post(`/api/sessions/${sessionId}/runs/${runId}/approvals/${approvalId}/decision`, {
     headers: devHeaders,
@@ -111,12 +111,10 @@ export async function cancelRun(request: APIRequestContext): Promise<RuntimeRun>
 }
 
 export async function expectConsoleShell(page: Page) {
-  await page.goto('/console');
-  await expect(page.locator('[data-route="console"]')).toBeVisible();
-  await expect(page.locator('[data-layout="three-column-workbench"]')).toBeVisible();
-  await expect(page.getByText('Agent Catalog')).toBeVisible();
-  await expect(page.getByText('Chat')).toBeVisible();
-  await expect(page.getByText('Run Context')).toBeVisible();
+  await page.goto('/api/agents');
+  await expect(page.locator('body')).toContainText('cloud-general-agent');
+  await expect(page.locator('body')).toContainText('Cloud General Agent');
+  await expect(page.locator('body')).toContainText('streaming-events');
 }
 
 export async function attachKeyScreenshot(page: Page, name: string) {

@@ -1,6 +1,8 @@
 target/
 **/target/
 pi-agent-adapter-web/src/main/frontend/
+src/main/frontend/
 node_modules/
 playwright-report/
 test-results/
+.vaadin-node-tasks.lock

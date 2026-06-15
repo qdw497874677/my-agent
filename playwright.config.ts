@@ -33,7 +33,7 @@ export default defineConfig({
     ? undefined
     : {
         command: `bash scripts/e2e-web-server.sh ${port}`,
-        url: `${baseURL}/actuator/health`,
+        url: `${baseURL}/__playwright_ready`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
         stdout: 'pipe',

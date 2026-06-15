@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -172,7 +173,7 @@ public class InMemoryCloudE2EConfiguration {
         }
 
         public void append(RunEvent event) {
-            events.computeIfAbsent(event.runId().value(), ignored -> new ArrayList<>()).add(event);
+            events.computeIfAbsent(event.runId().value(), ignored -> new CopyOnWriteArrayList<>()).add(event);
         }
 
         public List<RunEvent> listByRun(String runId, long afterSequence, int limit) {

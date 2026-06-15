@@ -4,8 +4,8 @@
   "private": true,
   "description": "Browser E2E harness for the Pi Java Agent Web Console.",
   "scripts": {
-    "e2e:install": "playwright install chromium",
-    "e2e": "playwright test"
+    "e2e:install": "bash scripts/e2e-install.sh",
+    "e2e": "node node_modules/@playwright/test/cli.js test"
   },
   "devDependencies": {
     "@babel/preset-react": "7.27.1",

@@ -25,6 +25,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /** Test-classpath fixture used by Playwright to run the Web Console without model keys, Docker, or external services. */
 @Configuration(proxyBeanMethods = false)
@@ -36,6 +42,20 @@ public class WebConsoleE2EFixtureConfiguration {
     @Primary
     AgentRuntime webConsoleE2ERuntime(EventSink eventSink, ToolExecutionGateway toolExecutionGateway) {
         return new ScriptedWebConsoleRuntime(eventSink, toolExecutionGateway);
+    }
+
+    @RestController
+    static final class PlaywrightReadyController {
+        private final Path readyFile;
+
+        PlaywrightReadyController(@Value("${pi.e2e.ready-file:/tmp/pi-java-playwright-ready}") String readyFile) {
+            this.readyFile = Path.of(readyFile);
+        }
+
+        @GetMapping("/__playwright_ready")
+        ResponseEntity<String> ready() {
+            return Files.exists(readyFile) ? ResponseEntity.ok("ready") : ResponseEntity.status(503).body("starting");
+        }
     }
 
     private static final class ScriptedWebConsoleRuntime implements AgentRuntime {
@@ -67,7 +87,7 @@ public class WebConsoleE2EFixtureConfiguration {
             } else if (input.contains("tool")) {
                 FakeStreamingModelClient model = new FakeStreamingModelClient();
                 ToolCall call = new ToolCall("tool-call-" + runId, new RunId(runId), new StepId("tool-step-" + runId),
-                        "builtin.info", Map.of("topic", "phase-05"), Instant.parse("2026-06-15T00:00:00Z"));
+                        "builtin.info", Map.of(), Instant.parse("2026-06-15T00:00:00Z"));
                 model.text("Streaming fake answer. ");
                 model.toolCall(call);
                 model.text("Terminal fake result with governed tool summary.");
