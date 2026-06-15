@@ -5,15 +5,23 @@ import io.github.pi_java.agent.domain.tool.ToolSideEffect;
 import io.github.pi_java.agent.spring.annotation.PiEventListener;
 import io.github.pi_java.agent.spring.annotation.PiTool;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AnnotatedSpringExtensionTest {
+
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(PiAgentExtensionAutoConfiguration.class));
 
     @Test
     void piToolIsRuntimeMethodAnnotationWithGovernanceMetadata() {
@@ -52,6 +60,12 @@ class AnnotatedSpringExtensionTest {
         assertThat(annotation.metadata()).containsExactly("team=platform");
     }
 
+    @Test
+    void annotatedBeansContributeExtensionCapabilities() {
+        contextRunner.withUserConfiguration(AnnotatedBeanConfiguration.class).run(context -> assertThat(context)
+                .hasSingleBean(AnnotatedToolExtensionSourceFactory.class));
+    }
+
     static class AnnotatedFixture {
         @PiTool(
                 id = "annotated.echo",
@@ -77,6 +91,27 @@ class AnnotatedSpringExtensionTest {
                 version = "2.0.0",
                 metadata = "team=platform")
         void onEvent(Object event) {
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class AnnotatedBeanConfiguration {
+
+        @Bean
+        AnnotatedBean annotatedBean() {
+            return new AnnotatedBean();
+        }
+    }
+
+    static class AnnotatedBean {
+
+        @PiTool(id = "annotated.echo", name = "Annotated Echo", description = "Echoes through annotation")
+        Map<String, Object> echo() {
+            return Map.of("ok", true);
+        }
+
+        @PiEventListener(id = "annotated.listener", eventTypes = "tool.lifecycle")
+        void onToolEvent(Object event) {
         }
     }
 }

@@ -12,6 +12,7 @@ import io.github.pi_java.agent.infrastructure.extension.ExtensionToolRegistry;
 import io.github.pi_java.agent.infrastructure.extension.ServiceLoaderExtensionDiscovery;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,6 +32,18 @@ public class PiAgentExtensionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    AnnotatedToolExtensionSourceFactory annotatedToolExtensionSourceFactory() {
+        return new AnnotatedToolExtensionSourceFactory();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AnnotatedEventListenerExtensionSourceFactory annotatedEventListenerExtensionSourceFactory() {
+        return new AnnotatedEventListenerExtensionSourceFactory();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     ServiceLoaderExtensionDiscovery serviceLoaderExtensionDiscovery() {
         return new ServiceLoaderExtensionDiscovery();
     }
@@ -40,10 +53,14 @@ public class PiAgentExtensionAutoConfiguration {
     DefaultExtensionContributionRegistry extensionContributionRegistry(
             ServiceLoaderExtensionDiscovery discovery,
             SpringExtensionSourceFactory springSourceFactory,
+            AnnotatedToolExtensionSourceFactory annotatedToolFactory,
+            AnnotatedEventListenerExtensionSourceFactory annotatedEventListenerFactory,
+            ConfigurableListableBeanFactory beanFactory,
             ObjectProvider<ExtensionSource> extensionSources,
             PiAgentExtensionProperties properties) {
         return DefaultExtensionContributionRegistry.build(
-                discovery.discover(springSourceFactory.orderedSources(extensionSources)),
+                discovery.discover(springSourceFactory.orderedSources(extensionSources, beanFactory,
+                        annotatedToolFactory, annotatedEventListenerFactory)),
                 new ExtensionRegistrationProperties(properties.getDisabledSources(), properties.getDisabledCapabilities(),
                         properties.isAllowDuplicateCapabilityOverrides(), properties.getPlatformApiVersion()));
     }
