@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-06-15T05:02:56.512Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-06-15T05:12:53.883Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State: Pi Java Agent Platform
@@ -194,6 +194,9 @@ Key findings:
 - [Phase 05]: Plan 01 keeps Vaadin dependency management in the parent POM while declaring the Vaadin starter only in pi-agent-adapter-web.
 - [Phase 05]: Plan 01 permits Vaadin Console/Admin routes and static resources without weakening authenticated /api/** security.
 - [Phase 05]: Plan 01 establishes ConsoleHttpClient/EventStreamClient as the Vaadin public API/SSE boundary anchored to pi-agent-client DTOs.
+- [Phase 05]: Plan 02 keeps Agent Catalog DTOs in pi-agent-client as plain Java records with string-based model/tool/risk metadata so UI and API clients do not import Domain or Spring types.
+- [Phase 05]: Plan 02 exposes Agent Catalog as a read-only App query service plus thin Adapter controller; Agent Studio create/edit/publish remains out of scope.
+- [Phase 05]: Plan 02 uses one default Cloud General Agent catalog entry sourced through App service and public API rather than Vaadin hardcoding.
 
 ## Performance Metrics
 
@@ -232,11 +235,12 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P06 | 7m 10s | 2 tasks | 8 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P07 | 9m 41s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P01 | 12m 20s | 2 tasks | 8 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P02 | 8m | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-01-PLAN.md
+- **Stopped At:** Completed 05-02-PLAN.md
 
 ## Next Action
 

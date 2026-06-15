@@ -84,7 +84,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Web Console and Admin Governance
 
-- [ ] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
+- [x] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
 - [ ] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes.
 - [ ] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors.
 - [ ] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
@@ -216,7 +216,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-04 | Phase 8 | Pending |
 | PLUG-05 | Phase 8 | Pending |
 | PLUG-06 | Phase 8 | Pending |
-| GUI-01 | Phase 5 | Pending |
+| GUI-01 | Phase 5 | Complete |
 | GUI-02 | Phase 5 | Pending |
 | GUI-03 | Phase 5 | Pending |
 | GUI-04 | Phase 5 | Pending |
