@@ -19,6 +19,7 @@
         <module>pi-agent-extension-api</module>
         <module>pi-agent-infrastructure</module>
         <module>pi-agent-infrastructure-extension</module>
+        <module>pi-agent-spring-boot-starter</module>
         <module>pi-agent-infrastructure-model-openai</module>
         <module>pi-agent-adapter-web</module>
         <module>pi-testkit</module>
