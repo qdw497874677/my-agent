@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 6
-status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-06-15T16:32:54.926Z"
+current_phase: 06
+status: executing
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-06-15T23:20:47.497Z"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 43
-  completed_plans: 43
+  total_plans: 51
+  completed_plans: 44
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 6
+**Status:** Executing Phase 06
+**Current Phase:** 06
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 05 — agent-web-console-and-runtime-cockpit
+**Current focus:** Phase 06 — java-extension-surface-spi-and-spring
 
 ## Workflow Configuration
 
@@ -218,6 +218,9 @@ Key findings:
 - [Phase 05]: Plan 09 uses Playwright as a test-only browser E2E harness while production Web Console/Admin remains Java-first.
 - [Phase 05]: Plan 09 runs browser E2E through Spring Boot test/e2e profiles with fake runtime fixtures, in-memory state, no Docker, and no model keys.
 - [Phase 05]: Plan 09 documents Phase 5 public REST/SSE/read-model contracts as the downstream boundary for extension, MCP, plugin, and governance work.
+- [Phase 06]: Plan 01 keeps pi-agent-extension-api framework-free with compile dependencies only on pi-agent-domain and pi-agent-app.
+- [Phase 06]: Plan 01 models tool extensions as descriptor-first capabilities carrying ToolDescriptor plus ToolExecutorBinding so future sources register through governed tool contracts.
+- [Phase 06]: Plan 01 represents memory provider support as metadata-only capability; runtime/RAG wiring remains deferred.
 
 ## Performance Metrics
 
@@ -264,11 +267,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P07 | 7m 52s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P08 | 6m 41s | 2 tasks | 6 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P09 | 2m 43s | 3 tasks | 12 files |
+| Phase 06-java-extension-surface-spi-and-spring P01 | 14m | 3 tasks | 18 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Phase 6 context gathered
+- **Stopped At:** Completed 06-01-PLAN.md
 
 ## Next Action
 

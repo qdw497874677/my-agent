@@ -53,15 +53,15 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment. Validated in Phase 4: `AllowlistedCommandExecutionGateway`, `WorkspaceCommandTool`, and workspace-bound command E2E.
 - [x] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
 - [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
-- [ ] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
+- [x] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
 - [x] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model. Validated in Phase 4: local-temp workspace limitations and allowlisted command-only built-in.
 - [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions. Validated in Phase 4: `ProvisionPreview`, preview events/audit, and approval-required no-execution E2E.
 
 ### Extension Fabric
 
-- [ ] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata.
+- [x] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata.
 - [ ] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core.
-- [ ] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests.
+- [x] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests.
 - [ ] **EXT-04**: Admin can view extension sources, registered capabilities, health, compatibility, enable/disable status, and errors.
 - [ ] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries.
 
@@ -190,7 +190,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 1 | Complete |
 | WORK-05 | Phase 1 | Complete |
-| WORK-06 | Phase 6 | Pending |
+| WORK-06 | Phase 6 | Complete |
 | WORK-07 | Phase 4 | Complete |
 | WORK-08 | Phase 4 | Complete |
 | TOOL-01 | Phase 4 | Complete |
@@ -200,9 +200,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-05 | Phase 4 | Complete |
 | TOOL-06 | Phase 4 | Complete |
 | TOOL-07 | Phase 4 | Complete |
-| EXT-01 | Phase 6 | Pending |
+| EXT-01 | Phase 6 | Complete |
 | EXT-02 | Phase 6 | Pending |
-| EXT-03 | Phase 6 | Pending |
+| EXT-03 | Phase 6 | Complete |
 | EXT-04 | Phase 6 | Pending |
 | EXT-05 | Phase 6 | Pending |
 | MCP-01 | Phase 7 | Pending |
