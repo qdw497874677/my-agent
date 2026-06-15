@@ -3,6 +3,7 @@ package io.github.pi_java.agent.adapter.web.ui;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
+import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
@@ -141,6 +142,14 @@ public class ConsoleHttpClient {
 
     public Class<GovernanceOverviewResponse> adminGovernanceOverviewResponseType() {
         return GovernanceOverviewResponse.class;
+    }
+
+    public String adminExtensionGovernancePath() {
+        return "/api/admin/governance/extensions";
+    }
+
+    public Class<ExtensionGovernanceResponse> adminExtensionGovernanceResponseType() {
+        return ExtensionGovernanceResponse.class;
     }
 
     public String adminPolicyDecisionsPath() {

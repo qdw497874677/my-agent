@@ -8,6 +8,9 @@ import io.github.pi_java.agent.adapter.web.ui.admin.AdminAuditView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminPolicyDecisionsView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminRegistryStatusView;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
+import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
+import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
+import io.github.pi_java.agent.client.admin.ExtensionSourceDto;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
@@ -46,6 +49,7 @@ class AdminGovernanceViewsTest {
         view.showOverview(sampleOverview());
 
         assertThat(view.overviewPath()).isEqualTo("/api/admin/governance/overview");
+        assertThat(view.extensionGovernancePath()).isEqualTo("/api/admin/governance/extensions");
         assertThat(view.renderedText())
                 .contains("Model Providers: HEALTHY")
                 .contains("Tool Registry: HEALTHY")
@@ -61,6 +65,28 @@ class AdminGovernanceViewsTest {
                 .doesNotContain("delete")
                 .doesNotContain("load plugin")
                 .doesNotContain("add mcp");
+    }
+
+    @Test
+    void registryStatusViewShowsReadOnlyExtensionSourcesAndCapabilities() {
+        AdminRegistryStatusView view = new AdminRegistryStatusView(new ConsoleHttpClient());
+        view.showExtensions(sampleExtensions());
+
+        assertThat(view.renderedText())
+                .contains("Extension Source: test-spring-extension")
+                .contains("kind=SPRING_BEAN")
+                .contains("status=USABLE")
+                .contains("health=UP")
+                .contains("compatibility=COMPATIBLE")
+                .contains("enabled=true")
+                .contains("Capability: listener.audit")
+                .contains("type=EVENT_LISTENER")
+                .contains("extension.sourceKind=SPRING_BEAN")
+                .contains("[REDACTED]")
+                .doesNotContain("enable button")
+                .doesNotContain("disable button")
+                .doesNotContain("delete");
+        assertThat(view.mutationControlsPresent()).isFalse();
     }
 
     @Test
@@ -118,5 +144,28 @@ class AdminGovernanceViewsTest {
                 List.of(new PolicyDecisionSummaryDto("decision-1", "ALLOW", "safe read-only tool", "builtin.info", "call-1", "session-1", "run-1", Instant.parse("2026-06-15T00:00:00Z"), Map.of("summary", "[REDACTED]"))),
                 List.of(new AuditSummaryDto("audit-1", "tool.policy", "tool", "builtin.info", "session-1", "run-1", Instant.parse("2026-06-15T00:00:01Z"), Map.of("decision", "ALLOW", "secret", "[REDACTED]"))),
                 Instant.parse("2026-06-15T00:02:00Z"));
+    }
+
+    static ExtensionGovernanceResponse sampleExtensions() {
+        return new ExtensionGovernanceResponse(List.of(new ExtensionSourceDto(
+                "test-spring-extension",
+                "Test Spring Extension",
+                "1.0.0",
+                "SPRING_BEAN",
+                "USABLE",
+                true,
+                "COMPATIBLE",
+                "UP",
+                "",
+                List.of(new ExtensionCapabilityDto(
+                        "listener.audit",
+                        "EVENT_LISTENER",
+                        "USABLE",
+                        "1.0.0",
+                        "test-spring-extension",
+                        true,
+                        "COMPATIBLE",
+                        "UP",
+                        Map.of("extension.sourceKind", "SPRING_BEAN", "error", "[REDACTED]"))))));
     }
 }

@@ -7,6 +7,9 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
+import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
+import io.github.pi_java.agent.client.admin.ExtensionSourceDto;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
 import java.util.ArrayList;
@@ -40,6 +43,10 @@ public class AdminRegistryStatusView extends Div {
         return httpClient.adminGovernanceOverviewPath();
     }
 
+    public String extensionGovernancePath() {
+        return httpClient.adminExtensionGovernancePath();
+    }
+
     public void showOverview(GovernanceOverviewResponse overview) {
         Objects.requireNonNull(overview, "overview must not be null");
         renderedLines.clear();
@@ -51,6 +58,26 @@ public class AdminRegistryStatusView extends Div {
         addStatus("Extensions", overview.extensions());
         addStatus("MCP", overview.mcp());
         addStatus("Plugins", overview.plugins());
+    }
+
+    public void showExtensions(ExtensionGovernanceResponse extensions) {
+        Objects.requireNonNull(extensions, "extensions must not be null");
+        renderedLines.clear();
+        removeAll();
+        add(new H2("Extension Governance"));
+        add(new Span("Extension sources and capabilities are inspect-only; enable/disable remains configuration-driven."));
+        if (extensions.sources().isEmpty()) {
+            String text = "Extensions: UNCONFIGURED | sources=0 | mutation=disabled";
+            renderedLines.add(text);
+            Div empty = new Div(new H3("No extension sources"), new Span(text));
+            empty.getElement().setAttribute("data-governance-area", "extensions");
+            empty.getElement().setAttribute("data-read-only", "true");
+            add(empty);
+            return;
+        }
+        for (ExtensionSourceDto source : extensions.sources()) {
+            addExtensionSource(source);
+        }
     }
 
     public boolean mutationControlsPresent() {
@@ -85,6 +112,44 @@ public class AdminRegistryStatusView extends Div {
         card.getElement().setAttribute("data-governance-status", status.status());
         card.getElement().setAttribute("data-read-only", "true");
         add(card);
+    }
+
+    private void addExtensionSource(ExtensionSourceDto source) {
+        String text = "Extension Source: " + safe(source.sourceId())
+                + " | name=" + safe(source.name())
+                + " | kind=" + safe(source.kind())
+                + " | status=" + safe(source.lifecycleStatus())
+                + " | health=" + safe(source.healthStatus())
+                + " | compatibility=" + safe(source.compatibilityStatus())
+                + " | enabled=" + source.enabled()
+                + " | capabilities=" + source.capabilities().size()
+                + " | error=" + safe(source.redactedError());
+        renderedLines.add(text);
+        Div card = new Div(new H3(source.name()), new Span(text));
+        card.getElement().setAttribute("data-governance-area", "extensions");
+        card.getElement().setAttribute("data-extension-source", source.sourceId());
+        card.getElement().setAttribute("data-extension-kind", source.kind());
+        card.getElement().setAttribute("data-read-only", "true");
+        add(card);
+        for (ExtensionCapabilityDto capability : source.capabilities()) {
+            addExtensionCapability(capability);
+        }
+    }
+
+    private void addExtensionCapability(ExtensionCapabilityDto capability) {
+        String text = "Capability: " + safe(capability.capabilityId())
+                + " | type=" + safe(capability.type())
+                + " | status=" + safe(capability.status())
+                + " | health=" + safe(capability.healthStatus())
+                + " | compatibility=" + safe(capability.compatibilityStatus())
+                + " | enabled=" + capability.enabled()
+                + " | " + metadata(capability.metadata());
+        renderedLines.add(text);
+        Div row = new Div(new Span(text));
+        row.getElement().setAttribute("data-extension-capability", capability.capabilityId());
+        row.getElement().setAttribute("data-capability-type", capability.type());
+        row.getElement().setAttribute("data-read-only", "true");
+        add(row);
     }
 
     private static String metadata(Map<String, String> metadata) {
