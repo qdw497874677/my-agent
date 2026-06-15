@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-06-15T23:20:47.497Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-06-15T23:22:18.923Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 51
-  completed_plans: 44
+  completed_plans: 45
 ---
 
 # Project State: Pi Java Agent Platform
@@ -221,6 +221,9 @@ Key findings:
 - [Phase 06]: Plan 01 keeps pi-agent-extension-api framework-free with compile dependencies only on pi-agent-domain and pi-agent-app.
 - [Phase 06]: Plan 01 models tool extensions as descriptor-first capabilities carrying ToolDescriptor plus ToolExecutorBinding so future sources register through governed tool contracts.
 - [Phase 06]: Plan 01 represents memory provider support as metadata-only capability; runtime/RAG wiring remains deferred.
+- [Phase 06]: Expose extension governance as read-only public DTOs with Map<String, String> metadata only; Admin mutation controls remain disabled/deferred.
+- [Phase 06]: Keep extension governance catalog in App using App-owned string statuses so App does not depend on extension SDK or discovery implementations.
+- [Phase 06]: Wire Adapter Web with EmptyExtensionGovernanceCatalog as the safe fallback while concrete SPI/Spring discovery modules provide real catalog data later.
 
 ## Performance Metrics
 
@@ -268,11 +271,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P08 | 6m 41s | 2 tasks | 6 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P09 | 2m 43s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P01 | 14m | 3 tasks | 18 files |
+| Phase 06-java-extension-surface-spi-and-spring P02 | 6m 33s | 3 tasks | 12 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 06-01-PLAN.md
+- **Stopped At:** Completed 06-02-PLAN.md
 
 ## Next Action
 
