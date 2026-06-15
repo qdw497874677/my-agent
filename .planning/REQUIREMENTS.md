@@ -85,10 +85,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Agent Web Console and Admin Governance
 
 - [x] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
-- [ ] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes.
+- [x] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes.
 - [ ] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors.
-- [ ] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
-- [ ] **GUI-05**: User can cancel a running Agent Run from the Web Console.
+- [x] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
+- [x] **GUI-05**: User can cancel a running Agent Run from the Web Console.
 - [x] **GUI-06**: User or Admin can approve or reject gated tool calls through an approval card when ToolPolicy requires approval.
 - [x] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records.
 - [x] **GUI-08**: Web GUI uses public REST/SSE/read-model APIs rather than private runtime or database access.
@@ -217,10 +217,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-05 | Phase 8 | Pending |
 | PLUG-06 | Phase 8 | Pending |
 | GUI-01 | Phase 5 | Complete |
-| GUI-02 | Phase 5 | Pending |
+| GUI-02 | Phase 5 | Complete |
 | GUI-03 | Phase 5 | Pending |
-| GUI-04 | Phase 5 | Pending |
-| GUI-05 | Phase 5 | Pending |
+| GUI-04 | Phase 5 | Complete |
+| GUI-05 | Phase 5 | Complete |
 | GUI-06 | Phase 5 | Complete |
 | GUI-07 | Phase 5 | Complete |
 | GUI-08 | Phase 5 | Complete |

@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-06-15T05:37:32.236Z"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-06-15T05:47:10.107Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State: Pi Java Agent Platform
@@ -203,6 +203,9 @@ Key findings:
 - [Phase 05]: Plan 04 keeps Admin Governance contracts in pi-agent-client as plain redacted records with no Domain/Spring/Jakarta imports.
 - [Phase 05]: Plan 04 exposes extension, MCP, and plugin governance as read-only FUTURE_ENABLED/UNCONFIGURED placeholders rather than configuration surfaces in Phase 5.
 - [Phase 05]: Plan 04 keeps /api/admin/governance inspect-only with GET mappings only; mutations remain out of scope for Phase 5.
+- [Phase 05]: Plan 05 makes ConsoleView the concrete /console route while MainConsoleLayout remains non-routed to avoid duplicate Vaadin route ownership.
+- [Phase 05]: Plan 05 represents Console UI actions as public REST/SSE action plans so Vaadin stays behind ConsoleHttpClient/EventStreamClient and pi-agent-client DTO boundaries.
+- [Phase 05]: Plan 05 renders model deltas, run status, policy/tool lifecycle, and terminal events into one integrated chat/event stream narrative.
 
 ## Performance Metrics
 
@@ -244,11 +247,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P02 | 8m | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P03 | 12m 08s | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P04 | 6m 41s | 2 tasks | 9 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P05 | 6m 34s | 2 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-04-PLAN.md
+- **Stopped At:** Completed 05-05-PLAN.md
 
 ## Next Action
 
