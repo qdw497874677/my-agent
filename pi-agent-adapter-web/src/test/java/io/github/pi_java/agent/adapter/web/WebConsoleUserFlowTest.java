@@ -42,7 +42,7 @@ class WebConsoleUserFlowTest {
 
         assertThat(panel.sessionCount()).isEqualTo(1);
         assertThat(panel.recentSessionIds()).containsExactly("session-1");
-        assertThat(panel.getElement().getText()).contains("session-1").contains("General Agent");
+        assertThat(panel.renderedSessionText()).contains("session-1").contains("General Agent");
     }
 
     @Test
