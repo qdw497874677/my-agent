@@ -5,9 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.pi_java.agent.adapter.web.ui.console.AgentCatalogPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.AgentCard;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
+import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
+import io.github.pi_java.agent.adapter.web.ui.console.ToolCallCard;
 import io.github.pi_java.agent.client.agent.AgentCatalogItemDto;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.event.RunEventDto;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +65,71 @@ class WebConsoleCatalogAndToolCardsTest {
         assertThat(view.agentCatalogPlan().path()).isEqualTo("/api/agents");
     }
 
+    @Test
+    void toolCardSummaryShowsLifecycleFieldsAndRedactedOutcome() {
+        RunEventDto completed = toolEvent("tool.completed", Map.of(
+                "toolName", "workspace.write",
+                "status", "COMPLETED",
+                "purpose", "Write generated report",
+                "riskLevel", "MEDIUM",
+                "sideEffect", "WORKSPACE_WRITE",
+                "progress", "100%",
+                "resultSummary", "Wrote report.md with token [REDACTED]",
+                "errorCategory", "none"));
+
+        ToolCallCard card = ToolCallCard.from(completed);
+
+        assertThat(card.summaryText())
+                .contains("workspace.write")
+                .contains("COMPLETED")
+                .contains("Write generated report")
+                .contains("MEDIUM")
+                .contains("WORKSPACE_WRITE")
+                .contains("100%")
+                .contains("[REDACTED]")
+                .doesNotContain("sk-live-secret");
+        assertThat(card.getElement().getAttribute("data-tool-status")).isEqualTo("COMPLETED");
+        assertThat(card.getElement().getAttribute("data-expandable")).isEqualTo("true");
+    }
+
+    @Test
+    void expandedToolDetailsShowSequenceDiagnosticsAndNeverRawSecretValues() {
+        RunEventDto approval = toolEvent("tool.approval_required", Map.of(
+                "toolName", "workspace.command",
+                "status", "REQUIRE_APPROVAL",
+                "eventSequence", List.of("tool.proposed", "tool.policy_decided", "tool.preview_generated", "tool.approval_required"),
+                "policyReason", "side effect requires approval",
+                "previewId", "preview-123",
+                "preview", Map.of("impact", "Would run allowlisted command with secret [REDACTED]"),
+                "diagnostics", Map.of("credential", "[REDACTED]", "raw", "[REDACTED]"),
+                "fakeSecret", "[REDACTED]"));
+
+        ToolCallCard card = ToolCallCard.from(approval);
+
+        assertThat(card.detailsText())
+                .contains("tool.proposed")
+                .contains("tool.approval_required")
+                .contains("side effect requires approval")
+                .contains("preview-123")
+                .contains("[REDACTED]")
+                .doesNotContain("sk-live-secret")
+                .doesNotContain("raw-token-value");
+    }
+
+    @Test
+    void runEventRendererReturnsToolCallCardForToolLifecycleSchema() {
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        RunEventRenderer.RenderedEvent rendered = renderer.render(toolEvent("tool.started", Map.of(
+                "toolName", "builtin.info",
+                "status", "STARTED",
+                "summary", "Reading platform metadata")));
+
+        assertThat(rendered.category()).isEqualTo("tool");
+        assertThat(rendered.component()).isInstanceOf(ToolCallCard.class);
+        assertThat(rendered.text()).contains("builtin.info").contains("STARTED");
+    }
+
     private static AgentCatalogItemDto catalogAgent(String id, String name) {
         return new AgentCatalogItemDto(
                 id,
@@ -77,5 +146,27 @@ class WebConsoleCatalogAndToolCardsTest {
                         "start-chat", "Start chat", "chat", "chat", Map.of("focus", "input"))),
                 Duration.ofMinutes(5),
                 Map.of("source", "fixture"));
+    }
+
+    private static RunEventDto toolEvent(String type, Map<String, Object> payload) {
+        return new RunEventDto(
+                "event-1",
+                "tenant",
+                "user",
+                "session-1",
+                "run-1",
+                null,
+                "workspace",
+                7,
+                Instant.parse("2026-06-15T05:00:00Z"),
+                type,
+                "trace",
+                "correlation",
+                null,
+                "USER",
+                null,
+                "tool.lifecycle",
+                1,
+                payload);
     }
 }
