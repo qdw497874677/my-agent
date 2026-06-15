@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-06-15T23:49:53.507Z"
+stopped_at: Completed 06-06-PLAN.md
+last_updated: "2026-06-15T23:58:49.739Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 51
-  completed_plans: 48
+  completed_plans: 49
 ---
 
 # Project State: Pi Java Agent Platform
@@ -233,6 +233,9 @@ Key findings:
 - [Phase 06]: Plan 05 limits Spring annotations to lightweight tools and event listener metadata; complex providers, policies, workspace, and memory extensions still require explicit ExtensionSource beans.
 - [Phase 06]: Plan 05 discovers annotations from already-registered Spring beans through explicit starter factories rather than component-scan magic.
 - [Phase 06]: Plan 05 represents annotated tools as ordinary ToolExtensionCapability entries with ToolDescriptor plus ToolExecutorBinding so execution remains behind ToolRegistry and ToolExecutionGateway consumers.
+- [Phase 06]: Make Adapter Web consume the same pi-agent-spring-boot-starter extension path external Spring applications use.
+- [Phase 06]: Keep built-in tools/providers ahead of extension contributions in deterministic composite registries without silently overriding existing built-ins.
+- [Phase 06]: Expose extension status only through authenticated GET DTOs and read-only Vaadin labels; enable/disable remains configuration-driven.
 
 ## Performance Metrics
 
@@ -284,11 +287,12 @@ Key findings:
 | Phase 06-java-extension-surface-spi-and-spring P03 | 7m 22s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P04 | 5m 46s | 3 tasks | 11 files |
 | Phase 06-java-extension-surface-spi-and-spring P05 | 6m | 3 tasks | 7 files |
+| Phase 06-java-extension-surface-spi-and-spring P06 | 6m 55s | 3 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 06-05-PLAN.md
+- **Stopped At:** Completed 06-06-PLAN.md
 
 ## Next Action
 
