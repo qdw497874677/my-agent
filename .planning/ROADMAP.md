@@ -164,7 +164,7 @@ Plans:
 - [x] 05-01-PLAN.md — Add Vaadin Adapter foundation, separated route layouts, security allowances, and public REST/SSE client boundary.
 - [x] 05-02-PLAN.md — Add public read-only Agent Catalog DTOs, App query service, and `/api/agents` API.
 - [x] 05-03-PLAN.md — Add approval DTOs, App service seam, and public approval list/decision API.
-- [ ] 05-04-PLAN.md — Add read-only Admin Governance DTOs, query service, and public governance APIs.
+- [x] 05-04-PLAN.md — Add read-only Admin Governance DTOs, query service, and public governance APIs.
 - [ ] 05-05-PLAN.md — Build Chat-first three-column user Console for sessions, runs, SSE, and cancellation.
 - [ ] 05-06-PLAN.md — Add Agent Catalog cards and expandable governed tool lifecycle cards.
 - [ ] 05-07-PLAN.md — Add user/admin approval cards backed by the approval API.

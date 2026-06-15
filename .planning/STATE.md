@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-06-15T05:28:11.583Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-06-15T05:37:32.236Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State: Pi Java Agent Platform
@@ -200,6 +200,9 @@ Key findings:
 - [Phase 05]: Plan 03 derives approval IDs from approval-required lifecycle preview IDs with toolCallId fallback.
 - [Phase 05]: Plan 03 records approval decisions as audit entries plus same-run events while preserving a future-compatible resume seam.
 - [Phase 05]: Plan 03 allows USER and ADMIN approval actors in dev/test through an explicit App-layer role seam.
+- [Phase 05]: Plan 04 keeps Admin Governance contracts in pi-agent-client as plain redacted records with no Domain/Spring/Jakarta imports.
+- [Phase 05]: Plan 04 exposes extension, MCP, and plugin governance as read-only FUTURE_ENABLED/UNCONFIGURED placeholders rather than configuration surfaces in Phase 5.
+- [Phase 05]: Plan 04 keeps /api/admin/governance inspect-only with GET mappings only; mutations remain out of scope for Phase 5.
 
 ## Performance Metrics
 
@@ -240,11 +243,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P01 | 12m 20s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P02 | 8m | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P03 | 12m 08s | 2 tasks | 9 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P04 | 6m 41s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-03-PLAN.md
+- **Stopped At:** Completed 05-04-PLAN.md
 
 ## Next Action
 

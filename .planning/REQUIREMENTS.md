@@ -90,7 +90,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
 - [ ] **GUI-05**: User can cancel a running Agent Run from the Web Console.
 - [x] **GUI-06**: User or Admin can approve or reject gated tool calls through an approval card when ToolPolicy requires approval.
-- [ ] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records.
+- [x] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records.
 - [x] **GUI-08**: Web GUI uses public REST/SSE/read-model APIs rather than private runtime or database access.
 
 ### Observability, Policy, and Security
@@ -222,7 +222,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GUI-04 | Phase 5 | Pending |
 | GUI-05 | Phase 5 | Pending |
 | GUI-06 | Phase 5 | Complete |
-| GUI-07 | Phase 5 | Pending |
+| GUI-07 | Phase 5 | Complete |
 | GUI-08 | Phase 5 | Complete |
 | OPS-01 | Phase 9 | Pending |
 | OPS-02 | Phase 4 | Complete |
