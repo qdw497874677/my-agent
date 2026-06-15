@@ -16,6 +16,7 @@
         <module>pi-agent-client</module>
         <module>pi-agent-domain</module>
         <module>pi-agent-app</module>
+        <module>pi-agent-extension-api</module>
         <module>pi-agent-infrastructure</module>
         <module>pi-agent-infrastructure-model-openai</module>
         <module>pi-agent-adapter-web</module>
