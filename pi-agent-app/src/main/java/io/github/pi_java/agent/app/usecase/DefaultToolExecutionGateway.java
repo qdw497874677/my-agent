@@ -154,7 +154,8 @@ public final class DefaultToolExecutionGateway implements ToolExecutionGateway {
 
             Map<String, Object> rawOutput = executed.rawOutput().orElse(executed.redactedOutputSummary());
             LimitCheck resultLimit = payloadLimiter.checkResult(descriptor, rawOutput);
-            Map<String, Object> summarizedOutput = payloadLimiter.summarize(descriptor, rawOutput);
+            RedactedToolPayload redactedRawOutput = redactor.redact(descriptor, rawOutput);
+            Map<String, Object> summarizedOutput = payloadLimiter.summarize(descriptor, redactedRawOutput.summary());
             RedactedToolPayload redactedOutput = redactor.redact(descriptor, summarizedOutput);
             ToolExecutionStatus status = resultLimit.allowed() ? executed.status() : ToolExecutionStatus.FAILED;
             String errorCategory = resultLimit.allowed() ? executed.errorCategory().orElse(null) : "payload_limit";
@@ -162,7 +163,7 @@ public final class DefaultToolExecutionGateway implements ToolExecutionGateway {
             RunEventType terminalType = terminalEventType(status);
             ToolExecutionResult result = new ToolExecutionResult(request.toolCallId(), request.toolId(), status, summary,
                     Optional.ofNullable(errorCategory), redactedArguments.summary(), redactedOutput.summary(),
-                    union(redactedArguments.redactedFields(), redactedOutput.redactedFields()), Optional.ofNullable(preview),
+                    union(redactedArguments.redactedFields(), union(redactedRawOutput.redactedFields(), redactedOutput.redactedFields())), Optional.ofNullable(preview),
                     elapsed(startedAt), Optional.empty());
             publish(command, descriptor, terminalType, result.redactedInputSummary(), result.redactedOutputSummary(),
                     policy.decision(), status, preview, result.errorCategory().orElse(null), result.redactedFields(), policy.policyRef());

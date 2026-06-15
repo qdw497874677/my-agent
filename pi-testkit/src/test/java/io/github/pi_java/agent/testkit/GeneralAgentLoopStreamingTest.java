@@ -85,7 +85,8 @@ class GeneralAgentLoopStreamingTest {
         events.assertExactlyOneTerminalEventLast();
         assertThat(events.types()).containsSequence(
                 RunEventType.TOOL_PROPOSED,
-                RunEventType.POLICY_DECIDED,
+                RunEventType.TOOL_POLICY_DECIDED,
+                RunEventType.TOOL_STARTED,
                 RunEventType.TOOL_COMPLETED,
                 RunEventType.MODEL_REQUESTED,
                 RunEventType.MODEL_DELTA,
