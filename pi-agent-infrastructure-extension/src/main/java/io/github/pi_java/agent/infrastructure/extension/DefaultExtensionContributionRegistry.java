@@ -18,7 +18,7 @@ public final class DefaultExtensionContributionRegistry {
     private final List<SourceEntry> sourceEntries;
     private final List<CapabilityEntry> capabilityEntries;
 
-    private DefaultExtensionContributionRegistry(List<SourceEntry> sourceEntries, List<CapabilityEntry> capabilityEntries) {
+    DefaultExtensionContributionRegistry(List<SourceEntry> sourceEntries, List<CapabilityEntry> capabilityEntries) {
         this.sourceEntries = List.copyOf(sourceEntries);
         this.capabilityEntries = List.copyOf(capabilityEntries);
     }
