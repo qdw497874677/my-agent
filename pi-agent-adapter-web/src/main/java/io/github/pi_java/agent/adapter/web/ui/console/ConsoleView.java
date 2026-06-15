@@ -22,6 +22,7 @@ public class ConsoleView extends Div {
     private final ConsoleHttpClient httpClient;
     private final EventStreamClient eventStreamClient;
     private final SessionListPanel sessionListPanel;
+    private final AgentCatalogPanel agentCatalogPanel;
     private final ChatEventStreamPanel chatPanel;
     private final RunContextPanel runContextPanel;
     private String selectedAgentId = DEFAULT_AGENT_ID;
@@ -36,11 +37,13 @@ public class ConsoleView extends Div {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
         this.sessionListPanel = new SessionListPanel();
+        this.agentCatalogPanel = new AgentCatalogPanel(httpClient);
         this.chatPanel = new ChatEventStreamPanel();
         this.runContextPanel = new RunContextPanel();
         addClassName("pi-console-workbench");
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "three-column-workbench");
+        sessionListPanel.add(agentCatalogPanel);
         add(sessionListPanel, chatPanel, runContextPanel);
     }
 
@@ -104,6 +107,10 @@ public class ConsoleView extends Div {
 
     public SessionListPanel sessionListPanel() {
         return sessionListPanel;
+    }
+
+    public AgentCatalogPanel agentCatalogPanel() {
+        return agentCatalogPanel;
     }
 
     public ChatEventStreamPanel chatPanel() {
