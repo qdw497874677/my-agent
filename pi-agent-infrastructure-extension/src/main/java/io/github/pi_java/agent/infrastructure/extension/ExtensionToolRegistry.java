@@ -42,8 +42,10 @@ public final class ExtensionToolRegistry implements ToolRegistry {
         Map<String, String> metadata = new LinkedHashMap<>(provenance.metadata());
         metadata.put("extension.sourceId", entry.sourceId());
         metadata.put("extension.capabilityId", entry.capabilityId());
+        ToolProvenance.SourceKind sourceKind = sourceKind(entry.capability().redactedMetadata(), provenance.sourceKind());
+        metadata.put("extension.sourceKind", sourceKind.name());
         ToolProvenance normalizedProvenance = new ToolProvenance(
-                ToolProvenance.SourceKind.SPI,
+                sourceKind,
                 entry.sourceId(),
                 provenance.bindingRef(),
                 metadata);
@@ -53,6 +55,19 @@ public final class ExtensionToolRegistry implements ToolRegistry {
     }
 
     private record ResolvedEntry(DefaultExtensionContributionRegistry.CapabilityEntry entry,
-                                 ToolExtensionCapability capability) {
+                                  ToolExtensionCapability capability) {
+    }
+
+    private static ToolProvenance.SourceKind sourceKind(Map<String, Object> metadata,
+                                                        ToolProvenance.SourceKind fallback) {
+        Object value = metadata.get("sourceKind");
+        if (value instanceof String string && !string.isBlank()) {
+            try {
+                return ToolProvenance.SourceKind.valueOf(string);
+            } catch (IllegalArgumentException ignored) {
+                return fallback;
+            }
+        }
+        return fallback;
     }
 }

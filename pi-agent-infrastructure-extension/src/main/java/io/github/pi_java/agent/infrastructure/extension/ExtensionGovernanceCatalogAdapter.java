@@ -22,7 +22,7 @@ public final class ExtensionGovernanceCatalogAdapter implements ExtensionGoverna
                 .map(this::toCapabilityStatus)
                 .collect(Collectors.groupingBy(ExtensionCapabilityStatus::sourceId));
         return contributions.sourceEntries().stream()
-                .map(source -> new ExtensionSourceStatus(source.sourceId(), source.name(), source.version(), "SPI",
+                .map(source -> new ExtensionSourceStatus(source.sourceId(), source.name(), source.version(), sourceKind(source),
                         source.status(), source.enabled(), source.compatibilityStatus(), source.healthStatus(),
                         source.redactedError(), capabilitiesBySource.getOrDefault(source.sourceId(), List.of())))
                 .toList();
@@ -39,8 +39,26 @@ public final class ExtensionGovernanceCatalogAdapter implements ExtensionGoverna
         entry.capability().redactedMetadata().forEach((key, value) -> metadata.put(key, String.valueOf(value)));
         metadata.put("extension.sourceId", entry.sourceId());
         metadata.put("extension.capabilityId", entry.capabilityId());
-        metadata.put("extension.sourceKind", "SPI");
+        metadata.put("extension.sourceKind", sourceKind(entry));
         return Map.copyOf(metadata);
+    }
+
+    private static String sourceKind(DefaultExtensionContributionRegistry.SourceEntry entry) {
+        if (entry.source() != null) {
+            Object value = entry.source().metadata().redactedMetadata().get("sourceKind");
+            if (value instanceof String string && !string.isBlank()) {
+                return string;
+            }
+        }
+        return "SPI";
+    }
+
+    private static String sourceKind(DefaultExtensionContributionRegistry.CapabilityEntry entry) {
+        Object value = entry.capability().redactedMetadata().get("sourceKind");
+        if (value instanceof String string && !string.isBlank()) {
+            return string;
+        }
+        return "SPI";
     }
 
     private static String metadataString(Map<String, Object> metadata, String key) {

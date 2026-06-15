@@ -44,7 +44,7 @@ public final class DefaultExtensionContributionRegistry {
             boolean compatible = checker.supports(metadata.compatibility());
             boolean available = metadata.lifecycleState().isAvailable()
                     && metadata.health().status() != io.github.pi_java.agent.extension.api.ExtensionHealth.Status.DOWN;
-            SourceEntry sourceEntry = SourceEntry.from(metadata, sourceDisabled, compatible, available, "");
+            SourceEntry sourceEntry = SourceEntry.from(source, metadata, sourceDisabled, compatible, available, "");
             sources.add(sourceEntry);
             for (ExtensionCapability capability : source.capabilities()) {
                 boolean capabilityDisabled = properties.disabledCapabilities().contains(capability.capabilityId());
@@ -116,12 +116,12 @@ public final class DefaultExtensionContributionRegistry {
             int order,
             ExtensionSource source
     ) {
-        static SourceEntry from(ExtensionMetadata metadata, boolean disabled, boolean compatible, boolean available,
-                                String redactedError) {
+        static SourceEntry from(ExtensionSource source, ExtensionMetadata metadata, boolean disabled, boolean compatible,
+                                boolean available, String redactedError) {
             String status = disabled ? "DISABLED" : compatible && available ? "USABLE" : "UNUSABLE";
             return new SourceEntry(metadata.extensionId(), metadata.name(), metadata.version(), status, !disabled,
                     compatible ? "COMPATIBLE" : "INCOMPATIBLE", metadata.health().status().name(), redactedError,
-                    DefaultExtensionContributionRegistry.order(metadata.redactedMetadata()), null);
+                    DefaultExtensionContributionRegistry.order(metadata.redactedMetadata()), source);
         }
 
         static SourceEntry failed(String sourceId, String redactedError) {
