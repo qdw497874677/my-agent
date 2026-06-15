@@ -32,11 +32,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command:
-          'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn -q -pl pi-agent-adapter-web -am org.springframework.boot:spring-boot-maven-plugin:3.5.9:run ' +
-          '-Dspring-boot.run.useTestClasspath=true ' +
-          '-Dspring-boot.run.profiles=test,e2e ' +
-          `-Dspring-boot.run.arguments="--server.port=${port} --spring.main.allow-bean-definition-overriding=true --spring.flyway.enabled=false --spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration --pi.runtime.worker.poll-delay-ms=100"`,
+        command: `bash scripts/e2e-web-server.sh ${port}`,
         url: `${baseURL}/actuator/health`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
