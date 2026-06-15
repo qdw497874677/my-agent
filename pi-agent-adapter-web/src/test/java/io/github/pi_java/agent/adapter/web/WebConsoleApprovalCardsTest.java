@@ -12,7 +12,6 @@ import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import java.time.Instant;
-import java.util.Map.Entry;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,16 +141,16 @@ class WebConsoleApprovalCardsTest {
                 "tool.lifecycle",
                 1,
                 Map.ofEntries(
-                        Entry.entry("toolCallId", "tool-call-1"),
-                        Entry.entry("toolId", "builtin.workspace.write"),
-                        Entry.entry("toolName", "builtin.workspace.write"),
-                        Entry.entry("status", "APPROVAL_REQUIRED"),
-                        Entry.entry("policyReason", "workspace writes require approval"),
-                        Entry.entry("riskLevel", "MEDIUM"),
-                        Entry.entry("sideEffect", "WORKSPACE_WRITE"),
-                        Entry.entry("previewId", "preview-1"),
-                        Entry.entry("preview", Map.of("impact", "write notes/approval.txt", "approvalRecommended", true)),
-                        Entry.entry("argumentSummary", Map.of("path", "notes/approval.txt", "content", "[REDACTED]")),
-                        Entry.entry("expectedConsequence", "Approve resumes the gated tool path; reject records a same-run policy outcome.")));
+                        Map.entry("toolCallId", "tool-call-1"),
+                        Map.entry("toolId", "builtin.workspace.write"),
+                        Map.entry("toolName", "builtin.workspace.write"),
+                        Map.entry("status", "APPROVAL_REQUIRED"),
+                        Map.entry("policyReason", "workspace writes require approval"),
+                        Map.entry("riskLevel", "MEDIUM"),
+                        Map.entry("sideEffect", "WORKSPACE_WRITE"),
+                        Map.entry("previewId", "preview-1"),
+                        Map.entry("preview", Map.of("impact", "write notes/approval.txt", "approvalRecommended", true)),
+                        Map.entry("argumentSummary", Map.of("path", "notes/approval.txt", "content", "[REDACTED]")),
+                        Map.entry("expectedConsequence", "Approve resumes the gated tool path; reject records a same-run policy outcome.")));
     }
 }

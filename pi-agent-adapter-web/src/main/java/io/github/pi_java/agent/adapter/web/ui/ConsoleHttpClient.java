@@ -2,6 +2,9 @@ package io.github.pi_java.agent.adapter.web.ui;
 
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
+import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
+import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
@@ -11,6 +14,7 @@ import io.github.pi_java.agent.client.session.CreateSessionRequest;
 import io.github.pi_java.agent.client.session.SessionHistoryResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
 import io.github.pi_java.agent.client.tool.ToolCatalogResponse;
+import java.util.List;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -105,6 +109,27 @@ public class ConsoleHttpClient {
 
     public Class<ToolCatalogResponse> toolCatalogResponseType() {
         return ToolCatalogResponse.class;
+    }
+
+    public String approvalsPath(String sessionId, String runId) {
+        return runPath(sessionId, runId) + "/approvals";
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<List<ApprovalSummaryDto>> approvalsResponseType() {
+        return (Class<List<ApprovalSummaryDto>>) (Class<?>) List.class;
+    }
+
+    public String approvalDecisionPath(String sessionId, String runId, String approvalId) {
+        return approvalsPath(sessionId, runId) + "/" + segment(approvalId) + "/decision";
+    }
+
+    public Class<ApprovalDecisionRequest> approvalDecisionRequestType() {
+        return ApprovalDecisionRequest.class;
+    }
+
+    public Class<ApprovalDecisionResponse> approvalDecisionResponseType() {
+        return ApprovalDecisionResponse.class;
     }
 
     private static String segment(String raw) {

@@ -1,6 +1,7 @@
 package io.github.pi_java.agent.adapter.web.ui.console;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
@@ -17,6 +18,7 @@ public class ChatEventStreamPanel extends Div {
     private final TextArea input = new TextArea("Message");
     private final Button send = new Button("Send");
     private final List<String> messages = new ArrayList<>();
+    private final List<Component> eventComponents = new ArrayList<>();
 
     public ChatEventStreamPanel() {
         addClassName("pi-console-chat");
@@ -34,7 +36,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public void appendEvent(RunEventRenderer.RenderedEvent event) {
-        append(event.category(), event.text());
+        append(event.category(), event.text(), event.component());
     }
 
     public String inputPlaceholder() {
@@ -49,6 +51,10 @@ public class ChatEventStreamPanel extends Div {
         return List.copyOf(messages);
     }
 
+    public int componentCount() {
+        return eventComponents.size();
+    }
+
     private void showEmptyState() {
         Span empty = new Span("Start with a message or continue a session from the left.");
         empty.getElement().setAttribute("data-state", "empty");
@@ -56,10 +62,19 @@ public class ChatEventStreamPanel extends Div {
     }
 
     private void append(String category, String text) {
+        append(category, text, null);
+    }
+
+    private void append(String category, String text, Component component) {
         if (messages.isEmpty()) {
             stream.removeAll();
         }
         messages.add(text);
+        if (component != null) {
+            eventComponents.add(component);
+            stream.add(component);
+            return;
+        }
         Div line = new Div(text);
         line.getElement().setAttribute("data-event-category", category);
         stream.add(line);

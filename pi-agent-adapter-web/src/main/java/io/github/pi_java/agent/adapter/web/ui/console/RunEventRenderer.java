@@ -1,11 +1,24 @@
 package io.github.pi_java.agent.adapter.web.ui.console;
 
 import com.vaadin.flow.component.Component;
+import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import java.util.Map;
+import java.util.Set;
 
 /** Renders public RunEvent DTOs into user-visible integrated chat/event stream lines. */
 public class RunEventRenderer {
+
+    private final ConsoleHttpClient httpClient;
+
+    public RunEventRenderer() {
+        this(new ConsoleHttpClient());
+    }
+
+    public RunEventRenderer(ConsoleHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     public RenderedEvent render(RunEventDto event) {
         String type = event.type() == null ? "run.event" : event.type();
@@ -13,6 +26,10 @@ public class RunEventRenderer {
         String lower = type.toLowerCase();
         if (lower.contains("model.delta")) {
             return new RenderedEvent("model", value(payload, "text", "delta", "content"), false);
+        }
+        if (lower.contains("approval_required") || "APPROVAL_REQUIRED".equalsIgnoreCase(value(payload, "status"))) {
+            ApprovalCard card = ApprovalCard.from(toApprovalSummary(event, payload), httpClient);
+            return new RenderedEvent("approval", card.summaryText(), false, card);
         }
         if (lower.contains("tool.lifecycle") || "tool.lifecycle".equalsIgnoreCase(event.payloadSchema())) {
             ToolCallCard card = ToolCallCard.from(event);
@@ -51,6 +68,42 @@ public class RunEventRenderer {
                 || normalized.contains("failed")
                 || normalized.contains("cancelled")
                 || normalized.contains("timed_out");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ApprovalSummaryDto toApprovalSummary(RunEventDto event, Map<String, Object> payload) {
+        Map<String, Object> preview = map(payload.get("preview"));
+        Map<String, Object> arguments = map(payload.get("argumentSummary"));
+        String approvalId = fallback(value(payload, "approvalId", "previewId"), value(preview, "previewId", "id"));
+        if (approvalId.isBlank()) {
+            approvalId = fallback(value(payload, "toolCallId"), event.eventId());
+        }
+        String toolCallId = value(payload, "toolCallId", "tool_call_id");
+        String toolId = value(payload, "toolId", "tool", "descriptorRef");
+        String toolName = value(payload, "toolName", "tool", "descriptorRef");
+        return new ApprovalSummaryDto(
+                event.sessionId(),
+                event.runId(),
+                approvalId,
+                toolCallId,
+                toolId,
+                toolName,
+                value(payload, "policyReason", "reason", "decisionReason"),
+                value(payload, "riskLabel", "riskLevel", "risk"),
+                value(payload, "sideEffectLabel", "sideEffect", "sideEffectLevel"),
+                preview,
+                arguments,
+                fallback(value(payload, "expectedConsequence"), "Approve resumes the gated tool path; reject records a same-run policy outcome."),
+                true,
+                Set.of("USER", "ADMIN"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> map(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        return Map.of();
     }
 
     public record RenderedEvent(String category, String text, boolean terminal, Component component) {
