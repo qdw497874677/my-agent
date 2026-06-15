@@ -33,6 +33,7 @@ import io.github.pi_java.agent.infrastructure.jdbc.JdbcSessionRepository;
 import io.github.pi_java.agent.infrastructure.queue.PostgresRunQueue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,41 +51,49 @@ import java.util.concurrent.Executor;
 public class CloudRuntimeBeanConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     Clock clock() {
         return Clock.systemUTC();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     SessionRepository sessionRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcSessionRepository(jdbcTemplate);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     AuditRepository auditRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcAuditRepository(jdbcTemplate);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     RunEventStore runEventStore(JdbcTemplate jdbcTemplate) {
         return new JdbcRunEventStore(jdbcTemplate);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     RunProjectionRepository runProjectionRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcRunProjectionRepository(jdbcTemplate);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     RunQueue runQueue(JdbcTemplate jdbcTemplate) {
         return new PostgresRunQueue(jdbcTemplate);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     CancellationRegistry cancellationRegistry() {
         return new InMemoryCancellationRegistry();
     }
 
     @Bean
+    @ConditionalOnMissingBean
     SseRunEventFanout runEventFanout() {
         return new SseRunEventFanout();
     }
