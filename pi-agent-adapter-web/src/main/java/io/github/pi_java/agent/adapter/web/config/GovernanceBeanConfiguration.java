@@ -1,5 +1,7 @@
 package io.github.pi_java.agent.adapter.web.config;
 
+import io.github.pi_java.agent.app.port.extension.EmptyExtensionGovernanceCatalog;
+import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.app.usecase.DefaultGovernanceQueryService;
@@ -19,8 +21,16 @@ public class GovernanceBeanConfiguration {
     GovernanceQueryService governanceQueryService(
             ModelProviderRegistry modelProviderRegistry,
             ToolRegistry toolRegistry,
+            ExtensionGovernanceCatalog extensionGovernanceCatalog,
             Optional<AgentRuntime> agentRuntime,
             Clock clock) {
-        return new DefaultGovernanceQueryService(modelProviderRegistry, toolRegistry, agentRuntime, clock);
+        return new DefaultGovernanceQueryService(
+                modelProviderRegistry, toolRegistry, extensionGovernanceCatalog, agentRuntime, clock);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ExtensionGovernanceCatalog extensionGovernanceCatalog() {
+        return new EmptyExtensionGovernanceCatalog();
     }
 }

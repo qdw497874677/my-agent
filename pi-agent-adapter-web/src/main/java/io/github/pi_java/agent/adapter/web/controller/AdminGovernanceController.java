@@ -2,6 +2,7 @@ package io.github.pi_java.agent.adapter.web.controller;
 
 import io.github.pi_java.agent.app.usecase.GovernanceQueryService;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
+import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,5 +35,10 @@ public class AdminGovernanceController {
     @GetMapping("/audits")
     public List<AuditSummaryDto> audits(Principal principal, HttpServletRequest servletRequest) {
         return governanceQueryService.audits(SessionController.toRequestContext(principal, servletRequest));
+    }
+
+    @GetMapping("/extensions")
+    public ExtensionGovernanceResponse extensions(Principal principal, HttpServletRequest servletRequest) {
+        return governanceQueryService.extensions(SessionController.toRequestContext(principal, servletRequest));
     }
 }
