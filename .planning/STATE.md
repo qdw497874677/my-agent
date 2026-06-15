@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-06-15T05:12:53.883Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-06-15T05:28:11.583Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 # Project State: Pi Java Agent Platform
@@ -197,6 +197,9 @@ Key findings:
 - [Phase 05]: Plan 02 keeps Agent Catalog DTOs in pi-agent-client as plain Java records with string-based model/tool/risk metadata so UI and API clients do not import Domain or Spring types.
 - [Phase 05]: Plan 02 exposes Agent Catalog as a read-only App query service plus thin Adapter controller; Agent Studio create/edit/publish remains out of scope.
 - [Phase 05]: Plan 02 uses one default Cloud General Agent catalog entry sourced through App service and public API rather than Vaadin hardcoding.
+- [Phase 05]: Plan 03 derives approval IDs from approval-required lifecycle preview IDs with toolCallId fallback.
+- [Phase 05]: Plan 03 records approval decisions as audit entries plus same-run events while preserving a future-compatible resume seam.
+- [Phase 05]: Plan 03 allows USER and ADMIN approval actors in dev/test through an explicit App-layer role seam.
 
 ## Performance Metrics
 
@@ -236,11 +239,12 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P07 | 9m 41s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P01 | 12m 20s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P02 | 8m | 2 tasks | 9 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P03 | 12m 08s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-02-PLAN.md
+- **Stopped At:** Completed 05-03-PLAN.md
 
 ## Next Action
 
