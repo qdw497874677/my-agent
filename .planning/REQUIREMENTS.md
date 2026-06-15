@@ -84,14 +84,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Web Console and Admin Governance
 
-- [x] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions.
-- [x] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes.
-- [x] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors.
-- [x] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results.
-- [x] **GUI-05**: User can cancel a running Agent Run from the Web Console.
-- [x] **GUI-06**: User or Admin can approve or reject gated tool calls through an approval card when ToolPolicy requires approval.
-- [x] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records.
-- [x] **GUI-08**: Web GUI uses public REST/SSE/read-model APIs rather than private runtime or database access.
+- [x] **GUI-01**: User can view an Agent Catalog listing available Agents with name, description, capabilities, allowed tools, risk indicators, and entry actions. Validated in Phase 5: `/api/agents`, catalog cards, browser E2E, and `docs/phase-05-web-console.md`.
+- [x] **GUI-02**: User can enter an Agent interaction page, use a chat-style input for v1, receive streaming model output, and see the current Run status while the API remains open to non-chat input modes. Validated in Phase 5: Console route/action plans, model event assertions, and Playwright no-key E2E.
+- [x] **GUI-03**: User can see tool calls as execution cards showing tool name, status, purpose, risk/side-effect label, progress, redacted result summary, and errors. Validated in Phase 5: tool lifecycle cards and browser E2E `tool.*` event assertions.
+- [x] **GUI-04**: User can view and continue Session history, including past Runs, messages, tool calls, and terminal results. Validated in Phase 5: public session history/continuation API paths and browser E2E continuation branch.
+- [x] **GUI-05**: User can cancel a running Agent Run from the Web Console. Validated in Phase 5: Console cancellation plan and browser E2E cancellation branch.
+- [x] **GUI-06**: User or Admin can approve or reject gated tool calls through an approval card when ToolPolicy requires approval. Validated in Phase 5: approval DTO/API/cards and Playwright approve/reject branches.
+- [x] **GUI-07**: Admin can inspect runtime governance views for provider configuration/status, extension status, MCP server status, plugin status, tool registry health, policy decisions, and audit records. Validated in Phase 5: Admin Governance APIs/views and browser E2E overview/policy/audit checks.
+- [x] **GUI-08**: Web GUI uses public REST/SSE/read-model APIs rather than private runtime or database access. Validated in Phase 5: `ConsoleHttpClient`, `EventStreamClient`, public DTO anchors, and browser E2E API consumption.
 
 ### Observability, Policy, and Security
 
@@ -110,7 +110,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **E2E-04**: Headless E2E verifies cancellation, timeout, max-step, terminal events, and absence of hanging model/tool tasks.
 - [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
 - [x] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default. Validated in Phase 4: `GovernedToolSecurityRedactionE2ETest` covers default API/event/audit/persisted payload paths; Web Console display consumes the same redacted APIs in Phase 5.
-- [ ] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views.
+- [x] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views. Validated in Phase 5: Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures.
 - [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline.
 
 ## v2 Requirements
@@ -216,14 +216,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-04 | Phase 8 | Pending |
 | PLUG-05 | Phase 8 | Pending |
 | PLUG-06 | Phase 8 | Pending |
-| GUI-01 | Phase 5 | Complete |
-| GUI-02 | Phase 5 | Complete |
-| GUI-03 | Phase 5 | Complete |
-| GUI-04 | Phase 5 | Complete |
-| GUI-05 | Phase 5 | Complete |
-| GUI-06 | Phase 5 | Complete |
-| GUI-07 | Phase 5 | Complete |
-| GUI-08 | Phase 5 | Complete |
+| GUI-01 | Phase 5 | Complete — validated by `/api/agents`, catalog cards, browser E2E, and `docs/phase-05-web-console.md` |
+| GUI-02 | Phase 5 | Complete — validated by Console route/action plans, model event assertions, and no-key Playwright E2E |
+| GUI-03 | Phase 5 | Complete — validated by tool lifecycle cards and browser E2E `tool.*` event assertions |
+| GUI-04 | Phase 5 | Complete — validated by session history/continuation API paths and browser E2E continuation branch |
+| GUI-05 | Phase 5 | Complete — validated by Console cancellation plan and browser E2E cancellation branch |
+| GUI-06 | Phase 5 | Complete — validated by approval DTO/API/cards and Playwright approve/reject branches |
+| GUI-07 | Phase 5 | Complete — validated by Admin Governance APIs/views and browser E2E overview/policy/audit checks |
+| GUI-08 | Phase 5 | Complete — validated by public REST/SSE/read-model client boundaries and browser E2E API consumption |
 | OPS-01 | Phase 9 | Pending |
 | OPS-02 | Phase 4 | Complete |
 | OPS-03 | Phase 4 | Complete |
@@ -236,7 +236,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-04 | Phase 2 | Complete |
 | E2E-05 | Phase 2 | Complete |
 | E2E-06 | Phase 4 | Complete — validated by `GovernedToolSecurityRedactionE2ETest` fake-secret absence checks across REST, event history, persisted RunEvents, audit records, and safe exception paths |
-| E2E-07 | Phase 5 | Pending |
+| E2E-07 | Phase 5 | Complete — validated by Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures |
 | E2E-08 | Phase 7, Phase 8 | Pending |
 
 **Coverage:**
@@ -246,4 +246,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-13 after roadmap creation*
+*Last updated: 2026-06-15 after Phase 5 Web Console browser E2E completion*
