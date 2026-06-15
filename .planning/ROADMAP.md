@@ -189,8 +189,20 @@ Plans:
 
 **Goal:** Stabilize the Java-native extension contract using safe in-process mechanisms before dynamic classloader plugins.
 
-**Requirements:** EXT-01, EXT-02, EXT-03, EXT-04, EXT-05  
+**Requirements:** WORK-06, EXT-01, EXT-02, EXT-03, EXT-04, EXT-05  
 **UI hint**: no
+
+**Plans:** 8 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Create the framework-free public extension API/SPI module.
+- [ ] 06-02-PLAN.md — Add public and App read models for extension governance.
+- [ ] 06-03-PLAN.md — Implement Java ServiceLoader discovery and normalized registration.
+- [ ] 06-04-PLAN.md — Create Spring Boot starter/autoconfiguration for extension registration.
+- [ ] 06-05-PLAN.md — Add lightweight Spring annotations for tools and event listeners.
+- [ ] 06-06-PLAN.md — Wire Cloud Server through the starter and expose read-only extension governance.
+- [ ] 06-07-PLAN.md — Add SPI/Spring extension conformance tests for safety boundaries.
+- [ ] 06-08-PLAN.md — Harden architecture gates, document contracts, and update traceability.
 
 **Success criteria:**
 1. Public extension API/JAR supports tools, providers, policies, event sinks, memory providers, workspace providers, metadata, lifecycle, and version compatibility.
