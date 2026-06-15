@@ -56,6 +56,7 @@ public class SecurityConfig {
         return new String[] {
                 "/console", "/console/**",
                 "/admin/governance", "/admin/governance/**",
+                "/admin/governance/approvals", "/admin/governance/approvals/**",
                 "/VAADIN/**",
                 "/frontend/**",
                 "/webjars/**",
