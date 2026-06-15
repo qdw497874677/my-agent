@@ -197,7 +197,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Create the framework-free public extension API/SPI module.
 - [x] 06-02-PLAN.md — Add public and App read models for extension governance.
-- [ ] 06-03-PLAN.md — Implement Java ServiceLoader discovery and normalized registration.
+- [x] 06-03-PLAN.md — Implement Java ServiceLoader discovery and normalized registration.
 - [ ] 06-04-PLAN.md — Create Spring Boot starter/autoconfiguration for extension registration.
 - [ ] 06-05-PLAN.md — Add lightweight Spring annotations for tools and event listeners.
 - [ ] 06-06-PLAN.md — Wire Cloud Server through the starter and expose read-only extension governance.

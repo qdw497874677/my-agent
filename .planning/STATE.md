@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-06-15T23:22:18.923Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-06-15T23:32:35.101Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 51
-  completed_plans: 45
+  completed_plans: 46
 ---
 
 # Project State: Pi Java Agent Platform
@@ -224,6 +224,9 @@ Key findings:
 - [Phase 06]: Expose extension governance as read-only public DTOs with Map<String, String> metadata only; Admin mutation controls remain disabled/deferred.
 - [Phase 06]: Keep extension governance catalog in App using App-owned string statuses so App does not depend on extension SDK or discovery implementations.
 - [Phase 06]: Wire Adapter Web with EmptyExtensionGovernanceCatalog as the safe fallback while concrete SPI/Spring discovery modules provide real catalog data later.
+- [Phase 06]: Plan 03 keeps SPI discovery in a separate infrastructure module with no Spring/PF4J/MCP dependencies.
+- [Phase 06]: Plan 03 represents failed ServiceLoader providers as failed source statuses with sanitized errors for governance visibility.
+- [Phase 06]: Plan 03 exposes extension tools only through ToolRegistry.resolve with ToolExecutorBinding to preserve the governed execution path.
 
 ## Performance Metrics
 
@@ -272,11 +275,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P09 | 2m 43s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P01 | 14m | 3 tasks | 18 files |
 | Phase 06-java-extension-surface-spi-and-spring P02 | 6m 33s | 3 tasks | 12 files |
+| Phase 06-java-extension-surface-spi-and-spring P03 | 7m 22s | 3 tasks | 12 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 06-02-PLAN.md
+- **Stopped At:** Completed 06-03-PLAN.md
 
 ## Next Action
 

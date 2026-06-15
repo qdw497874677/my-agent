@@ -63,7 +63,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core.
 - [x] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests.
 - [x] **EXT-04**: Admin can view extension sources, registered capabilities, health, compatibility, enable/disable status, and errors.
-- [ ] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries.
+- [x] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries.
 
 ### MCP Integration
 
@@ -204,7 +204,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXT-02 | Phase 6 | Pending |
 | EXT-03 | Phase 6 | Complete |
 | EXT-04 | Phase 6 | Complete |
-| EXT-05 | Phase 6 | Pending |
+| EXT-05 | Phase 6 | Complete |
 | MCP-01 | Phase 7 | Pending |
 | MCP-02 | Phase 7 | Pending |
 | MCP-03 | Phase 7 | Pending |
