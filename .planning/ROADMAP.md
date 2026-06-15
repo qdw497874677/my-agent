@@ -167,7 +167,7 @@ Plans:
 - [x] 05-04-PLAN.md — Add read-only Admin Governance DTOs, query service, and public governance APIs.
 - [x] 05-05-PLAN.md — Build Chat-first three-column user Console for sessions, runs, SSE, and cancellation.
 - [x] 05-06-PLAN.md — Add Agent Catalog cards and expandable governed tool lifecycle cards.
-- [ ] 05-07-PLAN.md — Add user/admin approval cards backed by the approval API.
+- [x] 05-07-PLAN.md — Add user/admin approval cards backed by the approval API.
 - [ ] 05-08-PLAN.md — Build separated inspect-only Admin Governance Vaadin views.
 - [ ] 05-09-PLAN.md — Add Playwright browser E2E, Phase 5 docs, and requirement traceability updates.
 

@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-06-15T05:57:31.623Z"
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-06-15T06:08:07.211Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 # Project State: Pi Java Agent Platform
@@ -209,6 +209,9 @@ Key findings:
 - [Phase 05]: Plan 06 renders Agent Catalog cards from public AgentCatalogResponse data while keeping Catalog secondary to the Chat-first Console.
 - [Phase 05]: Plan 06 renders governed tool lifecycle events as expandable redacted ToolCallCard components from public RunEventDto payload maps.
 - [Phase 05]: Plan 06 ignores Vaadin dev-mode generated frontend output so test-generated runtime artifacts do not enter source commits.
+- [Phase 05]: Plan 07 approval UI components build backend decision plans instead of mutating local-only approval state.
+- [Phase 05]: Plan 07 approval-required tool lifecycle events are promoted to dedicated approval cards before generic tool cards.
+- [Phase 05]: Plan 07 admin approval decisions reuse ApprovalCard behavior with an explicit ADMIN actor role under a separated Admin Governance route.
 
 ## Performance Metrics
 
@@ -252,11 +255,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P04 | 6m 41s | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P05 | 6m 34s | 2 tasks | 7 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P06 | 7m 08s | 2 tasks | 8 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P07 | 7m 52s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-06-PLAN.md
+- **Stopped At:** Completed 05-07-PLAN.md
 
 ## Next Action
 
