@@ -1,13 +1,26 @@
 package io.github.pi_java.agent.adapter.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.github.pi_java.agent.app.context.CorrelationContext;
 import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
 import io.github.pi_java.agent.app.port.persistence.AuditRepository;
 import io.github.pi_java.agent.app.port.persistence.RunEventStore;
+import io.github.pi_java.agent.app.usecase.ApprovalCommandService;
+import io.github.pi_java.agent.app.usecase.ApprovalQueryService;
 import io.github.pi_java.agent.app.usecase.DefaultApprovalService;
+import io.github.pi_java.agent.adapter.web.controller.ApprovalController;
+import io.github.pi_java.agent.adapter.web.security.PiPrincipal;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
@@ -40,6 +53,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class ApprovalControllerTest {
 
@@ -80,6 +97,73 @@ class ApprovalControllerTest {
         assertThat(response.actorRole()).isEqualTo("ADMIN");
         assertThat(harness.audits).anySatisfy(audit -> assertThat(audit.toString()).contains("approval.reject", "preview-1", "tool-call-1"));
         assertThat(harness.published).extracting(RunEvent::type).contains(RunEventType.POLICY_DECIDED, RunEventType.RUN_POLICY_BLOCKED);
+    }
+
+    @Test
+    void getApprovalsReturnsApprovalCardsFromLifecycleEvents() throws Exception {
+        ApprovalQueryService approvalQueryService = mock(ApprovalQueryService.class);
+        ApprovalCommandService approvalCommandService = mock(ApprovalCommandService.class);
+        MockMvc mockMvc = approvalMockMvc(approvalQueryService, approvalCommandService);
+        ApprovalSummaryDto summary = new ApprovalSummaryDto("session-1", "run-1", "preview-1", "tool-call-1",
+                "builtin.workspace.write", "builtin.workspace.write", "workspace writes require approval", "MEDIUM",
+                "WORKSPACE_WRITE", Map.of("summary", "write notes/approval.txt"), Map.of("path", "notes/approval.txt"),
+                "Approve resumes the gated tool path; reject records a same-run policy outcome.", true, Set.of("USER", "ADMIN"));
+        when(approvalQueryService.listPendingApprovals(any(), eq("session-1"), eq("run-1"))).thenReturn(List.of(summary));
+
+        mockMvc.perform(get("/api/sessions/session-1/runs/run-1/approvals")
+                        .header("X-Pi-Dev-Tenant", "tenant-1")
+                        .header("X-Pi-Dev-User", "user-1")
+                        .requestAttr("pi.traceId", "trace-1")
+                        .requestAttr("pi.correlationId", "corr-1")
+                        .requestAttr("pi.causationId", "cause-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].sessionId").value("session-1"))
+                .andExpect(jsonPath("$[0].runId").value("run-1"))
+                .andExpect(jsonPath("$[0].approvalId").value("preview-1"))
+                .andExpect(jsonPath("$[0].toolCallId").value("tool-call-1"))
+                .andExpect(jsonPath("$[0].toolName").value("builtin.workspace.write"))
+                .andExpect(jsonPath("$[0].policyReason").value("workspace writes require approval"))
+                .andExpect(jsonPath("$[0].actorEligible").value(true));
+
+        verify(approvalQueryService).listPendingApprovals(any(), eq("session-1"), eq("run-1"));
+    }
+
+    @Test
+    void postDecisionAcceptsRejectAndReturnsPersistedDecisionStatus() throws Exception {
+        ApprovalQueryService approvalQueryService = mock(ApprovalQueryService.class);
+        ApprovalCommandService approvalCommandService = mock(ApprovalCommandService.class);
+        MockMvc mockMvc = approvalMockMvc(approvalQueryService, approvalCommandService);
+        when(approvalCommandService.decide(any(), eq("session-1"), eq("run-1"), eq("preview-1"), any()))
+                .thenReturn(new ApprovalDecisionResponse("session-1", "run-1", "preview-1", "tool-call-1",
+                        ApprovalDecisionRequest.Decision.REJECT, "REJECTED", "user-1", "USER", "not safe",
+                        Instant.parse("2026-06-15T00:01:00Z")));
+
+        mockMvc.perform(post("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision")
+                        .header("X-Pi-Dev-Tenant", "tenant-1")
+                        .header("X-Pi-Dev-User", "user-1")
+                        .requestAttr("pi.traceId", "trace-1")
+                        .requestAttr("pi.correlationId", "corr-1")
+                        .requestAttr("pi.causationId", "cause-1")
+                        .contentType("application/json")
+                        .content("{\"decision\":\"REJECT\",\"reason\":\"not safe\",\"actorRole\":\"USER\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessionId").value("session-1"))
+                .andExpect(jsonPath("$.runId").value("run-1"))
+                .andExpect(jsonPath("$.approvalId").value("preview-1"))
+                .andExpect(jsonPath("$.toolCallId").value("tool-call-1"))
+                .andExpect(jsonPath("$.decision").value("REJECT"))
+                .andExpect(jsonPath("$.status").value("REJECTED"));
+
+        verify(approvalCommandService).decide(any(), eq("session-1"), eq("run-1"), eq("preview-1"), any());
+    }
+
+    private static MockMvc approvalMockMvc(ApprovalQueryService approvalQueryService, ApprovalCommandService approvalCommandService) {
+        ApprovalController controller = new ApprovalController(approvalQueryService, approvalCommandService);
+        return MockMvcBuilders.standaloneSetup(controller)
+                .defaultRequest(get("/").principal(new UsernamePasswordAuthenticationToken(
+                        new PiPrincipal("tenant-1", "user-1", Set.of("ROLE_DEV_USER")), null,
+                        List.of(new SimpleGrantedAuthority("ROLE_DEV_USER")))))
+                .build();
     }
 
     private static RequestContext context(String authority) {
