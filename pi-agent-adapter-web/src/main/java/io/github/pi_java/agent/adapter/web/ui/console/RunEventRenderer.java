@@ -1,5 +1,6 @@
 package io.github.pi_java.agent.adapter.web.ui.console;
 
+import com.vaadin.flow.component.Component;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import java.util.Map;
 
@@ -13,21 +14,20 @@ public class RunEventRenderer {
         if (lower.contains("model.delta")) {
             return new RenderedEvent("model", value(payload, "text", "delta", "content"), false);
         }
-        if (lower.contains("tool.lifecycle")) {
-            String tool = value(payload, "toolName", "tool", "toolId");
-            String status = value(payload, "status", "decision", "phase");
-            return new RenderedEvent("tool", "Tool " + fallback(tool, "event") + ": " + fallback(status, type), terminal(lower, payload));
+        if (lower.contains("tool.lifecycle") || "tool.lifecycle".equalsIgnoreCase(event.payloadSchema())) {
+            ToolCallCard card = ToolCallCard.from(event);
+            return new RenderedEvent("tool", card.summaryText(), terminal(lower, payload), card);
         }
         if (lower.contains("policy")) {
-            return new RenderedEvent("policy", "Policy: " + value(payload, "decision", "reason", "status"), terminal(lower, payload));
+            return new RenderedEvent("policy", "Policy: " + value(payload, "decision", "reason", "status"), terminal(lower, payload), null);
         }
         if (lower.contains("completed") || lower.contains("failed") || lower.contains("cancelled")) {
-            return new RenderedEvent("terminal", "Run terminal: " + value(payload, "status", "reason", "message"), true);
+            return new RenderedEvent("terminal", "Run terminal: " + value(payload, "status", "reason", "message"), true, null);
         }
         if (lower.contains("status")) {
-            return new RenderedEvent("status", "Run status: " + value(payload, "status", "state", "message"), terminal(lower, payload));
+            return new RenderedEvent("status", "Run status: " + value(payload, "status", "state", "message"), terminal(lower, payload), null);
         }
-        return new RenderedEvent("event", type + ": " + payload, terminal(lower, payload));
+        return new RenderedEvent("event", type + ": " + payload, terminal(lower, payload), null);
     }
 
     private static String value(Map<String, Object> payload, String... keys) {
@@ -53,6 +53,9 @@ public class RunEventRenderer {
                 || normalized.contains("timed_out");
     }
 
-    public record RenderedEvent(String category, String text, boolean terminal) {
+    public record RenderedEvent(String category, String text, boolean terminal, Component component) {
+        public RenderedEvent(String category, String text, boolean terminal) {
+            this(category, text, terminal, null);
+        }
     }
 }
