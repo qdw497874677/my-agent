@@ -199,7 +199,7 @@ Plans:
 - [x] 06-02-PLAN.md — Add public and App read models for extension governance.
 - [x] 06-03-PLAN.md — Implement Java ServiceLoader discovery and normalized registration.
 - [x] 06-04-PLAN.md — Create Spring Boot starter/autoconfiguration for extension registration.
-- [ ] 06-05-PLAN.md — Add lightweight Spring annotations for tools and event listeners.
+- [x] 06-05-PLAN.md — Add lightweight Spring annotations for tools and event listeners.
 - [ ] 06-06-PLAN.md — Wire Cloud Server through the starter and expose read-only extension governance.
 - [ ] 06-07-PLAN.md — Add SPI/Spring extension conformance tests for safety boundaries.
 - [ ] 06-08-PLAN.md — Harden architecture gates, document contracts, and update traceability.

@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 status: executing
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-06-15T23:41:02.844Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-06-15T23:49:53.507Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 51
-  completed_plans: 47
+  completed_plans: 48
 ---
 
 # Project State: Pi Java Agent Platform
@@ -230,6 +230,9 @@ Key findings:
 - [Phase 06]: Plan 04 keeps Spring integration in a dedicated starter module while preserving Domain/App framework isolation.
 - [Phase 06]: Plan 04 merges Spring ExtensionSource beans into existing ServiceLoader discovery output so all sources pass through one deterministic contribution registry.
 - [Phase 06]: Plan 04 preserves Spring bean provenance through sourceKind metadata instead of creating a parallel Spring-only registry path.
+- [Phase 06]: Plan 05 limits Spring annotations to lightweight tools and event listener metadata; complex providers, policies, workspace, and memory extensions still require explicit ExtensionSource beans.
+- [Phase 06]: Plan 05 discovers annotations from already-registered Spring beans through explicit starter factories rather than component-scan magic.
+- [Phase 06]: Plan 05 represents annotated tools as ordinary ToolExtensionCapability entries with ToolDescriptor plus ToolExecutorBinding so execution remains behind ToolRegistry and ToolExecutionGateway consumers.
 
 ## Performance Metrics
 
@@ -280,11 +283,12 @@ Key findings:
 | Phase 06-java-extension-surface-spi-and-spring P02 | 6m 33s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P03 | 7m 22s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P04 | 5m 46s | 3 tasks | 11 files |
+| Phase 06-java-extension-surface-spi-and-spring P05 | 6m | 3 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 06-04-PLAN.md
+- **Stopped At:** Completed 06-05-PLAN.md
 
 ## Next Action
 
