@@ -19,6 +19,18 @@ public final class ServiceLoaderExtensionDiscovery {
         this(Thread.currentThread().getContextClassLoader());
     }
 
+    public List<DiscoveredSource> discover(List<ExtensionSource> additionalSources) {
+        Objects.requireNonNull(additionalSources, "additionalSources must not be null");
+        List<DiscoveredSource> sources = new ArrayList<>(discover());
+        additionalSources.stream()
+                .map(DiscoveredSource::discovered)
+                .forEach(sources::add);
+        sources.sort(Comparator
+                .comparingInt(DiscoveredSource::order)
+                .thenComparing(DiscoveredSource::sourceId));
+        return List.copyOf(sources);
+    }
+
     public ServiceLoaderExtensionDiscovery(ClassLoader classLoader) {
         this.classLoader = Objects.requireNonNull(classLoader, "classLoader must not be null");
     }
