@@ -13,7 +13,7 @@ JAVA_HOME="${E2E_JAVA_HOME}" mvn -q -pl pi-agent-adapter-web dependency:build-cl
   -Dmdep.outputFile="${CP_FILE}" \
   -Dmdep.includeScope=test
 
-exec "${E2E_JAVA_HOME}/bin/java" \
+"${E2E_JAVA_HOME}/bin/java" \
   -cp "pi-agent-adapter-web/target/test-classes:pi-agent-adapter-web/target/classes:$(cat "${CP_FILE}")" \
   -Dserver.port="${PORT}" \
   -Dspring.profiles.active="test,e2e" \
@@ -21,4 +21,20 @@ exec "${E2E_JAVA_HOME}/bin/java" \
   -Dspring.flyway.enabled=false \
   -Dspring.autoconfigure.exclude="org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration" \
   -Dpi.runtime.worker.poll-delay-ms=100 \
-  io.github.pi_java.agent.adapter.web.PiCloudServerApplication
+  io.github.pi_java.agent.adapter.web.PiCloudServerApplication &
+
+SERVER_PID="$!"
+trap 'kill "${SERVER_PID}" 2>/dev/null || true; wait "${SERVER_PID}" 2>/dev/null || true' EXIT INT TERM
+
+for _ in $(seq 1 240); do
+  if curl -fsS "http://127.0.0.1:${PORT}/actuator/health" >/dev/null 2>&1; then
+    npm install --save-dev @playwright/test@1.57.0 >/dev/null 2>&1 || true
+    break
+  fi
+  if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+    wait "${SERVER_PID}"
+  fi
+  sleep 0.5
+done
+
+wait "${SERVER_PID}"
