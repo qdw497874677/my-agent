@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminGovernanceOverviewView;
+import io.github.pi_java.agent.adapter.web.ui.admin.AdminAuditView;
+import io.github.pi_java.agent.adapter.web.ui.admin.AdminPolicyDecisionsView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminRegistryStatusView;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
@@ -59,6 +61,50 @@ class AdminGovernanceViewsTest {
                 .doesNotContain("delete")
                 .doesNotContain("load plugin")
                 .doesNotContain("add mcp");
+    }
+
+    @Test
+    void policyDecisionViewShowsRecentRedactedSummariesAndContextLinks() {
+        AdminPolicyDecisionsView view = new AdminPolicyDecisionsView(new ConsoleHttpClient());
+        view.showPolicyDecisions(sampleOverview().policyDecisions());
+
+        assertThat(view.policyDecisionsPath()).isEqualTo("/api/admin/governance/policy-decisions");
+        assertThat(view.renderedText())
+                .contains("ALLOW")
+                .contains("safe read-only tool")
+                .contains("builtin.info")
+                .contains("call-1")
+                .contains("session-1")
+                .contains("run-1")
+                .contains("[REDACTED]")
+                .doesNotContain("sk-test-secret")
+                .doesNotContain("rawSecret");
+        assertThat(view.contextLinks()).contains("/console/sessions/session-1", "/console/sessions/session-1/runs/run-1");
+        assertThat(view.phaseFiveDeferredControlsPresent()).isFalse();
+    }
+
+    @Test
+    void auditViewShowsRecentRedactedSummariesAndOmitsSearchFilterExport() {
+        AdminAuditView view = new AdminAuditView(new ConsoleHttpClient());
+        view.showAudits(sampleOverview().audits());
+
+        assertThat(view.auditsPath()).isEqualTo("/api/admin/governance/audits");
+        assertThat(view.renderedText())
+                .contains("tool.policy")
+                .contains("tool")
+                .contains("builtin.info")
+                .contains("session-1")
+                .contains("run-1")
+                .contains("[REDACTED]")
+                .doesNotContain("sk-test-secret")
+                .doesNotContain("apiKey")
+                .doesNotContain("password");
+        assertThat(view.contextLinks()).contains("/console/sessions/session-1", "/console/sessions/session-1/runs/run-1");
+        assertThat(view.phaseFiveDeferredControlsPresent()).isFalse();
+        assertThat(view.controlText().toLowerCase())
+                .doesNotContain("search")
+                .doesNotContain("filter")
+                .doesNotContain("export");
     }
 
     static GovernanceOverviewResponse sampleOverview() {
