@@ -7,6 +7,8 @@ import io.github.pi_java.agent.app.usecase.RunQueryService;
 import io.github.pi_java.agent.app.usecase.SessionCommandService;
 import io.github.pi_java.agent.app.usecase.SessionQueryService;
 import io.github.pi_java.agent.app.usecase.ToolRegistryQueryService;
+import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -103,5 +105,23 @@ class WebConsoleFoundationTest {
                         .doesNotContain("TransactionTemplate");
             }
         }
+    }
+
+    @Test
+    void consoleClientHelpersBuildOnlyPublicApiAndStreamUrls() {
+        ConsoleHttpClient client = new ConsoleHttpClient();
+        EventStreamClient streamClient = new EventStreamClient();
+
+        assertThat(client.createSessionPath()).isEqualTo("/api/sessions");
+        assertThat(client.sessionPath("session-1")).isEqualTo("/api/sessions/session-1");
+        assertThat(client.sessionHistoryPath("session-1")).isEqualTo("/api/sessions/session-1/history");
+        assertThat(client.createRunPath("session-1")).isEqualTo("/api/sessions/session-1/runs");
+        assertThat(client.runEventsPath("session-1", "run-1", 42)).isEqualTo("/api/sessions/session-1/runs/run-1/events?afterSequence=42&limit=500");
+        assertThat(client.cancelRunPath("session-1", "run-1")).isEqualTo("/api/sessions/session-1/runs/run-1/cancel");
+
+        EventStreamClient.ConnectionSpec spec = streamClient.runEventStream("session-1", "run-1", 42);
+        assertThat(spec.url()).isEqualTo("/api/sessions/session-1/runs/run-1/stream?afterSequence=42");
+        assertThat(spec.withCredentials()).isTrue();
+        assertThat(spec.eventSourceExpression()).contains("EventSource").contains(spec.url());
     }
 }
