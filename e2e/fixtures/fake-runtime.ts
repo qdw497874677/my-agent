@@ -1,0 +1,127 @@
+import { APIRequestContext, expect, Page, test } from '@playwright/test';
+
+export const devHeaders = {
+  'X-Pi-Dev-Tenant': 'e2e-tenant',
+  'X-Pi-Dev-User': 'e2e-user',
+};
+
+export type RuntimeRun = {
+  sessionId: string;
+  runId: string;
+  status: string;
+  events: RuntimeEvent[];
+};
+
+export type RuntimeEvent = {
+  id: string;
+  sequence: number;
+  type: string;
+  payload: Record<string, unknown>;
+  payloadSchema?: string;
+};
+
+export async function createRun(request: APIRequestContext, text: string): Promise<RuntimeRun> {
+  const sessionResponse = await request.post('/api/sessions', {
+    headers: devHeaders,
+    data: {
+      workspaceId: 'e2e-workspace',
+      metadata: { source: 'playwright' },
+    },
+  });
+  expect(sessionResponse.ok()).toBeTruthy();
+  const session = await sessionResponse.json();
+
+  const runResponse = await request.post(`/api/sessions/${session.sessionId}/runs`, {
+    headers: devHeaders,
+    data: {
+      agentId: 'cloud-general-agent',
+      inputType: 'chat',
+      input: { text },
+      workspaceId: 'e2e-workspace',
+      metadata: { source: 'playwright' },
+    },
+  });
+  expect(runResponse.ok()).toBeTruthy();
+  const run = await runResponse.json();
+
+  const terminal = await waitForTerminal(request, session.sessionId, run.runId);
+  return { sessionId: session.sessionId, runId: run.runId, status: terminal.status, events: await listEvents(request, session.sessionId, run.runId) };
+}
+
+export async function waitForTerminal(request: APIRequestContext, sessionId: string, runId: string) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const response = await request.get(`/api/sessions/${sessionId}/runs/${runId}/status`, { headers: devHeaders });
+    expect(response.ok()).toBeTruthy();
+    const status = await response.json();
+    if (status.terminal) {
+      return status;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Run ${runId} did not become terminal`);
+}
+
+export async function listEvents(request: APIRequestContext, sessionId: string, runId: string): Promise<RuntimeEvent[]> {
+  const response = await request.get(`/api/sessions/${sessionId}/runs/${runId}/events?afterSequence=0&limit=100`, { headers: devHeaders });
+  expect(response.ok()).toBeTruthy();
+  const history = await response.json();
+  return history.events;
+}
+
+export async function createApprovalRun(request: APIRequestContext): Promise<RuntimeRun> {
+  return createRun(request, 'approval workspace write');
+}
+
+export async function decideApproval(
+  request: APIRequestContext,
+  sessionId: string,
+  runId: string,
+  approvalId: string,
+  decision: 'APPROVED' | 'REJECTED',
+) {
+  const response = await request.post(`/api/sessions/${sessionId}/runs/${runId}/approvals/${approvalId}/decision`, {
+    headers: devHeaders,
+    data: {
+      decision,
+      actorRole: 'USER',
+      reason: `${decision.toLowerCase()} by Playwright`,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  return response.json();
+}
+
+export async function cancelRun(request: APIRequestContext): Promise<RuntimeRun> {
+  const sessionResponse = await request.post('/api/sessions', { headers: devHeaders, data: { workspaceId: 'e2e-workspace', metadata: {} } });
+  expect(sessionResponse.ok()).toBeTruthy();
+  const session = await sessionResponse.json();
+  const runResponse = await request.post(`/api/sessions/${session.sessionId}/runs`, {
+    headers: devHeaders,
+    data: { agentId: 'cloud-general-agent', inputType: 'chat', input: { text: 'cancel me slowly' }, workspaceId: 'e2e-workspace', metadata: {} },
+  });
+  expect(runResponse.ok()).toBeTruthy();
+  const run = await runResponse.json();
+  const cancelResponse = await request.post(`/api/sessions/${session.sessionId}/runs/${run.runId}/cancel`, {
+    headers: devHeaders,
+    data: { reason: 'Playwright cancellation branch' },
+  });
+  expect(cancelResponse.ok()).toBeTruthy();
+  const terminal = await waitForTerminal(request, session.sessionId, run.runId);
+  return { sessionId: session.sessionId, runId: run.runId, status: terminal.status, events: await listEvents(request, session.sessionId, run.runId) };
+}
+
+export async function expectConsoleShell(page: Page) {
+  await page.goto('/console');
+  await expect(page.locator('[data-route="console"]')).toBeVisible();
+  await expect(page.locator('[data-layout="three-column-workbench"]')).toBeVisible();
+  await expect(page.getByText('Agent Catalog')).toBeVisible();
+  await expect(page.getByText('Chat')).toBeVisible();
+  await expect(page.getByText('Run Context')).toBeVisible();
+}
+
+export async function attachKeyScreenshot(page: Page, name: string) {
+  await test.info().attach(name, {
+    body: await page.screenshot({ fullPage: true }),
+    contentType: 'image/png',
+  });
+}

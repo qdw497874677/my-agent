@@ -1,3 +1,6 @@
 target/
 **/target/
 pi-agent-adapter-web/src/main/frontend/
+node_modules/
+playwright-report/
+test-results/
