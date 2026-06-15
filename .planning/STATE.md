@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-08-PLAN.md
-last_updated: "2026-06-15T06:18:54.392Z"
+stopped_at: Completed 05-09-PLAN.md
+last_updated: "2026-06-15T11:15:15.409Z"
 progress:
   total_phases: 9
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 43
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Project State: Pi Java Agent Platform
@@ -215,6 +215,9 @@ Key findings:
 - [Phase 05]: Plan 08 keeps Admin Governance Vaadin views inspect-only with no provider/tool/policy/plugin/MCP/extension mutation controls.
 - [Phase 05]: Plan 08 uses ConsoleHttpClient as the Vaadin public API anchor for governance overview, policy decision, and audit endpoints.
 - [Phase 05]: Plan 08 renders extension/MCP/plugin as read-only placeholder status metadata until Phases 6/7/8.
+- [Phase 05]: Plan 09 uses Playwright as a test-only browser E2E harness while production Web Console/Admin remains Java-first.
+- [Phase 05]: Plan 09 runs browser E2E through Spring Boot test/e2e profiles with fake runtime fixtures, in-memory state, no Docker, and no model keys.
+- [Phase 05]: Plan 09 documents Phase 5 public REST/SSE/read-model contracts as the downstream boundary for extension, MCP, plugin, and governance work.
 
 ## Performance Metrics
 
@@ -260,11 +263,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P06 | 7m 08s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P07 | 7m 52s | 2 tasks | 8 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P08 | 6m 41s | 2 tasks | 6 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P09 | 2m 43s | 3 tasks | 12 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-08-PLAN.md
+- **Stopped At:** Completed 05-09-PLAN.md
 
 ## Next Action
 
