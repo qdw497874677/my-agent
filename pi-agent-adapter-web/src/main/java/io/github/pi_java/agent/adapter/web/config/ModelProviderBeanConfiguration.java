@@ -33,6 +33,8 @@ import io.github.pi_java.agent.infrastructure.model.openai.InMemoryModelProvider
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiCompatibleStreamingModelClient;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiProviderProperties;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiSpringAiModelFactory;
+import io.github.pi_java.agent.infrastructure.extension.DefaultExtensionContributionRegistry;
+import io.github.pi_java.agent.infrastructure.extension.ExtensionModelProviderRegistry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,6 +43,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -73,8 +76,13 @@ public class ModelProviderBeanConfiguration {
     }
 
     @Bean
-    ModelProviderRegistry modelProviderRegistry(OpenAiProviderProperties openAiProviderProperties) {
-        return InMemoryModelProviderRegistry.fromProperties(List.of(openAiProviderProperties));
+    ModelProviderRegistry modelProviderRegistry(OpenAiProviderProperties openAiProviderProperties,
+                                                Optional<DefaultExtensionContributionRegistry> extensionContributions) {
+        ModelProviderRegistry builtins = InMemoryModelProviderRegistry.fromProperties(List.of(openAiProviderProperties));
+        return extensionContributions
+                .<ModelProviderRegistry>map(contributions -> new CompositeModelProviderRegistry(
+                        List.of(builtins, new ExtensionModelProviderRegistry(contributions))))
+                .orElse(builtins);
     }
 
     @Bean
@@ -110,6 +118,23 @@ public class ModelProviderBeanConfiguration {
             return Map.of();
         }
         return Map.of(API_KEY_PROPERTY, apiKey);
+    }
+
+    private record CompositeModelProviderRegistry(List<ModelProviderRegistry> registries) implements ModelProviderRegistry {
+        private CompositeModelProviderRegistry {
+            registries = List.copyOf(registries);
+        }
+
+        @Override
+        public List<io.github.pi_java.agent.domain.model.ProviderDescriptor> listProviders() {
+            Map<String, io.github.pi_java.agent.domain.model.ProviderDescriptor> providers = new LinkedHashMap<>();
+            for (ModelProviderRegistry registry : registries) {
+                for (io.github.pi_java.agent.domain.model.ProviderDescriptor provider : registry.listProviders()) {
+                    providers.putIfAbsent(provider.providerId(), provider);
+                }
+            }
+            return List.copyOf(providers.values());
+        }
     }
 
     private static final class StreamingOnlyAgentRuntime implements AgentRuntime {

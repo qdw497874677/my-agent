@@ -29,12 +29,17 @@ import io.github.pi_java.agent.infrastructure.tool.WorkspaceCommandTool;
 import io.github.pi_java.agent.infrastructure.tool.WorkspaceResourceWriteTool;
 import io.github.pi_java.agent.infrastructure.workspace.AllowlistedCommandExecutionGateway;
 import io.github.pi_java.agent.infrastructure.workspace.LocalTempWorkspaceGateway;
+import io.github.pi_java.agent.infrastructure.extension.DefaultExtensionContributionRegistry;
+import io.github.pi_java.agent.infrastructure.extension.ExtensionToolRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -78,8 +83,13 @@ public class ToolGovernanceBeanConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    ToolRegistry toolRegistry(BuiltinToolCatalog builtinToolCatalog) {
-        return builtinToolCatalog.registry();
+    ToolRegistry toolRegistry(BuiltinToolCatalog builtinToolCatalog,
+                              Optional<DefaultExtensionContributionRegistry> extensionContributions) {
+        ToolRegistry builtins = builtinToolCatalog.registry();
+        return extensionContributions
+                .<ToolRegistry>map(contributions -> new CompositeToolRegistry(
+                        List.of(builtins, new ExtensionToolRegistry(contributions))))
+                .orElse(builtins);
     }
 
     @Bean
@@ -149,5 +159,30 @@ public class ToolGovernanceBeanConfiguration {
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    private record CompositeToolRegistry(List<ToolRegistry> registries) implements ToolRegistry {
+        private CompositeToolRegistry {
+            registries = List.copyOf(registries);
+        }
+
+        @Override
+        public List<io.github.pi_java.agent.domain.tool.ToolDescriptor> listTools() {
+            Map<String, io.github.pi_java.agent.domain.tool.ToolDescriptor> tools = new LinkedHashMap<>();
+            for (ToolRegistry registry : registries) {
+                for (io.github.pi_java.agent.domain.tool.ToolDescriptor descriptor : registry.listTools()) {
+                    tools.putIfAbsent(descriptor.id(), descriptor);
+                }
+            }
+            return List.copyOf(tools.values());
+        }
+
+        @Override
+        public Optional<ToolResolution> resolve(String toolId) {
+            return registries.stream()
+                    .map(registry -> registry.resolve(toolId))
+                    .flatMap(Optional::stream)
+                    .findFirst();
+        }
     }
 }

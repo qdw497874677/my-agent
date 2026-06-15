@@ -1,6 +1,5 @@
 package io.github.pi_java.agent.adapter.web.config;
 
-import io.github.pi_java.agent.app.port.extension.EmptyExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
@@ -28,9 +27,4 @@ public class GovernanceBeanConfiguration {
                 modelProviderRegistry, toolRegistry, extensionGovernanceCatalog, agentRuntime, clock);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    ExtensionGovernanceCatalog extensionGovernanceCatalog() {
-        return new EmptyExtensionGovernanceCatalog();
-    }
 }
