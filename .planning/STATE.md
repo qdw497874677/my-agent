@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 05
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-06-15T05:47:10.107Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-06-15T05:57:31.623Z"
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 43
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State: Pi Java Agent Platform
@@ -206,6 +206,9 @@ Key findings:
 - [Phase 05]: Plan 05 makes ConsoleView the concrete /console route while MainConsoleLayout remains non-routed to avoid duplicate Vaadin route ownership.
 - [Phase 05]: Plan 05 represents Console UI actions as public REST/SSE action plans so Vaadin stays behind ConsoleHttpClient/EventStreamClient and pi-agent-client DTO boundaries.
 - [Phase 05]: Plan 05 renders model deltas, run status, policy/tool lifecycle, and terminal events into one integrated chat/event stream narrative.
+- [Phase 05]: Plan 06 renders Agent Catalog cards from public AgentCatalogResponse data while keeping Catalog secondary to the Chat-first Console.
+- [Phase 05]: Plan 06 renders governed tool lifecycle events as expandable redacted ToolCallCard components from public RunEventDto payload maps.
+- [Phase 05]: Plan 06 ignores Vaadin dev-mode generated frontend output so test-generated runtime artifacts do not enter source commits.
 
 ## Performance Metrics
 
@@ -248,11 +251,12 @@ Key findings:
 | Phase 05-agent-web-console-and-runtime-cockpit P03 | 12m 08s | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P04 | 6m 41s | 2 tasks | 9 files |
 | Phase 05-agent-web-console-and-runtime-cockpit P05 | 6m 34s | 2 tasks | 7 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P06 | 7m 08s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 05-05-PLAN.md
+- **Stopped At:** Completed 05-06-PLAN.md
 
 ## Next Action
 
