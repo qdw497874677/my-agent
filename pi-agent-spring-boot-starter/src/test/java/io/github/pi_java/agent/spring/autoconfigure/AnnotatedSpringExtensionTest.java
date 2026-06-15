@@ -1,5 +1,15 @@
 package io.github.pi_java.agent.spring.autoconfigure;
 
+import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
+import io.github.pi_java.agent.app.port.tool.ToolRegistry;
+import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
+import io.github.pi_java.agent.domain.runtime.CancellationToken;
+import io.github.pi_java.agent.domain.tool.ToolDescriptor;
+import io.github.pi_java.agent.domain.tool.ToolExecutionRequest;
+import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
+import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
+import io.github.pi_java.agent.domain.tool.ToolProvenance;
 import io.github.pi_java.agent.domain.tool.ToolRiskLevel;
 import io.github.pi_java.agent.domain.tool.ToolSideEffect;
 import io.github.pi_java.agent.spring.annotation.PiEventListener;
@@ -14,6 +24,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.Instant;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,8 +73,37 @@ class AnnotatedSpringExtensionTest {
 
     @Test
     void annotatedBeansContributeExtensionCapabilities() {
-        contextRunner.withUserConfiguration(AnnotatedBeanConfiguration.class).run(context -> assertThat(context)
-                .hasSingleBean(AnnotatedToolExtensionSourceFactory.class));
+        contextRunner.withUserConfiguration(AnnotatedBeanConfiguration.class).run(context -> {
+            assertThat(context).hasSingleBean(AnnotatedToolExtensionSourceFactory.class);
+
+            ToolRegistry toolRegistry = context.getBean(ToolRegistry.class);
+            assertThat(toolRegistry.listTools()).extracting(ToolDescriptor::id).contains("annotated.echo");
+
+            ToolRegistry.ToolResolution resolution = toolRegistry.resolve("annotated.echo").orElseThrow();
+            assertThat(resolution.descriptor().provenance().sourceKind()).isEqualTo(ToolProvenance.SourceKind.SPRING_BEAN);
+            assertThat(resolution.descriptor().provenance().sourceId()).isEqualTo("spring-annotations");
+            assertThat(resolution.descriptor().provenance().bindingRef()).isEqualTo("annotatedBean#echo");
+
+            ToolExecutionRequest request = new ToolExecutionRequest("call-1", new RunId("run-1"), new StepId("step-1"),
+                    "annotated.echo", "1.0.0", Map.of("message", "hello"), Instant.EPOCH);
+            ToolExecutionResult result = resolution.executor().execute(request, new CancellationToken());
+            assertThat(result.status()).isEqualTo(ToolExecutionStatus.SUCCESS);
+            assertThat(result.rawOutput()).hasValueSatisfying(output -> assertThat(output).containsEntry("ok", true));
+
+            assertThat(context.getBean(ExtensionGovernanceCatalog.class).sources())
+                    .filteredOn(source -> source.sourceId().equals("spring-annotation-listeners"))
+                    .singleElement()
+                    .satisfies(source -> assertThat(source.capabilities())
+                            .extracting(capability -> capability.type() + ":" + capability.capabilityId())
+                            .containsExactly("EVENT_LISTENER:annotated.listener"));
+        });
+    }
+
+    @Test
+    void duplicateAnnotatedAndBeanToolIdsFailByDefault() {
+        contextRunner.withUserConfiguration(AnnotatedBeanConfiguration.class, DuplicateAnnotatedBeanConfiguration.class)
+                .run(context -> assertThat(context).hasFailed().getFailure()
+                        .hasMessageContaining("Duplicate extension capability id 'annotated.echo'"));
     }
 
     static class AnnotatedFixture {
@@ -100,6 +140,23 @@ class AnnotatedSpringExtensionTest {
         @Bean
         AnnotatedBean annotatedBean() {
             return new AnnotatedBean();
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class DuplicateAnnotatedBeanConfiguration {
+
+        @Bean
+        DuplicateAnnotatedBean duplicateAnnotatedBean() {
+            return new DuplicateAnnotatedBean();
+        }
+    }
+
+    static class DuplicateAnnotatedBean {
+
+        @PiTool(id = "annotated.echo", name = "Duplicate Annotated Echo")
+        Map<String, Object> duplicateEcho() {
+            return Map.of("ok", false);
         }
     }
 
