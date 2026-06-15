@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 06
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-06-15T23:32:35.101Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-06-15T23:41:02.844Z"
 progress:
   total_phases: 9
   completed_phases: 5
   total_plans: 51
-  completed_plans: 46
+  completed_plans: 47
 ---
 
 # Project State: Pi Java Agent Platform
@@ -227,6 +227,9 @@ Key findings:
 - [Phase 06]: Plan 03 keeps SPI discovery in a separate infrastructure module with no Spring/PF4J/MCP dependencies.
 - [Phase 06]: Plan 03 represents failed ServiceLoader providers as failed source statuses with sanitized errors for governance visibility.
 - [Phase 06]: Plan 03 exposes extension tools only through ToolRegistry.resolve with ToolExecutorBinding to preserve the governed execution path.
+- [Phase 06]: Plan 04 keeps Spring integration in a dedicated starter module while preserving Domain/App framework isolation.
+- [Phase 06]: Plan 04 merges Spring ExtensionSource beans into existing ServiceLoader discovery output so all sources pass through one deterministic contribution registry.
+- [Phase 06]: Plan 04 preserves Spring bean provenance through sourceKind metadata instead of creating a parallel Spring-only registry path.
 
 ## Performance Metrics
 
@@ -276,11 +279,12 @@ Key findings:
 | Phase 06-java-extension-surface-spi-and-spring P01 | 14m | 3 tasks | 18 files |
 | Phase 06-java-extension-surface-spi-and-spring P02 | 6m 33s | 3 tasks | 12 files |
 | Phase 06-java-extension-surface-spi-and-spring P03 | 7m 22s | 3 tasks | 12 files |
+| Phase 06-java-extension-surface-spi-and-spring P04 | 5m 46s | 3 tasks | 11 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 06-03-PLAN.md
+- **Stopped At:** Completed 06-04-PLAN.md
 
 ## Next Action
 

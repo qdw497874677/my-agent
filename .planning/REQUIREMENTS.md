@@ -60,7 +60,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Extension Fabric
 
 - [x] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata.
-- [ ] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core.
+- [x] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core.
 - [x] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests.
 - [x] **EXT-04**: Admin can view extension sources, registered capabilities, health, compatibility, enable/disable status, and errors.
 - [x] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries.
@@ -201,7 +201,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-06 | Phase 4 | Complete |
 | TOOL-07 | Phase 4 | Complete |
 | EXT-01 | Phase 6 | Complete |
-| EXT-02 | Phase 6 | Pending |
+| EXT-02 | Phase 6 | Complete |
 | EXT-03 | Phase 6 | Complete |
 | EXT-04 | Phase 6 | Complete |
 | EXT-05 | Phase 6 | Complete |
