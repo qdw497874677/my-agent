@@ -118,6 +118,9 @@ class WebConsoleFoundationTest {
         assertThat(client.createRunPath("session-1")).isEqualTo("/api/sessions/session-1/runs");
         assertThat(client.runEventsPath("session-1", "run-1", 42)).isEqualTo("/api/sessions/session-1/runs/run-1/events?afterSequence=42&limit=500");
         assertThat(client.cancelRunPath("session-1", "run-1")).isEqualTo("/api/sessions/session-1/runs/run-1/cancel");
+        assertThat(client.agentCatalogPath()).isEqualTo("/api/agents");
+        assertThat(client.agentCatalogResponseType().getName()).isEqualTo("io.github.pi_java.agent.client.agent.AgentCatalogResponse");
+        assertThat(client.toolCatalogPath()).isEqualTo("/api/tools");
 
         EventStreamClient.ConnectionSpec spec = streamClient.runEventStream("session-1", "run-1", 42);
         assertThat(spec.url()).isEqualTo("/api/sessions/session-1/runs/run-1/stream?afterSequence=42");

@@ -1,6 +1,7 @@
 package io.github.pi_java.agent.adapter.web.ui;
 
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
+import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
@@ -88,6 +89,14 @@ public class ConsoleHttpClient {
 
     public Class<CancelRunRequest> cancelRunRequestType() {
         return CancelRunRequest.class;
+    }
+
+    public String agentCatalogPath() {
+        return "/api/agents";
+    }
+
+    public Class<AgentCatalogResponse> agentCatalogResponseType() {
+        return AgentCatalogResponse.class;
     }
 
     public String toolCatalogPath() {
