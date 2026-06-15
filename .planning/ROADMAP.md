@@ -158,6 +158,19 @@ Plans:
 **Requirements:** GUI-01, GUI-02, GUI-03, GUI-04, GUI-05, GUI-06, GUI-07, GUI-08, E2E-07  
 **UI hint**: yes
 
+**Plans:** 9 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Add Vaadin Adapter foundation, separated route layouts, security allowances, and public REST/SSE client boundary.
+- [ ] 05-02-PLAN.md — Add public read-only Agent Catalog DTOs, App query service, and `/api/agents` API.
+- [ ] 05-03-PLAN.md — Add approval DTOs, App service seam, and public approval list/decision API.
+- [ ] 05-04-PLAN.md — Add read-only Admin Governance DTOs, query service, and public governance APIs.
+- [ ] 05-05-PLAN.md — Build Chat-first three-column user Console for sessions, runs, SSE, and cancellation.
+- [ ] 05-06-PLAN.md — Add Agent Catalog cards and expandable governed tool lifecycle cards.
+- [ ] 05-07-PLAN.md — Add user/admin approval cards backed by the approval API.
+- [ ] 05-08-PLAN.md — Build separated inspect-only Admin Governance Vaadin views.
+- [ ] 05-09-PLAN.md — Add Playwright browser E2E, Phase 5 docs, and requirement traceability updates.
+
 **Success criteria:**
 1. User can browse an Agent Catalog and enter a Chat page for a selected Agent.
 2. User can send a message, receive streaming output, and see Run status/timeline updates through SSE.
