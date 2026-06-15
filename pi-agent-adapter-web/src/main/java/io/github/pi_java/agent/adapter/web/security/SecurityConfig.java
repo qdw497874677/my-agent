@@ -23,6 +23,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers(vaadinPublicMatchers()).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .addFilterBefore(new DevAuthenticationFilter(environment), UsernamePasswordAuthenticationFilter.class)
@@ -36,6 +37,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers(vaadinPublicMatchers()).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
@@ -47,6 +49,23 @@ public class SecurityConfig {
     JwtDecoder devJwtDecoder() {
         return token -> {
             throw new JwtException("JWT decoding is not configured for dev/test authentication");
+        };
+    }
+
+    private static String[] vaadinPublicMatchers() {
+        return new String[] {
+                "/console", "/console/**",
+                "/admin/governance", "/admin/governance/**",
+                "/VAADIN/**",
+                "/frontend/**",
+                "/webjars/**",
+                "/images/**",
+                "/icons/**",
+                "/themes/**",
+                "/favicon.ico",
+                "/manifest.webmanifest",
+                "/sw.js",
+                "/offline.html"
         };
     }
 }

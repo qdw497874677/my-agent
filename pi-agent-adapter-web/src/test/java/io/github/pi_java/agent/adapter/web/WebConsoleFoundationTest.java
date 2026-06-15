@@ -1,8 +1,6 @@
 package io.github.pi_java.agent.adapter.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
@@ -15,21 +13,24 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@SpringBootTest(classes = PiCloudServerApplication.class)
-@AutoConfigureMockMvc
+@SpringBootTest(classes = PiCloudServerApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class WebConsoleFoundationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
     @MockBean
     private SessionCommandService sessionCommandService;
@@ -74,13 +75,17 @@ class WebConsoleFoundationTest {
 
     @Test
     void consoleAndAdminRoutesAreReachableButApiStaysAuthenticated() throws Exception {
-        mockMvc.perform(get("/api/sessions").header("X-Pi-Dev-Disable-Defaults", "true"))
-                .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Pi-Dev-Disable-Defaults", "true");
+        ResponseEntity<String> apiResponse = restTemplate.exchange(
+                "/api/sessions", HttpMethod.GET, new org.springframework.http.HttpEntity<>(headers), String.class);
+        assertThat(apiResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
-        mockMvc.perform(get("/console"))
-                .andExpect(status().isOk());
-        mockMvc.perform(get("/admin/governance"))
-                .andExpect(status().isOk());
+        ResponseEntity<String> consoleResponse = restTemplate.getForEntity("/console", String.class);
+        ResponseEntity<String> adminResponse = restTemplate.getForEntity("/admin/governance", String.class);
+
+        assertThat(consoleResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(adminResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test

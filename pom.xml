@@ -28,6 +28,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.5.9</spring-boot.version>
         <spring-ai.version>1.1.5</spring-ai.version>
+        <vaadin.version>24.8.4</vaadin.version>
         <resilience4j.version>2.2.0</resilience4j.version>
         <json-schema-validator.version>2.0.0</json-schema-validator.version>
         <testcontainers.version>2.0.3</testcontainers.version>
@@ -58,6 +59,13 @@
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
                 <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
