@@ -2,6 +2,9 @@ package io.github.pi_java.agent.adapter.web.ui;
 
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.admin.AuditSummaryDto;
+import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
+import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
@@ -130,6 +133,32 @@ public class ConsoleHttpClient {
 
     public Class<ApprovalDecisionResponse> approvalDecisionResponseType() {
         return ApprovalDecisionResponse.class;
+    }
+
+    public String adminGovernanceOverviewPath() {
+        return "/api/admin/governance/overview";
+    }
+
+    public Class<GovernanceOverviewResponse> adminGovernanceOverviewResponseType() {
+        return GovernanceOverviewResponse.class;
+    }
+
+    public String adminPolicyDecisionsPath() {
+        return "/api/admin/governance/policy-decisions";
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<List<PolicyDecisionSummaryDto>> adminPolicyDecisionsResponseType() {
+        return (Class<List<PolicyDecisionSummaryDto>>) (Class<?>) List.class;
+    }
+
+    public String adminAuditsPath() {
+        return "/api/admin/governance/audits";
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<List<AuditSummaryDto>> adminAuditsResponseType() {
+        return (Class<List<AuditSummaryDto>>) (Class<?>) List.class;
     }
 
     private static String segment(String raw) {

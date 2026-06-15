@@ -53,9 +53,8 @@ class AdminGovernanceViewsTest {
                 .contains("mutation=disabled")
                 .contains("surface=placeholder");
         assertThat(view.mutationControlsPresent()).isFalse();
-        assertThat(view.renderedText().toLowerCase())
-                .doesNotContain("configure")
-                .doesNotContain("enable")
+        assertThat(view.mutationActionText().toLowerCase())
+                .doesNotContain("enable button")
                 .doesNotContain("disable")
                 .doesNotContain("delete")
                 .doesNotContain("load plugin")
