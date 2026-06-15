@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-06-15T04:01:15.529Z"
+current_phase: 05
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-06-15T05:02:56.512Z"
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 34
-  completed_plans: 34
+  total_plans: 43
+  completed_plans: 35
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 5
+**Status:** Executing Phase 05
+**Current Phase:** 05
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 04 — governed-tool-registry-workspace-and-invocation-pipeline
+**Current focus:** Phase 05 — agent-web-console-and-runtime-cockpit
 
 ## Workflow Configuration
 
@@ -191,6 +191,9 @@ Key findings:
 - [Phase 04]: Plan 07 exposes the tool catalog through a thin read-only /api/tools controller returning client DTOs only.
 - [Phase 04]: Plan 07 maps ToolLifecyclePayload explicitly as tool.lifecycle schema v1 with redacted public payload maps.
 - [Phase 04]: Plan 07 owns tool governance composition in Adapter configuration and requires the runtime composition to include ToolExecutionGateway.
+- [Phase 05]: Plan 01 keeps Vaadin dependency management in the parent POM while declaring the Vaadin starter only in pi-agent-adapter-web.
+- [Phase 05]: Plan 01 permits Vaadin Console/Admin routes and static resources without weakening authenticated /api/** security.
+- [Phase 05]: Plan 01 establishes ConsoleHttpClient/EventStreamClient as the Vaadin public API/SSE boundary anchored to pi-agent-client DTOs.
 
 ## Performance Metrics
 
@@ -228,11 +231,12 @@ Key findings:
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P05 | 7m 16s | 2 tasks | 7 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P06 | 7m 10s | 2 tasks | 8 files |
 | Phase 04-governed-tool-registry-workspace-and-invocation-pipeline P07 | 9m 41s | 2 tasks | 8 files |
+| Phase 05-agent-web-console-and-runtime-cockpit P01 | 12m 20s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Phase 5 context gathered
+- **Stopped At:** Completed 05-01-PLAN.md
 
 ## Next Action
 

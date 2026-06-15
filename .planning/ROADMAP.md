@@ -161,7 +161,7 @@ Plans:
 **Plans:** 9 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Add Vaadin Adapter foundation, separated route layouts, security allowances, and public REST/SSE client boundary.
+- [x] 05-01-PLAN.md — Add Vaadin Adapter foundation, separated route layouts, security allowances, and public REST/SSE client boundary.
 - [ ] 05-02-PLAN.md — Add public read-only Agent Catalog DTOs, App query service, and `/api/agents` API.
 - [ ] 05-03-PLAN.md — Add approval DTOs, App service seam, and public approval list/decision API.
 - [ ] 05-04-PLAN.md — Add read-only Admin Governance DTOs, query service, and public governance APIs.
