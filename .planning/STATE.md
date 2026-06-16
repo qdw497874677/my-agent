@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 07
 status: executing
-stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-06-16T09:35:10.963Z"
+stopped_at: Completed 07-07-PLAN.md
+last_updated: "2026-06-16T09:42:47.509Z"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 59
-  completed_plans: 57
+  completed_plans: 58
 ---
 
 # Project State: Pi Java Agent Platform
@@ -259,6 +259,8 @@ Key findings:
 - [Phase 07]: Plan 06 keeps MCP SDK/client types in pi-agent-infrastructure-mcp while Adapter Web composes typed properties, registry beans, and App/client governance DTOs.
 - [Phase 07]: Plan 06 primary ToolRegistry composes built-ins first, extension tools second, and MCP tools third so remote tools cannot silently override built-ins.
 - [Phase 07]: Plan 06 exposes Admin MCP refresh as POST /api/admin/governance/mcp/refresh because it triggers rediscovery state only, not server configuration CRUD.
+- [Phase 07]: Plan 07 applied MCP governance UI work to current ui/admin AdminRegistryStatusView class names while preserving the public DTO boundary.
+- [Phase 07]: Plan 07 kept MCP refresh as inspect-only POST /api/admin/governance/mcp/refresh with no add/edit/delete/disable UI or client helpers.
 
 ## Performance Metrics
 
@@ -319,11 +321,12 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P04 | 10m 57s | 3 tasks | 9 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P05 | 8m | 3 tasks | 9 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P06 | 9m 37s | 3 tasks | 8 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P07 | 5m 08s | 3 tasks | 4 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 07-06-PLAN.md
+- **Stopped At:** Completed 07-07-PLAN.md
 
 ## Next Action
 

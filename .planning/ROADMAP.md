@@ -231,7 +231,7 @@ Plans:
 - [x] 07-04-PLAN.md — Discover MCP tools, normalize descriptors, and expose registry/governance status.
 - [x] 07-05-PLAN.md — Execute MCP remote tools as governed ToolExecutorBinding instances.
 - [x] 07-06-PLAN.md — Wire MCP registry and Admin governance REST into Cloud Server.
-- [ ] 07-07-PLAN.md — Render MCP status and refresh in Admin Governance UI.
+- [x] 07-07-PLAN.md — Render MCP status and refresh in Admin Governance UI.
 - [ ] 07-08-PLAN.md — Add MCP E2E, architecture gates, docs, and traceability.
 
 **Success criteria:**
