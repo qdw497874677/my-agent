@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class McpServerPropertiesTest {
 
@@ -67,5 +68,89 @@ class McpServerPropertiesTest {
                 .containsEntry("auth", "api-key-ref")
                 .containsEntry("headers", "1");
         assertThat(sse.publicSummary().toString()).doesNotContain("pi.mcp.legacy.api-key");
+    }
+
+    @Test
+    void safetyValidatorRejectsUnsafeUrlSchemesBlankHostsAndCredentialUrls() {
+        assertThatThrownBy(() -> McpSafetyValidator.validate(McpServerProperties.streamableHttp(
+                "file-server",
+                "Unsafe File URL",
+                "file:///etc/passwd",
+                "/mcp",
+                McpAuthProperties.none(),
+                Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("unsupported URL scheme")
+                .hasMessageNotContaining("/etc/passwd");
+
+        assertThatThrownBy(() -> McpSafetyValidator.validate(McpServerProperties.sse(
+                "credential-url",
+                "Credential URL",
+                "https://token:secret@mcp.example.test/sse",
+                McpAuthProperties.none(),
+                Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("credentials in URL")
+                .hasMessageNotContaining("token:secret");
+
+        assertThatThrownBy(() -> McpSafetyValidator.validate(McpServerProperties.streamableHttp(
+                "blank-host",
+                "Blank Host",
+                "https:///mcp",
+                "/mcp",
+                McpAuthProperties.none(),
+                Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("host");
+    }
+
+    @Test
+    void safetyValidatorRequiresExplicitStdioCommandAndRejectsRawHeaderSecrets() {
+        assertThatThrownBy(() -> McpSafetyValidator.validate(new McpServerProperties(
+                "bad-stdio",
+                true,
+                "Bad stdio",
+                McpTransportKind.STDIO,
+                null,
+                null,
+                " ",
+                List.of(),
+                Map.of(),
+                Duration.ofSeconds(10),
+                McpAuthProperties.none(),
+                Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("stdio command");
+
+        McpAuthProperties auth = McpAuthProperties.none()
+                .withCustomHeaderSecretRefs(Map.of("Authorization", "Bearer sk-live-raw-secret-value"));
+
+        assertThatThrownBy(() -> McpSafetyValidator.validate(McpServerProperties.streamableHttp(
+                "raw-header",
+                "Raw Header",
+                "https://mcp.example.test",
+                "/mcp",
+                auth,
+                Map.of())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("secret reference")
+                .hasMessageNotContaining("sk-live-raw-secret-value")
+                .hasMessageNotContaining("Bearer");
+    }
+
+    @Test
+    void safetyValidatorAllowsSafeConfigurations() {
+        McpSafetyValidator.ValidationResult result = McpSafetyValidator.validate(McpServerProperties.streamableHttp(
+                "safe",
+                "Safe MCP",
+                "https://mcp.example.test",
+                "/mcp",
+                McpAuthProperties.bearerTokenRef("env:SAFE_MCP_TOKEN"),
+                Map.of("egress", "allowlisted")));
+
+        assertThat(result.valid()).isTrue();
+        assertThat(result.warnings()).isEmpty();
+        assertThat(result.sanitizedSummary()).containsEntry("transport", "STREAMABLE_HTTP");
+        assertThat(result.sanitizedSummary().toString()).doesNotContain("SAFE_MCP_TOKEN");
     }
 }
