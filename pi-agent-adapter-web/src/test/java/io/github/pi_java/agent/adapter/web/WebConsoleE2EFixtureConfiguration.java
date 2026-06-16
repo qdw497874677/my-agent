@@ -10,14 +10,20 @@ import io.github.pi_java.agent.domain.runtime.RunContext;
 import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.tool.ToolCall;
 import io.github.pi_java.agent.domain.tool.ToolResult;
+import io.github.pi_java.agent.infrastructure.mcp.config.McpAuthProperties;
+import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
+import io.github.pi_java.agent.infrastructure.mcp.registry.McpServerRegistry;
 import io.github.pi_java.agent.testkit.DeterministicClock;
 import io.github.pi_java.agent.testkit.DeterministicIds;
 import io.github.pi_java.agent.testkit.FakeModelClient;
 import io.github.pi_java.agent.testkit.FakeStreamingModelClient;
 import io.github.pi_java.agent.testkit.FakeToolInvoker;
 import io.github.pi_java.agent.testkit.GeneralAgentLoop;
+import io.modelcontextprotocol.spec.McpSchema;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +48,34 @@ public class WebConsoleE2EFixtureConfiguration {
     @Primary
     AgentRuntime webConsoleE2ERuntime(EventSink eventSink, ToolExecutionGateway toolExecutionGateway) {
         return new ScriptedWebConsoleRuntime(eventSink, toolExecutionGateway);
+    }
+
+    @Bean
+    @Primary
+    McpServerRegistry webConsoleE2EMcpServerRegistry(Clock clock) {
+        McpServerProperties healthy = McpServerProperties.streamableHttp("e2e", "E2E Fake MCP", "https://mcp.e2e.test", "/mcp",
+                McpAuthProperties.bearerTokenRef("env:PI_E2E_FAKE_MCP_TOKEN"), Map.of("fixture", "phase-07"));
+        McpServerProperties unhealthy = McpServerProperties.streamableHttp("server-down", "Down Fake MCP", "https://down.e2e.test", "/mcp",
+                McpAuthProperties.none(), Map.of());
+        McpServerRegistry registry = new McpServerRegistry(List.of(healthy, unhealthy), server -> {
+            if ("server-down".equals(server.id())) {
+                throw new RuntimeException("connection failed token=PI_PHASE7_FAKE_SECRET_DO_NOT_LEAK");
+            }
+            return new McpServerRegistry.DiscoveryClient() {
+                @Override
+                public List<McpSchema.Tool> listTools() {
+                    return List.of(new McpSchema.Tool("echo", null, "E2E echo",
+                            new McpSchema.JsonSchema("object", Map.of("message", Map.of("type", "string")), List.of("message"), null, Map.of(), Map.of()),
+                            null, new McpSchema.ToolAnnotations("Echo", true, false, true, false, null), Map.of()));
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+        }, clock);
+        registry.refresh();
+        return registry;
     }
 
     @RestController
