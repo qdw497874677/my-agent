@@ -3,16 +3,20 @@ package io.github.pi_java.agent.infrastructure.mcp.client;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpAuthProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpTransportKind;
+import io.github.pi_java.agent.app.port.model.ResolvedSecret;
+import io.github.pi_java.agent.domain.model.SecretRef;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class McpClientFactoryTest {
+    private static final String FAKE_SECRET = "PI_PHASE7_FAKE_SECRET_DO_NOT_LEAK";
 
     @Test
     void createsInitializedHandlesForConfiguredTransportKindsWithMinimalCapabilities() {
@@ -38,6 +42,34 @@ class McpClientFactoryTest {
 
         http.close();
         assertThat(clientBuilder.clients.getFirst().closed).isTrue();
+    }
+
+    @Test
+    void resolvesStaticHeaderAndEnvRefsOnlyAtTransportBoundaryWithoutLeakingSecretMarkers() {
+        CapturingTransportFactory transportFactory = new CapturingTransportFactory();
+        CapturingClientBuilder clientBuilder = new CapturingClientBuilder();
+        McpSecretHeaderResolver resolver = McpSecretHeaderResolver.from(secretRef ->
+                Optional.of(ResolvedSecret.sensitive(secretRef, FAKE_SECRET + "-" + secretRef.scheme())));
+        McpClientFactory factory = new McpClientFactory(transportFactory, clientBuilder, resolver, McpClientErrorSanitizer.defaults());
+        McpAuthProperties auth = new McpAuthProperties(null, "env:MCP_BEARER", "X-Api-Key", "config:pi.mcp.api-key",
+                Map.of("X-Custom-Secret", "vault:custom/header"));
+        McpServerProperties server = new McpServerProperties(
+                "secret-server", true, "Secret Server", McpTransportKind.STREAMABLE_HTTP,
+                "https://mcp.example.test", "/mcp", null, List.of(), Map.of("MCP_ENV", "env:MCP_ENV_SECRET"),
+                Duration.ofSeconds(10), auth, Map.of());
+
+        McpClientHandle handle = factory.create(server);
+        McpSecretHeaderResolver.ResolvedTransportSecrets secrets = transportFactory.requests.getFirst().secrets();
+
+        assertThat(secrets.headers())
+                .containsEntry("Authorization", "Bearer " + FAKE_SECRET + "-env")
+                .containsEntry("X-Api-Key", FAKE_SECRET + "-config")
+                .containsEntry("X-Custom-Secret", FAKE_SECRET + "-vault");
+        assertThat(secrets.env()).containsEntry("MCP_ENV", FAKE_SECRET + "-env");
+        assertThat(handle.toString()).doesNotContain(FAKE_SECRET);
+        assertThat(server.toString()).doesNotContain(FAKE_SECRET);
+        assertThat(secrets.toString()).doesNotContain(FAKE_SECRET);
+        assertThat(secrets.redactedSummary().toString()).doesNotContain(FAKE_SECRET);
     }
 
     static final class CapturingTransportFactory implements McpClientFactory.TransportFactory {
