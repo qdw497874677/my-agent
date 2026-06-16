@@ -72,6 +72,25 @@ class McpClientFactoryTest {
         assertThat(secrets.redactedSummary().toString()).doesNotContain(FAKE_SECRET);
     }
 
+    @Test
+    void wrapsInitializationFailuresInSanitizedCategorizedInfrastructureException() {
+        CapturingTransportFactory transportFactory = new CapturingTransportFactory();
+        McpClientFactory.ClientBuilder failingClientBuilder = request -> {
+            throw new RuntimeException("401 Unauthorized body token=" + FAKE_SECRET + " Authorization: Bearer " + FAKE_SECRET);
+        };
+        McpClientFactory factory = new McpClientFactory(transportFactory, failingClientBuilder, McpSecretHeaderResolver.none(), McpClientErrorSanitizer.defaults());
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> factory.create(McpServerProperties.streamableHttp(
+                        "auth-server", "Auth Server", "https://mcp.example.test", "/mcp", McpAuthProperties.none(), Map.of())))
+                .isInstanceOf(McpClientException.class)
+                .hasMessageContaining("auth-server")
+                .hasMessageContaining("AUTH_FAILED")
+                .hasMessageContaining("Check MCP server credentials")
+                .hasMessageNotContaining(FAKE_SECRET)
+                .hasMessageNotContaining("Authorization")
+                .satisfies(error -> assertThat(((McpClientException) error).category()).isEqualTo(McpClientErrorSanitizer.Category.AUTH_FAILED));
+    }
+
     static final class CapturingTransportFactory implements McpClientFactory.TransportFactory {
         final List<McpTransportFactory.TransportRequest> requests = new ArrayList<>();
 
