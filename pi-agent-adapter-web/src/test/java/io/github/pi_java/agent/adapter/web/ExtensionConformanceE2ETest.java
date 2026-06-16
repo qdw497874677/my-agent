@@ -1,11 +1,14 @@
 package io.github.pi_java.agent.adapter.web;
 
+import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
+import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
 import io.github.pi_java.agent.client.session.CreateSessionRequest;
 import io.github.pi_java.agent.client.session.SessionResponse;
+import io.github.pi_java.agent.domain.model.ProviderDescriptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +52,9 @@ class ExtensionConformanceE2ETest {
     @Autowired
     InMemoryCloudE2EConfiguration.InMemoryStores stores;
 
+    @Autowired
+    ModelProviderRegistry modelProviderRegistry;
+
     @Test
     void restCreatedRunInvokesExtensionToolThroughGatewayEventsAuditAndRedaction() {
         RunOutcome outcome = runWithObjective("safe extension tool");
@@ -79,6 +85,25 @@ class ExtensionConformanceE2ETest {
                 .doesNotContain("tool.started", "tool.completed");
         assertThat(stores.auditsForRun(outcome.run().runId())).extracting(record -> record.action())
                 .contains("tool.preview_generated", "tool.approval_required");
+    }
+
+    @Test
+    void providerAndCredentialBoundariesExposeOnlyRegistryDescriptorsAndSecretRefs() {
+        ExtensionGovernanceResponse governance = get("/api/admin/governance/extensions", ExtensionGovernanceResponse.class);
+        List<ProviderDescriptor> providers = modelProviderRegistry.listProviders();
+
+        assertThat(governance.toString()).contains("phase6-product-extension", "credentialRef", "env:PI_PHASE6_FAKE_SECRET")
+                .doesNotContain(ExtensionConformanceFixtureConfiguration.SECRET_MARKER);
+        assertThat(providers).extracting(ProviderDescriptor::providerId)
+                .contains(ExtensionConformanceFixtureConfiguration.PROVIDER_ID);
+        ProviderDescriptor provider = providers.stream()
+                .filter(candidate -> candidate.providerId().equals(ExtensionConformanceFixtureConfiguration.PROVIDER_ID))
+                .findFirst().orElseThrow();
+        assertThat(provider.optionalCredentialRef()).hasValueSatisfying(credential -> assertThat(credential.redacted())
+                .isEqualTo("env:***"));
+        assertThat(provider.models()).extracting(model -> model.modelId()).contains("phase6-fake-model");
+        assertThat(provider.extraMetadata()).containsEntry("extension.sourceKind", "SPRING_BEAN");
+        assertThat(provider.toString()).doesNotContain(ExtensionConformanceFixtureConfiguration.SECRET_MARKER);
     }
 
     private RunOutcome runWithObjective(String objective) {

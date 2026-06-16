@@ -1,6 +1,7 @@
 package io.github.pi_java.agent.infrastructure.extension;
 
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
+import io.github.pi_java.agent.domain.model.CredentialRef;
 import io.github.pi_java.agent.domain.model.ModelCapabilities;
 import io.github.pi_java.agent.domain.model.ModelDescriptor;
 import io.github.pi_java.agent.domain.model.ProviderDescriptor;
@@ -36,11 +37,20 @@ public final class ExtensionModelProviderRegistry implements ModelProviderRegist
                 Map.of("extension.sourceId", entry.sourceId(), "extension.capabilityId", entry.capabilityId()));
         return new ProviderDescriptor(capability.providerId(),
                 stringMetadata(capability.redactedMetadata(), "displayName", capability.providerId()),
-                stringMetadata(capability.redactedMetadata(), "description", "Extension model provider"), null,
+                stringMetadata(capability.redactedMetadata(), "description", "Extension model provider"),
+                credentialRef(capability.redactedMetadata()),
                 capabilities, List.of(defaultModel),
                 Map.of("extension.sourceId", entry.sourceId(),
                         "extension.capabilityId", entry.capabilityId(),
-                        "extension.sourceKind", "SPI"));
+                        "extension.sourceKind", stringMetadata(capability.redactedMetadata(), "sourceKind", "SPI")));
+    }
+
+    private static CredentialRef credentialRef(Map<String, Object> metadata) {
+        Object value = metadata.get("credentialRef");
+        if (value instanceof String string && !string.isBlank()) {
+            return CredentialRef.of(string);
+        }
+        return null;
     }
 
     private static String stringMetadata(Map<String, Object> metadata, String key, String fallback) {
