@@ -67,11 +67,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### MCP Integration
 
-- [x] **MCP-01**: Admin can configure trusted MCP servers for the platform to connect to as an MCP client.
-- [x] **MCP-02**: Platform can discover MCP tools, normalize their schemas into ToolDescriptor, and register them with provenance and server health metadata.
-- [x] **MCP-03**: Platform executes MCP tool calls only through ToolExecutionGateway with policy, timeout, cancellation, audit, redaction, and events.
-- [x] **MCP-04**: Platform records MCP connection state, discovery errors, invocation errors, auth failures, and server health in Admin GUI and event/audit records.
-- [x] **MCP-05**: MCP integration includes security boundaries for server allowlists, credential references, transport configuration, and SSRF-sensitive network controls.
+- [x] **MCP-01**: Admin can configure trusted MCP servers for the platform to connect to as an MCP client. Validated in Phase 7: `pi.mcp.servers` configuration binding, `McpServerPropertiesTest`, `McpClientFactoryTest`, and `docs/phase-07-mcp-client-bridge.md`.
+- [x] **MCP-02**: Platform can discover MCP tools, normalize their schemas into ToolDescriptor, and register them with provenance and server health metadata. Validated in Phase 7: `McpServerRegistry`, `McpToolDescriptorMapper`, `McpToolRegistryTest`, and `McpToolRegistryWiringTest`.
+- [x] **MCP-03**: Platform executes MCP tool calls only through ToolExecutionGateway with policy, timeout, cancellation, audit, redaction, and events. Validated in Phase 7: `McpToolExecutorBindingTest`, `McpGovernedToolE2ETest`, and `McpSecurityRedactionE2ETest`.
+- [x] **MCP-04**: Platform records MCP connection state, discovery errors, invocation errors, auth failures, and server health in Admin GUI and event/audit records. Validated in Phase 7: `McpGovernanceApiTest`, `McpAdminGovernanceViewTest`, `e2e/phase-07-mcp-governance.spec.ts`, and no-key MCP E2E.
+- [x] **MCP-05**: MCP integration includes security boundaries for server allowlists, credential references, transport configuration, and SSRF-sensitive network controls. Validated in Phase 7: `McpSafetyValidator`, `McpSecretHeaderResolver`, `McpInfrastructureArchitectureTest`, and redaction/security E2E.
 
 ### Dynamic Plugins
 
@@ -111,7 +111,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
 - [x] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default. Validated in Phase 4: `GovernedToolSecurityRedactionE2ETest` covers default API/event/audit/persisted payload paths; Web Console display consumes the same redacted APIs in Phase 5.
 - [x] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views. Validated in Phase 5: Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures.
-- [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline.
+- [ ] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline. MCP portion validated in Phase 7 by `McpGovernedToolE2ETest`, `McpSecurityRedactionE2ETest`, and `e2e/phase-07-mcp-governance.spec.ts`; plugin portion remains pending Phase 8.
 
 ## v2 Requirements
 
@@ -205,11 +205,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXT-03 | Phase 6 | Complete — validated by public extension API metadata/lifecycle/health/compatibility contracts, conformance tests, and architecture gates |
 | EXT-04 | Phase 6 | Complete — validated by public extension governance DTOs, authenticated GET `/api/admin/governance/extensions`, and read-only Admin Registry rendering |
 | EXT-05 | Phase 6 | Complete — validated by SPI/Spring conformance and product-path E2E proving ToolGateway, policy, audit, event, redaction, and CredentialRef boundaries |
-| MCP-01 | Phase 7 | Complete |
-| MCP-02 | Phase 7 | Complete |
-| MCP-03 | Phase 7 | Complete |
-| MCP-04 | Phase 7 | Complete |
-| MCP-05 | Phase 7 | Complete |
+| MCP-01 | Phase 7 | Complete — validated by configuration-file-first `pi.mcp.servers`, trusted transport/auth refs, `McpServerPropertiesTest`, `McpClientFactoryTest`, and `docs/phase-07-mcp-client-bridge.md` |
+| MCP-02 | Phase 7 | Complete — validated by `McpServerRegistry`, descriptor normalization, `mcp.<server>.<tool>` IDs, `McpToolRegistryTest`, and `McpToolRegistryWiringTest` |
+| MCP-03 | Phase 7 | Complete — validated by `McpToolExecutorBindingTest`, `McpGovernedToolE2ETest`, and `McpSecurityRedactionE2ETest` proving `ToolExecutionGateway`, policy, audit, events, timeout/cancellation, and redaction |
+| MCP-04 | Phase 7 | Complete — validated by Admin governance API/UI tests, Playwright MCP governance smoke, and E2E auth/server-down/invocation status assertions |
+| MCP-05 | Phase 7 | Complete — validated by credential refs, transport/SSRF validation, redacted error normalization, architecture boundary gates, and security-redaction E2E |
 | PLUG-01 | Phase 8 | Pending |
 | PLUG-02 | Phase 8 | Pending |
 | PLUG-03 | Phase 8 | Pending |
@@ -237,7 +237,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-05 | Phase 2 | Complete |
 | E2E-06 | Phase 4 | Complete — validated by `GovernedToolSecurityRedactionE2ETest` fake-secret absence checks across REST, event history, persisted RunEvents, audit records, and safe exception paths |
 | E2E-07 | Phase 5 | Complete — validated by Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures |
-| E2E-08 | Phase 7, Phase 8 | Pending |
+| E2E-08 | Phase 7, Phase 8 | Pending — MCP portion complete in Phase 7; sample plugin JAR load/disable/quarantine flows remain pending Phase 8 |
 
 **Coverage:**
 - v1 requirements: 75 total
