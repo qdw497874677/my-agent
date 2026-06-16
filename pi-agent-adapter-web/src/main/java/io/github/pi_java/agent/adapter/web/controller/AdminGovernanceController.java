@@ -7,11 +7,16 @@ import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
+import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
+import io.github.pi_java.agent.client.admin.PluginMutationRequest;
+import io.github.pi_java.agent.client.admin.PluginMutationResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,5 +58,35 @@ public class AdminGovernanceController {
     @PostMapping("/mcp/refresh")
     public McpRefreshResponse refreshMcp(Principal principal, HttpServletRequest servletRequest) {
         return governanceQueryService.refreshMcp(SessionController.toRequestContext(principal, servletRequest));
+    }
+
+    @GetMapping("/plugins")
+    public PluginGovernanceResponse plugins(Principal principal, HttpServletRequest servletRequest) {
+        return governanceQueryService.plugins(SessionController.toRequestContext(principal, servletRequest));
+    }
+
+    @PostMapping("/plugins/refresh")
+    public PluginMutationResponse refreshPlugins(Principal principal, HttpServletRequest servletRequest) {
+        return governanceQueryService.refreshPlugins(SessionController.toRequestContext(principal, servletRequest));
+    }
+
+    @PostMapping("/plugins/{pluginId}/disable")
+    public PluginMutationResponse disablePlugin(@PathVariable("pluginId") String pluginId,
+                                                @RequestBody(required = false) PluginMutationRequest request,
+                                                Principal principal,
+                                                HttpServletRequest servletRequest) {
+        PluginMutationRequest safeRequest = request == null ? new PluginMutationRequest("disable", "") : request;
+        return governanceQueryService.disablePlugin(SessionController.toRequestContext(principal, servletRequest),
+                pluginId, safeRequest);
+    }
+
+    @PostMapping("/plugins/{pluginId}/quarantine")
+    public PluginMutationResponse quarantinePlugin(@PathVariable("pluginId") String pluginId,
+                                                   @RequestBody(required = false) PluginMutationRequest request,
+                                                   Principal principal,
+                                                   HttpServletRequest servletRequest) {
+        PluginMutationRequest safeRequest = request == null ? new PluginMutationRequest("quarantine", "") : request;
+        return governanceQueryService.quarantinePlugin(SessionController.toRequestContext(principal, servletRequest),
+                pluginId, safeRequest);
     }
 }
