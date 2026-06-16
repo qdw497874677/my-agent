@@ -31,9 +31,9 @@ class McpClientFactoryTest {
         assertThat(http.transportKind()).isEqualTo(McpTransportKind.STREAMABLE_HTTP);
         assertThat(sse.transportKind()).isEqualTo(McpTransportKind.SSE);
         assertThat(stdio.transportKind()).isEqualTo(McpTransportKind.STDIO);
-        assertThat(clientBuilder.requests).extracting(request -> request.minimalToolsOnly).containsOnly(true);
-        assertThat(clientBuilder.requests).extracting(request -> request.timeout).contains(Duration.ofSeconds(30), Duration.ofSeconds(12));
-        assertThat(transportFactory.requests).extracting(request -> request.kind)
+        assertThat(clientBuilder.requests).extracting(McpClientFactory.ClientBuildRequest::minimalToolsOnly).containsOnly(true);
+        assertThat(clientBuilder.requests).extracting(McpClientFactory.ClientBuildRequest::timeout).contains(Duration.ofSeconds(30), Duration.ofSeconds(12));
+        assertThat(transportFactory.requests).extracting(McpTransportFactory.TransportRequest::kind)
                 .containsExactly(McpTransportKind.STREAMABLE_HTTP, McpTransportKind.SSE, McpTransportKind.STDIO);
 
         http.close();
