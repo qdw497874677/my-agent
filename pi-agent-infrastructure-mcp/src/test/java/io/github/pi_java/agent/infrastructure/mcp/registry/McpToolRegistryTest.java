@@ -7,6 +7,7 @@ import io.github.pi_java.agent.domain.tool.ToolRiskLevel;
 import io.github.pi_java.agent.domain.tool.ToolSideEffect;
 import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
 import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
+import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 
@@ -79,7 +80,7 @@ class McpToolRegistryTest {
         assertThat(toolRegistry.listTools()).extracting("id").containsExactly("mcp.github.search");
         assertThat(toolRegistry.resolve("mcp.github.search")).isPresent().get().satisfies(resolution -> {
             assertThat(resolution.descriptor().id()).isEqualTo("mcp.github.search");
-            ToolExecutionResult result = resolution.executor().execute(null, () -> false);
+            ToolExecutionResult result = resolution.executor().execute(null, new CancellationToken());
             assertThat(result.status()).isEqualTo(ToolExecutionStatus.FAILED);
             assertThat(result.errorCategory()).contains("MCP_EXECUTION_DEFERRED");
         });
@@ -102,7 +103,7 @@ class McpToolRegistryTest {
                 assertThat(tool.openWorld()).isFalse();
             });
         });
-        assertThat(governance.refresh().attempted()).isTrue();
+        assertThat(governance.refresh().refreshed()).isTrue();
     }
 
     @Test
