@@ -94,7 +94,9 @@ class ExtensionGovernanceApiTest {
                 .andExpect(jsonPath("$.sources[0].capabilities[0].type").value("EVENT_LISTENER"))
                 .andExpect(jsonPath("$.sources[0].capabilities[0].status").value("USABLE"))
                 .andExpect(jsonPath("$.sources[0].capabilities[0].metadata['extension.sourceKind']").value("SPRING_BEAN"))
-                .andExpect(jsonPath("$.sources[0].capabilities[0].metadata['error']").value("[REDACTED]"));
+                .andExpect(jsonPath("$.sources[0].capabilities[0].metadata['error']").value("[REDACTED]"))
+                .andExpect(jsonPath("$.sources[0].capabilities[0].metadata['docs.contract']")
+                        .value("docs/phase-06-extension-surface.md#governance-dtoapiui"));
     }
 
     @Test
@@ -139,7 +141,11 @@ class ExtensionGovernanceApiTest {
                     return List.of(new EventListenerExtensionCapability(
                             "listener.audit",
                             Set.of("tool.lifecycle"),
-                            Map.of("version", "1.0.0", "sourceKind", "SPRING_BEAN", "error", "[REDACTED]")));
+                            Map.of(
+                                    "version", "1.0.0",
+                                    "sourceKind", "SPRING_BEAN",
+                                    "error", "[REDACTED]",
+                                    "docs.contract", "docs/phase-06-extension-surface.md#governance-dtoapiui")));
                 }
             };
         }

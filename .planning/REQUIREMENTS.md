@@ -53,17 +53,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-03**: CommandExecutionGateway executes commands inside a Workspace boundary rather than directly on the host process environment. Validated in Phase 4: `AllowlistedCommandExecutionGateway`, `WorkspaceCommandTool`, and workspace-bound command E2E.
 - [x] **WORK-04**: ToolContext and RunContext include workspaceId and session/resource scope so tool execution can be constrained per Run.
 - [x] **WORK-05**: Workspace supports snapshot/restore contracts and leaves room for fingerprint/drift detection and replay-safe execution.
-- [x] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway.
+- [x] **WORK-06**: Workspace and Resource providers can be extended via SPI, Spring, plugins, and MCP-backed adapters without bypassing ToolExecutionGateway. Validated in Phase 6 for Java SPI/Spring scope: `WorkspaceProviderExtensionCapability`, Spring/SPI conformance tests, and `ExtensionConformanceE2ETest` proving extension workspace tools are governed by `ToolExecutionGateway`; MCP/plugin adapters remain Phase 7/8 pending.
 - [x] **WORK-07**: v1 may provide fake or local-temp workspace implementations for tests, but does not expose unrestricted host shell/filesystem as the default execution model. Validated in Phase 4: local-temp workspace limitations and allowlisted command-only built-in.
 - [x] **WORK-08**: Platform can estimate command/tool impact through a provision/preview contract before executing side-effectful workspace actions. Validated in Phase 4: `ProvisionPreview`, preview events/audit, and approval-required no-execution E2E.
 
 ### Extension Fabric
 
-- [x] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata.
-- [x] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core.
-- [x] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests.
-- [x] **EXT-04**: Admin can view extension sources, registered capabilities, health, compatibility, enable/disable status, and errors.
-- [x] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries.
+- [x] **EXT-01**: Developer can extend the platform through Java SPI for tools, model providers, policies, event sinks, memory providers, workspace providers, and extension metadata. Validated in Phase 6: `pi-agent-extension-api` typed capabilities, `ServiceLoaderExtensionDiscovery`, `DefaultExtensionContributionRegistry`, `ServiceLoaderConformanceTest`, and `docs/phase-06-extension-surface.md`.
+- [x] **EXT-02**: Spring Boot applications can register tools, providers, policies, and event listeners through Spring Beans or annotations without modifying runtime core. Validated in Phase 6: `pi-agent-spring-boot-starter`, explicit Spring `ExtensionSource` beans, `@PiTool`, `@PiEventListener`, `PiAgentExtensionAutoConfigurationTest`, `AnnotatedSpringExtensionTest`, and `SpringExtensionConformanceTest`.
+- [x] **EXT-03**: Platform exposes a public extension API/JAR with compatibility/version metadata, lifecycle states, health status, and conformance tests. Validated in Phase 6: `ExtensionMetadata`, `ExtensionCompatibility`, `ExtensionLifecycleState`, `ExtensionHealth`, `ExtensionApiContractTest`, architecture gates, and Phase 6 contract documentation.
+- [x] **EXT-04**: Admin can view extension sources, registered capabilities, health, compatibility, enable/disable status, and errors. Validated in Phase 6: `ExtensionGovernanceCatalog`, public `ExtensionGovernanceResponse` DTOs, authenticated GET `/api/admin/governance/extensions`, `ExtensionGovernanceApiTest`, and Admin Registry read-only rendering.
+- [x] **EXT-05**: Extension loading never bypasses ToolExecutionGateway, Policy, Audit, Event, and CredentialRef boundaries. Validated in Phase 6: extension tool registry adapters, product-path `ExtensionConformanceE2ETest`, audit/event/redaction assertions, and `ExtensionModelProviderRegistry` credential reference assertions.
 
 ### MCP Integration
 
@@ -190,7 +190,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 1 | Complete |
 | WORK-05 | Phase 1 | Complete |
-| WORK-06 | Phase 6 | Complete |
+| WORK-06 | Phase 6 | Complete — validated for Java SPI/Spring extension providers by workspace capability contracts plus gateway-governed extension workspace-tool conformance; MCP/plugin-backed adapters remain pending Phase 7/8 scope |
 | WORK-07 | Phase 4 | Complete |
 | WORK-08 | Phase 4 | Complete |
 | TOOL-01 | Phase 4 | Complete |
@@ -200,11 +200,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-05 | Phase 4 | Complete |
 | TOOL-06 | Phase 4 | Complete |
 | TOOL-07 | Phase 4 | Complete |
-| EXT-01 | Phase 6 | Complete |
-| EXT-02 | Phase 6 | Complete |
-| EXT-03 | Phase 6 | Complete |
-| EXT-04 | Phase 6 | Complete |
-| EXT-05 | Phase 6 | Complete |
+| EXT-01 | Phase 6 | Complete — validated by `ExtensionSource`, typed capability contracts, ServiceLoader discovery/registry tests, and `docs/phase-06-extension-surface.md` |
+| EXT-02 | Phase 6 | Complete — validated by Spring starter autoconfiguration, explicit `ExtensionSource` beans, `@PiTool`, `@PiEventListener`, and Spring conformance tests |
+| EXT-03 | Phase 6 | Complete — validated by public extension API metadata/lifecycle/health/compatibility contracts, conformance tests, and architecture gates |
+| EXT-04 | Phase 6 | Complete — validated by public extension governance DTOs, authenticated GET `/api/admin/governance/extensions`, and read-only Admin Registry rendering |
+| EXT-05 | Phase 6 | Complete — validated by SPI/Spring conformance and product-path E2E proving ToolGateway, policy, audit, event, redaction, and CredentialRef boundaries |
 | MCP-01 | Phase 7 | Pending |
 | MCP-02 | Phase 7 | Pending |
 | MCP-03 | Phase 7 | Pending |
