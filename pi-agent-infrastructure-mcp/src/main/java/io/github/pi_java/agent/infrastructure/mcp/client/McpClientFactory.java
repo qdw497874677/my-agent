@@ -29,13 +29,19 @@ public final class McpClientFactory {
 
     public McpClientHandle create(McpServerProperties server) {
         Objects.requireNonNull(server, "server must not be null");
-        McpSafetyValidator.validate(server);
-        McpSecretHeaderResolver.ResolvedTransportSecrets secrets = secretResolver.resolve(server);
-        McpTransportFactory.TransportHandle transport = transportFactory.create(new McpTransportFactory.TransportRequest(
-                server.id(), server.transport(), server, secrets, server.timeout()));
-        InitializedClient client = clientBuilder.buildAndInitialize(new ClientBuildRequest(
-                server.id(), transport, server.timeout(), true));
-        return new McpClientHandle(server.id(), transport.kind(), client);
+        try {
+            McpSafetyValidator.validate(server);
+            McpSecretHeaderResolver.ResolvedTransportSecrets secrets = secretResolver.resolve(server);
+            McpTransportFactory.TransportHandle transport = transportFactory.create(new McpTransportFactory.TransportRequest(
+                    server.id(), server.transport(), server, secrets, server.timeout()));
+            InitializedClient client = clientBuilder.buildAndInitialize(new ClientBuildRequest(
+                    server.id(), transport, server.timeout(), true));
+            return new McpClientHandle(server.id(), transport.kind(), client);
+        } catch (McpClientException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            throw errorSanitizer.sanitize(server.id(), ex);
+        }
     }
 
     @FunctionalInterface
