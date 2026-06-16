@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,7 +30,7 @@ class PluginRegistryPropertiesTest {
     @Test
     void enabledRegistryRequiresControlledPluginDirectoryDeterministically() {
         PluginRegistryProperties properties = new PluginRegistryProperties(
-                true, null, true, true, List.of(), List.of(), "1.0.0", false, true);
+                true, Optional.empty(), true, true, List.of(), List.of(), "1.0.0", false, true);
 
         assertThat(properties.validate())
                 .containsExactly("pluginDirectory is required when controlled plugin loading is enabled");
@@ -42,7 +43,7 @@ class PluginRegistryPropertiesTest {
     void enabledRegistryExposesAllowlistSelectionCompatibilityAndSafetyWarningControls() {
         PluginRegistryProperties properties = new PluginRegistryProperties(
                 true,
-                Path.of("plugins/controlled"),
+                Optional.of(Path.of("plugins/controlled")),
                 true,
                 false,
                 List.of("audit-plugin", "tools-plugin"),
@@ -63,7 +64,7 @@ class PluginRegistryPropertiesTest {
     void selectedPluginIdsMustBeInAllowlistWhenAllowlistConfigured() {
         PluginRegistryProperties properties = new PluginRegistryProperties(
                 true,
-                Path.of("plugins"),
+                Optional.of(Path.of("plugins")),
                 false,
                 true,
                 List.of("allowed"),
