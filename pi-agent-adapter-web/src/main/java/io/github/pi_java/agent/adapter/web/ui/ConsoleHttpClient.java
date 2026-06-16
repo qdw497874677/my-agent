@@ -8,6 +8,9 @@ import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
+import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
+import io.github.pi_java.agent.client.admin.PluginMutationRequest;
+import io.github.pi_java.agent.client.admin.PluginMutationResponse;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
@@ -168,6 +171,38 @@ public class ConsoleHttpClient {
 
     public Class<McpRefreshResponse> adminMcpRefreshResponseType() {
         return McpRefreshResponse.class;
+    }
+
+    public String adminPluginGovernancePath() {
+        return "/api/admin/governance/plugins";
+    }
+
+    public Class<PluginGovernanceResponse> adminPluginGovernanceResponseType() {
+        return PluginGovernanceResponse.class;
+    }
+
+    public String adminPluginRefreshPath() {
+        return adminPluginGovernancePath() + "/refresh";
+    }
+
+    public Class<PluginMutationResponse> adminPluginRefreshResponseType() {
+        return PluginMutationResponse.class;
+    }
+
+    public String adminPluginDisablePath(String pluginId) {
+        return adminPluginGovernancePath() + "/" + segment(pluginId) + "/disable";
+    }
+
+    public String adminPluginQuarantinePath(String pluginId) {
+        return adminPluginGovernancePath() + "/" + segment(pluginId) + "/quarantine";
+    }
+
+    public Class<PluginMutationRequest> adminPluginMutationRequestType() {
+        return PluginMutationRequest.class;
+    }
+
+    public Class<PluginMutationResponse> adminPluginMutationResponseType() {
+        return PluginMutationResponse.class;
     }
 
     public String adminPolicyDecisionsPath() {

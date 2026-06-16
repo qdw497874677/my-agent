@@ -16,6 +16,9 @@ import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpServerDto;
 import io.github.pi_java.agent.client.admin.McpToolDto;
+import io.github.pi_java.agent.client.admin.PluginCapabilityDto;
+import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
+import io.github.pi_java.agent.client.admin.PluginSourceDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +30,12 @@ import java.util.stream.Collectors;
 @PageTitle("Pi Admin Registry Status")
 public class AdminRegistryStatusView extends Div {
 
+    private static final String PLUGIN_NON_SANDBOX_WARNING = "Plugin governance warning: JVM classloader isolation "
+            + "is dependency/lifecycle isolation only; it is not a sandbox for untrusted code.";
+
     private final ConsoleHttpClient httpClient;
     private final List<String> renderedLines = new ArrayList<>();
+    private boolean pluginMutationControlsPresent;
 
     public AdminRegistryStatusView() {
         this(new ConsoleHttpClient());
@@ -63,9 +70,32 @@ public class AdminRegistryStatusView extends Div {
         return "Refresh MCP discovery via " + mcpRefreshPath();
     }
 
+    public String pluginGovernancePath() {
+        return httpClient.adminPluginGovernancePath();
+    }
+
+    public String pluginRefreshPath() {
+        return httpClient.adminPluginRefreshPath();
+    }
+
+    public String pluginRefreshActionText() {
+        return "Refresh plugin discovery via " + pluginRefreshPath();
+    }
+
+    public String pluginDisableActionText(String pluginId) {
+        return "Disable plugin " + safe(pluginId) + " via " + httpClient.adminPluginDisablePath(pluginId)
+                + " | confirmation required | optional reason";
+    }
+
+    public String pluginQuarantineActionText(String pluginId) {
+        return "Quarantine plugin " + safe(pluginId) + " via " + httpClient.adminPluginQuarantinePath(pluginId)
+                + " | confirmation required | optional reason";
+    }
+
     public void showOverview(GovernanceOverviewResponse overview) {
         Objects.requireNonNull(overview, "overview must not be null");
         renderedLines.clear();
+        pluginMutationControlsPresent = false;
         removeAll();
         add(new H2("Registry and Integration Status"));
         add(new Span("Provider, tool, extension, MCP, and plugin status is inspect-only in Phase 5."));
@@ -79,6 +109,7 @@ public class AdminRegistryStatusView extends Div {
     public void showExtensions(ExtensionGovernanceResponse extensions) {
         Objects.requireNonNull(extensions, "extensions must not be null");
         renderedLines.clear();
+        pluginMutationControlsPresent = false;
         removeAll();
         add(new H2("Extension Governance"));
         add(new Span("Extension sources and capabilities are inspect-only; enable/disable remains configuration-driven."));
@@ -99,6 +130,7 @@ public class AdminRegistryStatusView extends Div {
     public void showMcpGovernance(McpGovernanceResponse governance) {
         Objects.requireNonNull(governance, "governance must not be null");
         renderedLines.clear();
+        pluginMutationControlsPresent = false;
         removeAll();
         add(new H2("MCP Governance"));
         add(new Span("Remote MCP server and tool status is inspect-only; server configuration CRUD remains disabled."));
@@ -122,8 +154,40 @@ public class AdminRegistryStatusView extends Div {
         }
     }
 
+    public void showPlugins(PluginGovernanceResponse governance) {
+        Objects.requireNonNull(governance, "governance must not be null");
+        renderedLines.clear();
+        pluginMutationControlsPresent = true;
+        removeAll();
+        add(new H2("Plugin Governance"));
+        Span warning = new Span(PLUGIN_NON_SANDBOX_WARNING);
+        warning.getElement().setAttribute("data-plugin-warning", "not-a-sandbox");
+        add(warning);
+        renderedLines.add(PLUGIN_NON_SANDBOX_WARNING);
+
+        Button refresh = new Button("Refresh plugin discovery");
+        refresh.getElement().setAttribute("data-action-plan", "POST");
+        refresh.getElement().setAttribute("data-action-path", pluginRefreshPath());
+        refresh.getElement().setAttribute("data-plugin-action", "refresh");
+        add(refresh);
+        renderedLines.add(pluginRefreshActionText());
+
+        if (governance.plugins().isEmpty()) {
+            String text = "Plugins: UNCONFIGURED | plugins=0 | mutation=refresh-only";
+            renderedLines.add(text);
+            Div empty = new Div(new H3("No plugins"), new Span(text));
+            empty.getElement().setAttribute("data-governance-area", "plugins");
+            empty.getElement().setAttribute("data-read-only", "true");
+            add(empty);
+            return;
+        }
+        for (PluginSourceDto plugin : governance.plugins()) {
+            addPlugin(plugin);
+        }
+    }
+
     public boolean mutationControlsPresent() {
-        return false;
+        return pluginMutationControlsPresent;
     }
 
     public String mutationActionText() {
@@ -136,6 +200,7 @@ public class AdminRegistryStatusView extends Div {
 
     private void renderEmpty() {
         renderedLines.clear();
+        pluginMutationControlsPresent = false;
         removeAll();
         add(new H2("Registry and Integration Status"));
         Span empty = new Span("Registry status has not been loaded.");
@@ -234,6 +299,73 @@ public class AdminRegistryStatusView extends Div {
         row.getElement().setAttribute("data-mcp-tool", tool.serverQualifiedToolId());
         row.getElement().setAttribute("data-mcp-tool-availability", tool.availabilityStatus());
         row.getElement().setAttribute("data-read-only", "true");
+        add(row);
+    }
+
+    private void addPlugin(PluginSourceDto plugin) {
+        String text = "Plugin: " + safe(plugin.pluginId())
+                + " | name=" + safe(plugin.name())
+                + " | version=" + safe(plugin.version())
+                + " | vendor=" + safe(plugin.vendor())
+                + " | sourceKind=" + safe(plugin.sourceKind())
+                + " | lifecycle=" + safe(plugin.lifecycleStatus())
+                + " | enabled=" + plugin.enabled()
+                + " | health=" + safe(plugin.healthStatus())
+                + " | compatibility=" + safe(plugin.compatibilityStatus())
+                + " | capabilities=" + plugin.capabilityCount()
+                + " | capabilityStatusCounts=" + metadata(plugin.capabilityStatusCounts())
+                + " | path=" + safe(plugin.relativePathSummary())
+                + " | reason=" + safe(plugin.reason())
+                + " | error=" + safe(plugin.redactedError())
+                + " | lastUpdated=" + plugin.lastUpdatedAt()
+                + " | " + metadata(plugin.metadata());
+        renderedLines.add(text);
+        Div card = new Div(new H3(plugin.name()), new Span(text));
+        card.getElement().setAttribute("data-governance-area", "plugins");
+        card.getElement().setAttribute("data-plugin-id", plugin.pluginId());
+        card.getElement().setAttribute("data-plugin-lifecycle", plugin.lifecycleStatus());
+        card.getElement().setAttribute("data-plugin-health", plugin.healthStatus());
+        card.getElement().setAttribute("data-plugin-compatibility", plugin.compatibilityStatus());
+        add(card);
+
+        Button disable = new Button("Disable plugin");
+        disable.getElement().setAttribute("data-action-plan", "POST");
+        disable.getElement().setAttribute("data-action-path", httpClient.adminPluginDisablePath(plugin.pluginId()));
+        disable.getElement().setAttribute("data-plugin-action", "disable");
+        disable.getElement().setAttribute("data-confirmation-required", "true");
+        disable.getElement().setAttribute("data-reason", "optional");
+        add(disable);
+        renderedLines.add(pluginDisableActionText(plugin.pluginId()));
+
+        Button quarantine = new Button("Quarantine plugin");
+        quarantine.getElement().setAttribute("data-action-plan", "POST");
+        quarantine.getElement().setAttribute("data-action-path", httpClient.adminPluginQuarantinePath(plugin.pluginId()));
+        quarantine.getElement().setAttribute("data-plugin-action", "quarantine");
+        quarantine.getElement().setAttribute("data-confirmation-required", "true");
+        quarantine.getElement().setAttribute("data-reason", "optional");
+        add(quarantine);
+        renderedLines.add(pluginQuarantineActionText(plugin.pluginId()));
+
+        for (PluginCapabilityDto capability : plugin.capabilities()) {
+            addPluginCapability(capability);
+        }
+    }
+
+    private void addPluginCapability(PluginCapabilityDto capability) {
+        String text = "Plugin Capability: " + safe(capability.capabilityId())
+                + " | type=" + safe(capability.type())
+                + " | status=" + safe(capability.status())
+                + " | version=" + safe(capability.version())
+                + " | plugin=" + safe(capability.pluginId())
+                + " | enabled=" + capability.enabled()
+                + " | compatibility=" + safe(capability.compatibilityStatus())
+                + " | health=" + safe(capability.healthStatus())
+                + " | " + metadata(capability.metadata());
+        renderedLines.add(text);
+        Div row = new Div(new Span(text));
+        row.getElement().setAttribute("data-plugin-capability", capability.capabilityId());
+        row.getElement().setAttribute("data-capability-type", capability.type());
+        row.getElement().setAttribute("data-plugin-capability-status", capability.status());
         add(row);
     }
 
