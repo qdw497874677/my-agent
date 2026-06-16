@@ -30,7 +30,7 @@ public final class McpGovernanceCatalogAdapter implements McpGovernanceCatalog {
     @Override
     public McpRefreshStatus refresh() {
         McpDiscoveryResult result = serverRegistry.refresh();
-        return new McpRefreshStatus(true, result.refreshedServers(), result.failedServers(), result.configuredServers(),
+        return new McpRefreshStatus(true, result.configuredServers(), result.refreshedServers(), result.failedServers(),
                 result.success() ? "SUCCESS" : "PARTIAL_FAILURE", result.redactedError(), Map.of("surface", "read-only-refresh"));
     }
 
