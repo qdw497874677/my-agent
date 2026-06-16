@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 07
 status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-06-16T08:57:47.820Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-06-16T09:11:47.330Z"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 59
-  completed_plans: 54
+  completed_plans: 55
 ---
 
 # Project State: Pi Java Agent Platform
@@ -249,6 +249,10 @@ Key findings:
 - [Phase 07]: Plan 03 uses fakeable TransportFactory and ClientBuilder seams so no-key unit tests assert MCP transport selection and initialization without network/process side effects.
 - [Phase 07]: Plan 03 resolves raw static MCP credential refs only in McpSecretHeaderResolver immediately before transport creation, with redacted summaries exposing counts only.
 - [Phase 07]: Plan 03 normalizes MCP initialization failures into McpClientException categories with safe operator hints instead of propagating raw remote bodies or headers.
+- [Phase 07]: Plan 04 keeps MCP discovery state as replace-all immutable per-server snapshots so manual refresh can safely update tool availability while reads remain deterministic.
+- [Phase 07]: Plan 04 normalizes MCP tools into Pi ToolDescriptor records with server-qualified IDs and explicit MCP allowlist scopes.
+- [Phase 07]: Plan 04 preserves failed configured MCP servers in governance status with sanitized errors while ToolRegistry resolves only available tools.
+- [Phase 07]: Plan 04 uses a deferred failing ToolExecutorBinding seam so remote MCP execution cannot bypass ToolExecutionGateway before Plan 07-05.
 
 ## Performance Metrics
 
@@ -306,11 +310,12 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P01 | 6m 50s | 3 tasks | 7 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P02 | 7m 33s | 3 tasks | 14 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P03 | 6m 57s | 3 tasks | 7 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P04 | 10m 57s | 3 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 07-03-PLAN.md
+- **Stopped At:** Completed 07-04-PLAN.md
 
 ## Next Action
 
