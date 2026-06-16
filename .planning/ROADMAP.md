@@ -202,7 +202,7 @@ Plans:
 - [x] 06-05-PLAN.md — Add lightweight Spring annotations for tools and event listeners.
 - [x] 06-06-PLAN.md — Wire Cloud Server through the starter and expose read-only extension governance.
 - [x] 06-07-PLAN.md — Add SPI/Spring extension conformance tests for safety boundaries.
-- [ ] 06-08-PLAN.md — Harden architecture gates, document contracts, and update traceability.
+- [x] 06-08-PLAN.md — Harden architecture gates, document contracts, and update traceability.
 
 **Success criteria:**
 1. Public extension API/JAR supports tools, providers, policies, event sinks, memory providers, workspace providers, metadata, lifecycle, and version compatibility.
