@@ -78,6 +78,32 @@ class McpToolExecutorBindingTest {
     }
 
     @Test
+    void mapsMixedMcpContentToSourceNeutralSummariesWithoutBinaryPayloads() {
+        FakeInvocationClientFactory clients = new FakeInvocationClientFactory();
+        clients.nextResult(new McpSchema.CallToolResult(List.of(
+                new McpSchema.TextContent("plain text"),
+                new McpSchema.ImageContent(null, "BASE64_IMAGE_DATA_SHOULD_NOT_SURFACE", "image/png"),
+                McpSchema.ResourceLink.builder()
+                        .name("report")
+                        .uri("mcp://github/report/1")
+                        .mimeType("application/json")
+                        .build()), false));
+
+        ToolExecutionResult result = new McpToolExecutorBinding(server("github"), "search", clients)
+                .execute(request("mcp.github.search", Map.of("query", "pi")), new CancellationToken());
+
+        assertThat(result.status()).isEqualTo(ToolExecutionStatus.SUCCESS);
+        assertThat(result.redactedOutputSummary())
+                .containsEntry("mcp.contentCount", 3)
+                .containsEntry("mcp.contentTypes", List.of("text", "image", "resource_link"));
+        assertThat(result.toString()).doesNotContain("BASE64_IMAGE_DATA_SHOULD_NOT_SURFACE");
+        assertThat(result.rawOutput()).isPresent().get().satisfies(raw -> assertThat(raw.toString())
+                .contains("dataRedacted=true")
+                .contains("mcp://github/report/1")
+                .doesNotContain("BASE64_IMAGE_DATA_SHOULD_NOT_SURFACE"));
+    }
+
+    @Test
     void mapsMcpErrorContentToStableFailureWithoutRawRemoteBody() {
         FakeInvocationClientFactory clients = new FakeInvocationClientFactory();
         clients.nextResult(new McpSchema.CallToolResult(
