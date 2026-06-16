@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -136,6 +137,22 @@ class McpToolExecutorBindingTest {
                 .containsEntry("mcp.serverId", "github")
                 .containsEntry("mcp.toolName", "search")
                 .containsEntry("mcp.actionHint", "Check MCP server credentials and authorization scope.");
+    }
+
+    @Test
+    void normalizesTimeoutFailuresWithoutRetryingUnknownRemoteTools() {
+        FakeInvocationClientFactory clients = new FakeInvocationClientFactory();
+        clients.nextFailure(new RuntimeException("timed out request body=" + FAKE_SECRET, new TimeoutException("timeout")));
+
+        ToolExecutionResult result = new McpToolExecutorBinding(server("github"), "write_issue", clients)
+                .execute(request("mcp.github.write_issue", Map.of("title", "pi")), new CancellationToken());
+
+        assertThat(result.status()).isEqualTo(ToolExecutionStatus.TIMED_OUT);
+        assertThat(result.errorCategory()).contains("MCP_TIMEOUT");
+        assertThat(clients.requests()).hasSize(1);
+        assertThat(result.toString()).doesNotContain(FAKE_SECRET).doesNotContain("request body=");
+        assertThat(result.redactedOutputSummary())
+                .containsEntry("mcp.actionHint", "Check MCP server latency and configured timeout before retrying.");
     }
 
     private static McpServerProperties server(String id) {
