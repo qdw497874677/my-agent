@@ -5,6 +5,8 @@ import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
 import io.github.pi_java.agent.domain.tool.ToolProvenance;
 import io.github.pi_java.agent.domain.tool.ToolRiskLevel;
 import io.github.pi_java.agent.domain.tool.ToolSideEffect;
+import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
+import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +59,50 @@ class McpToolRegistryTest {
                 assertThat(tool.redactedError()).doesNotContain(FAKE_SECRET).contains("AUTH_FAILED");
             });
         });
+    }
+
+    @Test
+    void toolRegistryAndGovernanceAdapterExposeOnlyAvailableToolsAndRedactedServerStatus() {
+        FakeDiscoveryClientFactory clients = new FakeDiscoveryClientFactory();
+        McpServerProperties healthy = McpServerProperties.streamableHttp(
+                "github", "GitHub MCP", "https://mcp.example.test", "/mcp", McpAuthProperties.none(), Map.of("team", "platform"));
+        McpServerProperties failing = McpServerProperties.streamableHttp(
+                "jira", "Jira MCP", "https://jira.example.test", "/mcp", McpAuthProperties.none(), Map.of());
+        McpServerRegistry serverRegistry = new McpServerRegistry(List.of(healthy, failing), clients, FIXED_CLOCK);
+        clients.respond("github", List.of(tool("search", "Search repos", Map.of("type", "object"),
+                new McpSchema.ToolAnnotations("Search", true, false, true, false, null))));
+        clients.fail("jira", new RuntimeException("403 Forbidden apiKey=" + FAKE_SECRET));
+        serverRegistry.refresh();
+        McpToolRegistry toolRegistry = new McpToolRegistry(serverRegistry, new McpToolDescriptorMapper());
+        McpGovernanceCatalogAdapter governance = new McpGovernanceCatalogAdapter(serverRegistry, new McpToolDescriptorMapper());
+
+        assertThat(toolRegistry.listTools()).extracting("id").containsExactly("mcp.github.search");
+        assertThat(toolRegistry.resolve("mcp.github.search")).isPresent().get().satisfies(resolution -> {
+            assertThat(resolution.descriptor().id()).isEqualTo("mcp.github.search");
+            ToolExecutionResult result = resolution.executor().execute(null, () -> false);
+            assertThat(result.status()).isEqualTo(ToolExecutionStatus.FAILED);
+            assertThat(result.errorCategory()).contains("MCP_EXECUTION_DEFERRED");
+        });
+        assertThat(toolRegistry.resolve("mcp.jira.anything")).isEmpty();
+
+        assertThat(governance.servers()).hasSize(2);
+        assertThat(governance.servers()).filteredOn(server -> server.serverId().equals("jira")).singleElement().satisfies(server -> {
+            assertThat(server.connectionStatus()).isEqualTo("AUTH_FAILED");
+            assertThat(server.discoveryStatus()).isEqualTo("DISCOVERY_FAILED");
+            assertThat(server.redactedError()).doesNotContain(FAKE_SECRET).contains("AUTH_FAILED");
+            assertThat(server.tools()).isEmpty();
+        });
+        assertThat(governance.servers()).filteredOn(server -> server.serverId().equals("github")).singleElement().satisfies(server -> {
+            assertThat(server.toolCount()).isEqualTo(1);
+            assertThat(server.tools()).singleElement().satisfies(tool -> {
+                assertThat(tool.serverQualifiedToolId()).isEqualTo("mcp.github.search");
+                assertThat(tool.availabilityStatus()).isEqualTo("AVAILABLE");
+                assertThat(tool.readOnly()).isTrue();
+                assertThat(tool.destructive()).isFalse();
+                assertThat(tool.openWorld()).isFalse();
+            });
+        });
+        assertThat(governance.refresh().attempted()).isTrue();
     }
 
     @Test
