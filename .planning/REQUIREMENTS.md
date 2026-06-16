@@ -75,12 +75,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dynamic Plugins
 
-- [ ] **PLUG-01**: Admin can configure a controlled plugin directory for trusted dynamic plugin JARs.
-- [ ] **PLUG-02**: Platform can load plugin descriptors, validate platform/API compatibility, and register plugin-provided capabilities through the same extension registry.
-- [ ] **PLUG-03**: Platform tracks plugin lifecycle states including discovered, loaded, started, disabled, failed, and quarantined.
+- [x] **PLUG-01**: Admin can configure a controlled plugin directory for trusted dynamic plugin JARs.
+- [x] **PLUG-02**: Platform can load plugin descriptors, validate platform/API compatibility, and register plugin-provided capabilities through the same extension registry.
+- [x] **PLUG-03**: Platform tracks plugin lifecycle states including discovered, loaded, started, disabled, failed, and quarantined.
 - [ ] **PLUG-04**: Admin can view plugin metadata, registered capabilities, health, load errors, and compatibility errors in the Admin GUI.
 - [ ] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs.
-- [ ] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code.
+- [x] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code.
 
 ### Agent Web Console and Admin Governance
 
@@ -210,12 +210,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCP-03 | Phase 7 | Complete — validated by `McpToolExecutorBindingTest`, `McpGovernedToolE2ETest`, and `McpSecurityRedactionE2ETest` proving `ToolExecutionGateway`, policy, audit, events, timeout/cancellation, and redaction |
 | MCP-04 | Phase 7 | Complete — validated by Admin governance API/UI tests, Playwright MCP governance smoke, and E2E auth/server-down/invocation status assertions |
 | MCP-05 | Phase 7 | Complete — validated by credential refs, transport/SSRF validation, redacted error normalization, architecture boundary gates, and security-redaction E2E |
-| PLUG-01 | Phase 8 | Pending |
-| PLUG-02 | Phase 8 | Pending |
-| PLUG-03 | Phase 8 | Pending |
+| PLUG-01 | Phase 8 | Complete |
+| PLUG-02 | Phase 8 | Complete |
+| PLUG-03 | Phase 8 | Complete |
 | PLUG-04 | Phase 8 | Pending |
 | PLUG-05 | Phase 8 | Pending |
-| PLUG-06 | Phase 8 | Pending |
+| PLUG-06 | Phase 8 | Complete |
 | GUI-01 | Phase 5 | Complete — validated by `/api/agents`, catalog cards, browser E2E, and `docs/phase-05-web-console.md` |
 | GUI-02 | Phase 5 | Complete — validated by Console route/action plans, model event assertions, and no-key Playwright E2E |
 | GUI-03 | Phase 5 | Complete — validated by tool lifecycle cards and browser E2E `tool.*` event assertions |

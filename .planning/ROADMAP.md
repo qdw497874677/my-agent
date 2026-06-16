@@ -256,7 +256,7 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Add isolated PF4J infrastructure module and typed controlled-directory configuration.
+- [x] 08-01-PLAN.md — Add isolated PF4J infrastructure module and typed controlled-directory configuration.
 - [ ] 08-02-PLAN.md — Bridge PF4J plugins into Pi ExtensionSource discovery with lifecycle disable/quarantine state.
 - [ ] 08-03-PLAN.md — Define App/client plugin governance contracts and query/mutation use cases.
 - [ ] 08-04-PLAN.md — Wire plugin infrastructure into Cloud Server ToolRegistry and Admin REST.

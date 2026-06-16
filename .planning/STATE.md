@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 8
-status: planning
-stopped_at: Phase 8 context gathered
-last_updated: "2026-06-16T16:25:46.459Z"
+current_phase: 08
+status: executing
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-06-16T17:19:59.648Z"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 59
-  completed_plans: 59
+  total_plans: 67
+  completed_plans: 60
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 8
+**Status:** Executing Phase 08
+**Current Phase:** 08
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 07 — mcp-client-bridge-and-governed-remote-tools
+**Current focus:** Phase 08 — controlled-dynamic-plugin-jars
 
 ## Workflow Configuration
 
@@ -264,6 +264,9 @@ Key findings:
 - [Phase 07]: Plan 08 keeps the MCP architecture gate package-focused and limits MCP SDK/Spring AI MCP to MCP infrastructure plus Adapter Web composition/test surfaces.
 - [Phase 07]: Plan 08 uses deterministic in-memory/fake MCP seams for no-key product-path E2E instead of real network/process MCP services.
 - [Phase 07]: Plan 08 records E2E-08 as pending overall because MCP is complete in Phase 7 while plugin JAR load/disable flows remain Phase 8.
+- [Phase 08]: Plan 01 keeps PF4J managed in the root POM but declared only in pi-agent-infrastructure-plugin so core/App/API/starter/MCP/provider modules remain PF4J-free.
+- [Phase 08]: Plan 01 models controlled plugin registry configuration as plain Java records with explicit validation before Spring/Admin binding.
+- [Phase 08]: Plan 01 exposes only controlled-directory-relative or filename-only plugin source summaries with redacted metadata/errors.
 
 ## Performance Metrics
 
@@ -326,11 +329,12 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P06 | 9m 37s | 3 tasks | 8 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P07 | 5m 08s | 3 tasks | 4 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P08 | 10m 56s | 3 tasks | 7 files |
+| Phase 08-controlled-dynamic-plugin-jars P01 | 5m 54s | 2 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Phase 8 context gathered
+- **Stopped At:** Completed 08-01-PLAN.md
 
 ## Next Action
 
