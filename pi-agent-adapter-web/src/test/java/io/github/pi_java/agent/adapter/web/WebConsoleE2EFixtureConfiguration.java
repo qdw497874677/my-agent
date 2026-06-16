@@ -1,5 +1,9 @@
 package io.github.pi_java.agent.adapter.web;
 
+import io.github.pi_java.agent.app.port.plugin.PluginCapabilityStatus;
+import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
+import io.github.pi_java.agent.app.port.plugin.PluginMutationStatus;
+import io.github.pi_java.agent.app.port.plugin.PluginSourceStatus;
 import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
 import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
 import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
@@ -76,6 +80,57 @@ public class WebConsoleE2EFixtureConfiguration {
         }, clock);
         registry.refresh();
         return registry;
+    }
+
+    @Bean
+    @Primary
+    PluginGovernanceCatalog webConsoleE2EPluginGovernanceCatalog() {
+        return new PluginGovernanceCatalog() {
+            @Override
+            public List<PluginSourceStatus> plugins() {
+                return List.of(
+                        new PluginSourceStatus("healthy-plugin", "Healthy Plugin", "1.0.0", "Pi Test", "PF4J_JAR",
+                                "STARTED", true, "UP", "COMPATIBLE", 1, Map.of("USABLE", "1"), "",
+                                "plugins/healthy-plugin.jar", "", Instant.parse("2026-06-16T13:00:00Z"),
+                                List.of(new PluginCapabilityStatus("plugin.healthy.read", "TOOL", "USABLE", "1.0.0",
+                                        "healthy-plugin", true, "COMPATIBLE", "UP", Map.of("risk", "low"))),
+                                Map.of("fixture", "phase-08")),
+                        new PluginSourceStatus("disabled-plugin", "Disabled Plugin", "1.0.0", "Pi Test", "PF4J_JAR",
+                                "DISABLED", false, "UP", "COMPATIBLE", 0, Map.of(), "",
+                                "plugins/disabled-plugin.jar", "operator disabled", Instant.parse("2026-06-16T13:01:00Z"),
+                                List.of(), Map.of("fixture", "phase-08")),
+                        new PluginSourceStatus("quarantined-plugin", "Quarantined Plugin", "1.0.0", "Pi Test", "PF4J_JAR",
+                                "QUARANTINED", false, "WARN", "COMPATIBLE", 0, Map.of(), "",
+                                "plugins/quarantined-plugin.jar", "operator quarantine", Instant.parse("2026-06-16T13:02:00Z"),
+                                List.of(), Map.of("fixture", "phase-08")),
+                        new PluginSourceStatus("failed-plugin", "Failed Plugin", "9.9.9", "Pi Test", "PF4J_JAR",
+                                "FAILED", false, "DOWN", "INCOMPATIBLE", 0, Map.of(),
+                                "[REDACTED] load failure", "plugins/failed-plugin.jar", "",
+                                Instant.parse("2026-06-16T13:03:00Z"), List.of(), Map.of("operatorHint", "check compatibility"))
+                );
+            }
+
+            @Override
+            public PluginMutationStatus refresh() {
+                return new PluginMutationStatus(true, "", "refresh", "", "", "REFRESH_REQUESTED", "",
+                        Map.of("fixture", "phase-08"));
+            }
+
+            @Override
+            public PluginMutationStatus disable(String pluginId, String actor, String reason) {
+                return mutation(pluginId, "disable", "DISABLED");
+            }
+
+            @Override
+            public PluginMutationStatus quarantine(String pluginId, String actor, String reason) {
+                return mutation(pluginId, "quarantine", "QUARANTINED");
+            }
+
+            private PluginMutationStatus mutation(String pluginId, String operation, String resulting) {
+                return new PluginMutationStatus(true, pluginId, operation, "STARTED", resulting, resulting, "",
+                        Map.of("actor", "e2e-user", "reason", "[REDACTED]"));
+            }
+        };
     }
 
     @RestController
