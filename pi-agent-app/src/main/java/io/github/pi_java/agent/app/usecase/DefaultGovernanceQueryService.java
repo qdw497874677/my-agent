@@ -4,6 +4,10 @@ import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.port.extension.ExtensionCapabilityStatus;
 import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.extension.ExtensionSourceStatus;
+import io.github.pi_java.agent.app.port.mcp.McpGovernanceCatalog;
+import io.github.pi_java.agent.app.port.mcp.McpRefreshStatus;
+import io.github.pi_java.agent.app.port.mcp.McpServerStatus;
+import io.github.pi_java.agent.app.port.mcp.McpToolStatus;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
@@ -12,6 +16,10 @@ import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.ExtensionSourceDto;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
+import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
+import io.github.pi_java.agent.client.admin.McpRefreshResponse;
+import io.github.pi_java.agent.client.admin.McpServerDto;
+import io.github.pi_java.agent.client.admin.McpToolDto;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import java.time.Clock;
@@ -24,6 +32,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
     private final ModelProviderRegistry modelProviderRegistry;
     private final ToolRegistry toolRegistry;
     private final ExtensionGovernanceCatalog extensionGovernanceCatalog;
+    private final McpGovernanceCatalog mcpGovernanceCatalog;
     private final Optional<AgentRuntime> agentRuntime;
     private final Clock clock;
 
@@ -31,12 +40,15 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
             ModelProviderRegistry modelProviderRegistry,
             ToolRegistry toolRegistry,
             ExtensionGovernanceCatalog extensionGovernanceCatalog,
+            McpGovernanceCatalog mcpGovernanceCatalog,
             Optional<AgentRuntime> agentRuntime,
             Clock clock) {
         this.modelProviderRegistry = Objects.requireNonNull(modelProviderRegistry, "modelProviderRegistry must not be null");
         this.toolRegistry = Objects.requireNonNull(toolRegistry, "toolRegistry must not be null");
         this.extensionGovernanceCatalog = Objects.requireNonNull(extensionGovernanceCatalog,
                 "extensionGovernanceCatalog must not be null");
+        this.mcpGovernanceCatalog = Objects.requireNonNull(mcpGovernanceCatalog,
+                "mcpGovernanceCatalog must not be null");
         this.agentRuntime = Objects.requireNonNull(agentRuntime, "agentRuntime must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
@@ -49,7 +61,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 providerStatus(),
                 toolRegistryStatus(),
                 extensionStatus(),
-                futureStatus("mcp", "UNCONFIGURED", "Remote MCP governance arrives in Phase 7"),
+                mcpStatus(),
                 futureStatus("plugins", "FUTURE_ENABLED", "Dynamic plugin governance arrives in Phase 8"),
                 policyDecisions(context),
                 audits(context),
@@ -62,6 +74,28 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
         return new ExtensionGovernanceResponse(extensionGovernanceCatalog.sources().stream()
                 .map(DefaultGovernanceQueryService::toSourceDto)
                 .toList());
+    }
+
+    @Override
+    public McpGovernanceResponse mcp(RequestContext context) {
+        Objects.requireNonNull(context, "context must not be null");
+        return new McpGovernanceResponse(mcpGovernanceCatalog.servers().stream()
+                .map(DefaultGovernanceQueryService::toMcpServerDto)
+                .toList());
+    }
+
+    @Override
+    public McpRefreshResponse refreshMcp(RequestContext context) {
+        Objects.requireNonNull(context, "context must not be null");
+        McpRefreshStatus status = mcpGovernanceCatalog.refresh();
+        return new McpRefreshResponse(
+                status.refreshed(),
+                status.serverCount(),
+                status.refreshedServerCount(),
+                status.failedServerCount(),
+                status.status(),
+                status.redactedError(),
+                status.metadata());
     }
 
     @Override
@@ -135,6 +169,32 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                         "unhealthySources", Long.toString(unhealthySources)));
     }
 
+    private GovernanceStatusDto mcpStatus() {
+        List<McpServerStatus> servers = mcpGovernanceCatalog.servers();
+        int toolCount = servers.stream().mapToInt(McpServerStatus::toolCount).sum();
+        long disabledServers = servers.stream().filter(server -> !server.enabled()).count();
+        long unhealthyServers = servers.stream()
+                .filter(server -> "UNAVAILABLE".equals(server.connectionStatus())
+                        || "AUTH_FAILED".equals(server.connectionStatus())
+                        || "DISCOVERY_FAILED".equals(server.discoveryStatus()))
+                .count();
+        String message = servers.isEmpty()
+                ? "No MCP servers are configured"
+                : "MCP governance catalog is available";
+        return new GovernanceStatusDto(
+                "mcp",
+                mcpGovernanceCatalog.overallStatus(),
+                message,
+                servers.size(),
+                Map.of(
+                        "surface", "read-only",
+                        "mutation", "disabled",
+                        "servers", Integer.toString(servers.size()),
+                        "tools", Integer.toString(toolCount),
+                        "disabledServers", Long.toString(disabledServers),
+                        "unhealthyServers", Long.toString(unhealthyServers)));
+    }
+
     private static ExtensionSourceDto toSourceDto(ExtensionSourceStatus source) {
         return new ExtensionSourceDto(
                 source.sourceId(),
@@ -162,6 +222,35 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 capability.compatibilityStatus(),
                 capability.healthStatus(),
                 capability.metadata());
+    }
+
+    private static McpServerDto toMcpServerDto(McpServerStatus server) {
+        return new McpServerDto(
+                server.serverId(),
+                server.name(),
+                server.enabled(),
+                server.transport(),
+                server.authSummary(),
+                server.connectionStatus(),
+                server.discoveryStatus(),
+                server.toolCount(),
+                server.lastRefreshedAt(),
+                server.redactedError(),
+                server.tools().stream().map(DefaultGovernanceQueryService::toMcpToolDto).toList(),
+                server.metadata());
+    }
+
+    private static McpToolDto toMcpToolDto(McpToolStatus tool) {
+        return new McpToolDto(
+                tool.serverQualifiedToolId(),
+                tool.mcpToolName(),
+                tool.availabilityStatus(),
+                tool.readOnly(),
+                tool.destructive(),
+                tool.openWorld(),
+                tool.schemaSummary(),
+                tool.redactedError(),
+                tool.metadata());
     }
 
     private static GovernanceStatusDto futureStatus(String area, String status, String message) {
