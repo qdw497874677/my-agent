@@ -1,5 +1,6 @@
 package io.github.pi_java.agent.adapter.web.ui.admin;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
@@ -12,6 +13,9 @@ import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.ExtensionSourceDto;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
+import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
+import io.github.pi_java.agent.client.admin.McpServerDto;
+import io.github.pi_java.agent.client.admin.McpToolDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +51,18 @@ public class AdminRegistryStatusView extends Div {
         return httpClient.adminExtensionGovernancePath();
     }
 
+    public String mcpGovernancePath() {
+        return httpClient.adminMcpGovernancePath();
+    }
+
+    public String mcpRefreshPath() {
+        return httpClient.adminMcpRefreshPath();
+    }
+
+    public String mcpRefreshActionText() {
+        return "Refresh MCP discovery via " + mcpRefreshPath();
+    }
+
     public void showOverview(GovernanceOverviewResponse overview) {
         Objects.requireNonNull(overview, "overview must not be null");
         renderedLines.clear();
@@ -77,6 +93,32 @@ public class AdminRegistryStatusView extends Div {
         }
         for (ExtensionSourceDto source : extensions.sources()) {
             addExtensionSource(source);
+        }
+    }
+
+    public void showMcpGovernance(McpGovernanceResponse governance) {
+        Objects.requireNonNull(governance, "governance must not be null");
+        renderedLines.clear();
+        removeAll();
+        add(new H2("MCP Governance"));
+        add(new Span("Remote MCP server and tool status is inspect-only; server configuration CRUD remains disabled."));
+        Button refresh = new Button("Refresh MCP discovery");
+        refresh.getElement().setAttribute("data-action-plan", "POST");
+        refresh.getElement().setAttribute("data-action-path", mcpRefreshPath());
+        refresh.getElement().setAttribute("data-read-only-refresh", "true");
+        add(refresh);
+        renderedLines.add(mcpRefreshActionText());
+        if (governance.servers().isEmpty()) {
+            String text = "MCP: UNCONFIGURED | servers=0 | mutation=disabled";
+            renderedLines.add(text);
+            Div empty = new Div(new H3("No MCP servers"), new Span(text));
+            empty.getElement().setAttribute("data-governance-area", "mcp");
+            empty.getElement().setAttribute("data-read-only", "true");
+            add(empty);
+            return;
+        }
+        for (McpServerDto server : governance.servers()) {
+            addMcpServer(server);
         }
     }
 
@@ -148,6 +190,49 @@ public class AdminRegistryStatusView extends Div {
         Div row = new Div(new Span(text));
         row.getElement().setAttribute("data-extension-capability", capability.capabilityId());
         row.getElement().setAttribute("data-capability-type", capability.type());
+        row.getElement().setAttribute("data-read-only", "true");
+        add(row);
+    }
+
+    private void addMcpServer(McpServerDto server) {
+        String text = "MCP Server: " + safe(server.serverId())
+                + " | name=" + safe(server.name())
+                + " | enabled=" + server.enabled()
+                + " | transport=" + safe(server.transport())
+                + " | connection=" + safe(server.connectionStatus())
+                + " | discovery=" + safe(server.discoveryStatus())
+                + " | auth=" + safe(server.authSummary())
+                + " | tools=" + server.toolCount()
+                + " | lastRefresh=" + (server.lastRefreshedAt() == null ? "never" : server.lastRefreshedAt())
+                + " | error=" + safe(server.redactedError())
+                + " | " + metadata(server.metadata());
+        renderedLines.add(text);
+        Div card = new Div(new H3(server.name()), new Span(text));
+        card.getElement().setAttribute("data-governance-area", "mcp");
+        card.getElement().setAttribute("data-mcp-server", server.serverId());
+        card.getElement().setAttribute("data-mcp-connection", server.connectionStatus());
+        card.getElement().setAttribute("data-mcp-discovery", server.discoveryStatus());
+        card.getElement().setAttribute("data-read-only", "true");
+        add(card);
+        for (McpToolDto tool : server.tools()) {
+            addMcpTool(tool);
+        }
+    }
+
+    private void addMcpTool(McpToolDto tool) {
+        String text = "MCP Tool: " + safe(tool.serverQualifiedToolId())
+                + " | name=" + safe(tool.mcpToolName())
+                + " | availability=" + safe(tool.availabilityStatus())
+                + " | readOnly=" + tool.readOnly()
+                + " | destructive=" + tool.destructive()
+                + " | openWorld=" + tool.openWorld()
+                + " | schema=" + safe(tool.schemaSummary())
+                + " | error=" + safe(tool.redactedError())
+                + " | " + metadata(tool.metadata());
+        renderedLines.add(text);
+        Div row = new Div(new Span(text));
+        row.getElement().setAttribute("data-mcp-tool", tool.serverQualifiedToolId());
+        row.getElement().setAttribute("data-mcp-tool-availability", tool.availabilityStatus());
         row.getElement().setAttribute("data-read-only", "true");
         add(row);
     }
