@@ -2,6 +2,9 @@ package io.github.pi_java.agent.infrastructure.mcp.registry;
 
 import io.github.pi_java.agent.infrastructure.mcp.config.McpAuthProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
+import io.github.pi_java.agent.domain.tool.ToolProvenance;
+import io.github.pi_java.agent.domain.tool.ToolRiskLevel;
+import io.github.pi_java.agent.domain.tool.ToolSideEffect;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 
@@ -56,10 +59,61 @@ class McpToolRegistryTest {
         });
     }
 
+    @Test
+    void mapsMcpToolsToServerQualifiedDescriptorsWithSchemaPassthroughAndPolicyHints() {
+        McpServerProperties server = new McpServerProperties(
+                "github", true, "GitHub MCP", io.github.pi_java.agent.infrastructure.mcp.config.McpTransportKind.STREAMABLE_HTTP,
+                "https://mcp.example.test", "/mcp", null, List.of(), Map.of(), Duration.ofSeconds(12),
+                McpAuthProperties.none(), Map.of("owner", "platform"));
+        McpToolDescriptorMapper mapper = new McpToolDescriptorMapper();
+        McpSchema.Tool readOnlyTool = tool("search", "Search repositories",
+                Map.of("type", "object", "properties", Map.of("query", Map.of("type", "string")), "required", List.of("query")),
+                new McpSchema.ToolAnnotations("Search", true, false, true, false, null));
+
+        var descriptor = mapper.toDescriptor(server, new McpServerRegistry.DiscoveredTool(readOnlyTool, true, ""));
+
+        assertThat(descriptor.id()).isEqualTo("mcp.github.search");
+        assertThat(descriptor.name()).isEqualTo("search");
+        assertThat(descriptor.inputSchema().dialect()).isEqualTo("json-schema");
+        assertThat(descriptor.inputSchema().document())
+                .containsEntry("type", "object")
+                .containsKey("properties")
+                .containsEntry("required", List.of("query"));
+        assertThat(descriptor.outputSchema()).isEmpty();
+        assertThat(descriptor.provenance().sourceKind()).isEqualTo(ToolProvenance.SourceKind.MCP);
+        assertThat(descriptor.provenance().sourceId()).isEqualTo("github");
+        assertThat(descriptor.provenance().bindingRef()).isEqualTo("mcp:github:search");
+        assertThat(descriptor.version()).isEqualTo("mcp");
+        assertThat(descriptor.scopes()).containsExactlyInAnyOrder("tool:mcp", "mcp:server:github", "mcp:tool:github:search");
+        assertThat(descriptor.riskLevel()).isEqualTo(ToolRiskLevel.LOW);
+        assertThat(descriptor.sideEffect()).isEqualTo(ToolSideEffect.READ_ONLY);
+        assertThat(descriptor.defaultTimeout()).isEqualTo(Duration.ofSeconds(12));
+        assertThat(descriptor.metadata())
+                .containsEntry("mcp.serverId", "github")
+                .containsEntry("mcp.toolName", "search")
+                .containsEntry("mcp.readOnlyHint", true)
+                .containsEntry("mcp.destructiveHint", false)
+                .containsEntry("mcp.idempotentHint", true)
+                .containsEntry("mcp.openWorldHint", false)
+                .containsEntry("mcp.remote", true)
+                .containsEntry("mcp.external", true);
+
+        var destructive = mapper.toDescriptor(server, new McpServerRegistry.DiscoveredTool(
+                tool("delete_repo", "Delete repository", Map.of("type", "object"),
+                        new McpSchema.ToolAnnotations("Delete", false, true, false, true, null)), true, ""));
+        assertThat(destructive.riskLevel()).isEqualTo(ToolRiskLevel.HIGH);
+        assertThat(destructive.sideEffect()).isEqualTo(ToolSideEffect.DESTRUCTIVE);
+        assertThat(destructive.metadata()).containsEntry("mcp.openWorldHint", true);
+    }
+
     private static McpSchema.Tool tool(String name, String description, Map<String, Object> inputSchema,
                                       McpSchema.ToolAnnotations annotations) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) inputSchema.getOrDefault("properties", Map.of());
+        @SuppressWarnings("unchecked")
+        List<String> required = (List<String>) inputSchema.getOrDefault("required", List.of());
         return new McpSchema.Tool(name, null, description,
-                new McpSchema.JsonSchema((String) inputSchema.getOrDefault("type", "object"), Map.of(), List.of(), null, Map.of(), Map.of()),
+                new McpSchema.JsonSchema((String) inputSchema.getOrDefault("type", "object"), properties, required, null, Map.of(), Map.of()),
                 null, annotations, Map.of());
     }
 
