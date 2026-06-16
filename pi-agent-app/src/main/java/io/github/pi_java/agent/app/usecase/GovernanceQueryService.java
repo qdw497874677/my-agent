@@ -7,6 +7,9 @@ import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
+import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
+import io.github.pi_java.agent.client.admin.PluginMutationRequest;
+import io.github.pi_java.agent.client.admin.PluginMutationResponse;
 import java.util.List;
 
 public interface GovernanceQueryService {
@@ -18,6 +21,14 @@ public interface GovernanceQueryService {
     McpGovernanceResponse mcp(RequestContext context);
 
     McpRefreshResponse refreshMcp(RequestContext context);
+
+    PluginGovernanceResponse plugins(RequestContext context);
+
+    PluginMutationResponse refreshPlugins(RequestContext context);
+
+    PluginMutationResponse disablePlugin(RequestContext context, String pluginId, PluginMutationRequest request);
+
+    PluginMutationResponse quarantinePlugin(RequestContext context, String pluginId, PluginMutationRequest request);
 
     List<PolicyDecisionSummaryDto> policyDecisions(RequestContext context);
 

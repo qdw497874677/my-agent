@@ -7,6 +7,7 @@ import io.github.pi_java.agent.app.port.extension.ExtensionCapabilityStatus;
 import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.extension.ExtensionSourceStatus;
 import io.github.pi_java.agent.app.port.mcp.McpGovernanceCatalog;
+import io.github.pi_java.agent.app.port.plugin.EmptyPluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
@@ -75,6 +76,7 @@ class DefaultGovernanceQueryServiceExtensionTest {
                 },
                 extensionCatalog,
                 new McpGovernanceCatalog.EmptyMcpGovernanceCatalog(),
+                new EmptyPluginGovernanceCatalog(),
                 Optional.empty(),
                 Clock.fixed(Instant.parse("2026-06-15T12:00:00Z"), ZoneOffset.UTC));
     }

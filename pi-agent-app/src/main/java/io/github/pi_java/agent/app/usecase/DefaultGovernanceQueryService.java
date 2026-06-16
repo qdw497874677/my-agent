@@ -9,6 +9,10 @@ import io.github.pi_java.agent.app.port.mcp.McpRefreshStatus;
 import io.github.pi_java.agent.app.port.mcp.McpServerStatus;
 import io.github.pi_java.agent.app.port.mcp.McpToolStatus;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
+import io.github.pi_java.agent.app.port.plugin.PluginCapabilityStatus;
+import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
+import io.github.pi_java.agent.app.port.plugin.PluginMutationStatus;
+import io.github.pi_java.agent.app.port.plugin.PluginSourceStatus;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
@@ -21,6 +25,11 @@ import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.McpServerDto;
 import io.github.pi_java.agent.client.admin.McpToolDto;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
+import io.github.pi_java.agent.client.admin.PluginCapabilityDto;
+import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
+import io.github.pi_java.agent.client.admin.PluginMutationRequest;
+import io.github.pi_java.agent.client.admin.PluginMutationResponse;
+import io.github.pi_java.agent.client.admin.PluginSourceDto;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import java.time.Clock;
 import java.util.List;
@@ -33,6 +42,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
     private final ToolRegistry toolRegistry;
     private final ExtensionGovernanceCatalog extensionGovernanceCatalog;
     private final McpGovernanceCatalog mcpGovernanceCatalog;
+    private final PluginGovernanceCatalog pluginGovernanceCatalog;
     private final Optional<AgentRuntime> agentRuntime;
     private final Clock clock;
 
@@ -41,6 +51,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
             ToolRegistry toolRegistry,
             ExtensionGovernanceCatalog extensionGovernanceCatalog,
             McpGovernanceCatalog mcpGovernanceCatalog,
+            PluginGovernanceCatalog pluginGovernanceCatalog,
             Optional<AgentRuntime> agentRuntime,
             Clock clock) {
         this.modelProviderRegistry = Objects.requireNonNull(modelProviderRegistry, "modelProviderRegistry must not be null");
@@ -49,6 +60,8 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 "extensionGovernanceCatalog must not be null");
         this.mcpGovernanceCatalog = Objects.requireNonNull(mcpGovernanceCatalog,
                 "mcpGovernanceCatalog must not be null");
+        this.pluginGovernanceCatalog = Objects.requireNonNull(pluginGovernanceCatalog,
+                "pluginGovernanceCatalog must not be null");
         this.agentRuntime = Objects.requireNonNull(agentRuntime, "agentRuntime must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
@@ -62,7 +75,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 toolRegistryStatus(),
                 extensionStatus(),
                 mcpStatus(),
-                futureStatus("plugins", "FUTURE_ENABLED", "Dynamic plugin governance arrives in Phase 8"),
+                pluginStatus(),
                 policyDecisions(context),
                 audits(context),
                 clock.instant());
@@ -96,6 +109,34 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 status.status(),
                 status.redactedError(),
                 status.metadata());
+    }
+
+    @Override
+    public PluginGovernanceResponse plugins(RequestContext context) {
+        Objects.requireNonNull(context, "context must not be null");
+        return new PluginGovernanceResponse(pluginGovernanceCatalog.plugins().stream()
+                .map(DefaultGovernanceQueryService::toPluginSourceDto)
+                .toList());
+    }
+
+    @Override
+    public PluginMutationResponse refreshPlugins(RequestContext context) {
+        Objects.requireNonNull(context, "context must not be null");
+        return toPluginMutationResponse(pluginGovernanceCatalog.refresh());
+    }
+
+    @Override
+    public PluginMutationResponse disablePlugin(RequestContext context, String pluginId, PluginMutationRequest request) {
+        Objects.requireNonNull(context, "context must not be null");
+        Objects.requireNonNull(request, "request must not be null");
+        return toPluginMutationResponse(pluginGovernanceCatalog.disable(pluginId, actor(context), request.reason()));
+    }
+
+    @Override
+    public PluginMutationResponse quarantinePlugin(RequestContext context, String pluginId, PluginMutationRequest request) {
+        Objects.requireNonNull(context, "context must not be null");
+        Objects.requireNonNull(request, "request must not be null");
+        return toPluginMutationResponse(pluginGovernanceCatalog.quarantine(pluginId, actor(context), request.reason()));
     }
 
     @Override
@@ -195,6 +236,41 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                         "unhealthyServers", Long.toString(unhealthyServers)));
     }
 
+    private GovernanceStatusDto pluginStatus() {
+        List<PluginSourceStatus> plugins = pluginGovernanceCatalog.plugins();
+        int capabilityCount = plugins.stream().mapToInt(PluginSourceStatus::capabilityCount).sum();
+        long disabledPlugins = plugins.stream()
+                .filter(plugin -> "DISABLED".equals(plugin.lifecycleStatus()))
+                .count();
+        long quarantinedPlugins = plugins.stream()
+                .filter(plugin -> "QUARANTINED".equals(plugin.lifecycleStatus()))
+                .count();
+        long incompatiblePlugins = plugins.stream()
+                .filter(plugin -> "INCOMPATIBLE".equals(plugin.compatibilityStatus()))
+                .count();
+        long failedPlugins = plugins.stream()
+                .filter(plugin -> "FAILED".equals(plugin.lifecycleStatus())
+                        || "UNHEALTHY".equals(plugin.healthStatus()))
+                .count();
+        String message = plugins.isEmpty()
+                ? "No plugin sources are configured"
+                : "Plugin governance catalog is available";
+        return new GovernanceStatusDto(
+                "plugins",
+                pluginGovernanceCatalog.overallStatus(),
+                message,
+                plugins.size(),
+                Map.of(
+                        "surface", "plugin-governance",
+                        "mutation", "refresh,disable,quarantine",
+                        "plugins", Integer.toString(plugins.size()),
+                        "capabilities", Integer.toString(capabilityCount),
+                        "disabledPlugins", Long.toString(disabledPlugins),
+                        "quarantinedPlugins", Long.toString(quarantinedPlugins),
+                        "incompatiblePlugins", Long.toString(incompatiblePlugins),
+                        "failedPlugins", Long.toString(failedPlugins)));
+    }
+
     private static ExtensionSourceDto toSourceDto(ExtensionSourceStatus source) {
         return new ExtensionSourceDto(
                 source.sourceId(),
@@ -253,7 +329,55 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 tool.metadata());
     }
 
-    private static GovernanceStatusDto futureStatus(String area, String status, String message) {
-        return new GovernanceStatusDto(area, status, message, 0, Map.of("surface", "placeholder", "mutation", "disabled"));
+    private static PluginSourceDto toPluginSourceDto(PluginSourceStatus plugin) {
+        return new PluginSourceDto(
+                plugin.pluginId(),
+                plugin.name(),
+                plugin.version(),
+                plugin.vendor(),
+                plugin.sourceKind(),
+                plugin.lifecycleStatus(),
+                plugin.enabled(),
+                plugin.healthStatus(),
+                plugin.compatibilityStatus(),
+                plugin.capabilityCount(),
+                plugin.capabilityStatusCounts(),
+                plugin.redactedError(),
+                plugin.relativePathSummary(),
+                plugin.reason(),
+                plugin.lastUpdatedAt(),
+                plugin.capabilities().stream()
+                        .map(DefaultGovernanceQueryService::toPluginCapabilityDto)
+                        .toList(),
+                plugin.metadata());
+    }
+
+    private static PluginCapabilityDto toPluginCapabilityDto(PluginCapabilityStatus capability) {
+        return new PluginCapabilityDto(
+                capability.capabilityId(),
+                capability.type(),
+                capability.status(),
+                capability.version(),
+                capability.pluginId(),
+                capability.enabled(),
+                capability.compatibilityStatus(),
+                capability.healthStatus(),
+                capability.metadata());
+    }
+
+    private static PluginMutationResponse toPluginMutationResponse(PluginMutationStatus status) {
+        return new PluginMutationResponse(
+                status.applied(),
+                status.pluginId(),
+                status.operation(),
+                status.previousLifecycleStatus(),
+                status.resultingLifecycleStatus(),
+                status.status(),
+                status.redactedError(),
+                status.metadata());
+    }
+
+    private static String actor(RequestContext context) {
+        return context.principal().userId();
     }
 }

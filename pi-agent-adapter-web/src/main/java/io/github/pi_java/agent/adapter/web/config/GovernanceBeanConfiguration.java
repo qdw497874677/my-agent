@@ -3,6 +3,8 @@ package io.github.pi_java.agent.adapter.web.config;
 import io.github.pi_java.agent.app.port.extension.ExtensionGovernanceCatalog;
 import io.github.pi_java.agent.app.port.mcp.McpGovernanceCatalog;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
+import io.github.pi_java.agent.app.port.plugin.EmptyPluginGovernanceCatalog;
+import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.app.usecase.DefaultGovernanceQueryService;
 import io.github.pi_java.agent.app.usecase.GovernanceQueryService;
@@ -23,6 +25,7 @@ public class GovernanceBeanConfiguration {
             ToolRegistry toolRegistry,
             ExtensionGovernanceCatalog extensionGovernanceCatalog,
             Optional<McpGovernanceCatalog> mcpGovernanceCatalog,
+            Optional<PluginGovernanceCatalog> pluginGovernanceCatalog,
             Optional<AgentRuntime> agentRuntime,
             Clock clock) {
         return new DefaultGovernanceQueryService(
@@ -30,6 +33,7 @@ public class GovernanceBeanConfiguration {
                 toolRegistry,
                 extensionGovernanceCatalog,
                 mcpGovernanceCatalog.orElseGet(McpGovernanceCatalog.EmptyMcpGovernanceCatalog::new),
+                pluginGovernanceCatalog.orElseGet(EmptyPluginGovernanceCatalog::new),
                 agentRuntime,
                 clock);
     }

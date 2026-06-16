@@ -8,6 +8,7 @@ import io.github.pi_java.agent.app.port.mcp.McpGovernanceCatalog;
 import io.github.pi_java.agent.app.port.mcp.McpRefreshStatus;
 import io.github.pi_java.agent.app.port.mcp.McpServerStatus;
 import io.github.pi_java.agent.app.port.mcp.McpToolStatus;
+import io.github.pi_java.agent.app.port.plugin.EmptyPluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
@@ -155,6 +156,7 @@ class GovernanceQueryServiceMcpTest {
                 },
                 () -> List.of(),
                 mcpCatalog,
+                new EmptyPluginGovernanceCatalog(),
                 Optional.empty(),
                 Clock.fixed(Instant.parse("2026-06-15T12:00:00Z"), ZoneOffset.UTC));
     }
