@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 07
 status: executing
-stopped_at: Completed 07-05-PLAN.md
-last_updated: "2026-06-16T09:22:44.782Z"
+stopped_at: Completed 07-06-PLAN.md
+last_updated: "2026-06-16T09:35:10.963Z"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 59
-  completed_plans: 56
+  completed_plans: 57
 ---
 
 # Project State: Pi Java Agent Platform
@@ -256,6 +256,9 @@ Key findings:
 - [Phase 07]: Plan 05 keeps MCP remote invocation inside pi-agent-infrastructure-mcp; ToolExecutionGateway remains the only governance/audit/policy entry point.
 - [Phase 07]: Plan 05 captures server id and MCP tool name from discovery snapshots in McpToolExecutorBinding so request arguments cannot redirect to arbitrary MCP endpoints or tool names.
 - [Phase 07]: Plan 05 maps MCP errors to stable categories and redacted summaries instead of returning raw remote headers, request bodies, or error bodies.
+- [Phase 07]: Plan 06 keeps MCP SDK/client types in pi-agent-infrastructure-mcp while Adapter Web composes typed properties, registry beans, and App/client governance DTOs.
+- [Phase 07]: Plan 06 primary ToolRegistry composes built-ins first, extension tools second, and MCP tools third so remote tools cannot silently override built-ins.
+- [Phase 07]: Plan 06 exposes Admin MCP refresh as POST /api/admin/governance/mcp/refresh because it triggers rediscovery state only, not server configuration CRUD.
 
 ## Performance Metrics
 
@@ -315,11 +318,12 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P03 | 6m 57s | 3 tasks | 7 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P04 | 10m 57s | 3 tasks | 9 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P05 | 8m | 3 tasks | 9 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P06 | 9m 37s | 3 tasks | 8 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 07-05-PLAN.md
+- **Stopped At:** Completed 07-06-PLAN.md
 
 ## Next Action
 
