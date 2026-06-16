@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-06-16T17:19:59.648Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-06-16T17:30:37.029Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 67
-  completed_plans: 60
+  completed_plans: 61
 ---
 
 # Project State: Pi Java Agent Platform
@@ -267,6 +267,9 @@ Key findings:
 - [Phase 08]: Plan 01 keeps PF4J managed in the root POM but declared only in pi-agent-infrastructure-plugin so core/App/API/starter/MCP/provider modules remain PF4J-free.
 - [Phase 08]: Plan 01 models controlled plugin registry configuration as plain Java records with explicit validation before Spring/Admin binding.
 - [Phase 08]: Plan 01 exposes only controlled-directory-relative or filename-only plugin source summaries with redacted metadata/errors.
+- [Phase 08]: Plan 03 keeps plugin governance behind a dedicated App port and pi-agent-client DTO boundary so PF4J/plugin infrastructure never leaks into App/client APIs.
+- [Phase 08]: Plan 03 limits plugin Admin mutations to refresh, disable, and quarantine; upload/install/delete/upgrade remain deferred.
+- [Phase 08]: Plan 03 replaces the plugin FUTURE_ENABLED overview placeholder with PluginGovernanceCatalog-derived counts for plugins, capabilities, disabled, quarantined, incompatible, and failed plugins.
 
 ## Performance Metrics
 
@@ -330,11 +333,12 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P07 | 5m 08s | 3 tasks | 4 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P08 | 10m 56s | 3 tasks | 7 files |
 | Phase 08-controlled-dynamic-plugin-jars P01 | 5m 54s | 2 tasks | 8 files |
+| Phase 08-controlled-dynamic-plugin-jars P03 | 7m 10s | 2 tasks | 16 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-01-PLAN.md
+- **Stopped At:** Completed 08-03-PLAN.md
 
 ## Next Action
 

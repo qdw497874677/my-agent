@@ -78,8 +78,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLUG-01**: Admin can configure a controlled plugin directory for trusted dynamic plugin JARs.
 - [x] **PLUG-02**: Platform can load plugin descriptors, validate platform/API compatibility, and register plugin-provided capabilities through the same extension registry.
 - [x] **PLUG-03**: Platform tracks plugin lifecycle states including discovered, loaded, started, disabled, failed, and quarantined.
-- [ ] **PLUG-04**: Admin can view plugin metadata, registered capabilities, health, load errors, and compatibility errors in the Admin GUI.
-- [ ] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs.
+- [x] **PLUG-04**: Admin can view plugin metadata, registered capabilities, health, load errors, and compatibility errors in the Admin GUI.
+- [x] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs.
 - [x] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code.
 
 ### Agent Web Console and Admin Governance
@@ -213,8 +213,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-01 | Phase 8 | Complete |
 | PLUG-02 | Phase 8 | Complete |
 | PLUG-03 | Phase 8 | Complete |
-| PLUG-04 | Phase 8 | Pending |
-| PLUG-05 | Phase 8 | Pending |
+| PLUG-04 | Phase 8 | Complete |
+| PLUG-05 | Phase 8 | Complete |
 | PLUG-06 | Phase 8 | Complete |
 | GUI-01 | Phase 5 | Complete — validated by `/api/agents`, catalog cards, browser E2E, and `docs/phase-05-web-console.md` |
 | GUI-02 | Phase 5 | Complete — validated by Console route/action plans, model event assertions, and no-key Playwright E2E |
