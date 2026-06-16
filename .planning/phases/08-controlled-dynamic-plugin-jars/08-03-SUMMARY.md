@@ -83,7 +83,7 @@ Each task was committed atomically:
 3. **Task 2 RED: Map plugin governance through GovernanceQueryService tests** - `572805f` (test)
 4. **Task 2 GREEN: Map plugin governance through GovernanceQueryService** - `b3ca3dd` (feat)
 
-**Plan metadata:** pending final docs commit
+**Plan metadata:** `5053b11` (docs)
 
 ## Files Created/Modified
 
