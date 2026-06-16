@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-06-16T17:47:21.771Z"
+stopped_at: Completed 08-06-PLAN.md
+last_updated: "2026-06-16T17:58:23.739Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 67
-  completed_plans: 63
+  completed_plans: 64
 ---
 
 # Project State: Pi Java Agent Platform
@@ -276,6 +276,9 @@ Key findings:
 - [Phase 08]: Plan 04 binds controlled plugin runtime settings under pi.plugins in Adapter Web and translates them into infrastructure PluginRegistryProperties without leaking PF4J types.
 - [Phase 08]: Plan 04 composes plugin tool capabilities after built-ins, Phase 6 extensions, and Phase 7 MCP tools so plugin tools do not silently override earlier governed sources.
 - [Phase 08]: Plan 04 exposes only status, refresh, disable, and quarantine Admin REST endpoints; plugin upload/install/delete/upgrade remain deferred and unsupported.
+- [Phase 08]: Plan 06 renders plugin disable/quarantine as confirmed POST action plans with optional reason metadata, not as upload/install/delete/upgrade workflows.
+- [Phase 08]: Plan 06 displays JVM classloader isolation as lifecycle/dependency isolation only and explicitly warns that it is not a sandbox for untrusted code.
+- [Phase 08]: Plan 06 uses e2e-profile PluginGovernanceCatalog fixture data so browser smoke remains no-key/no-Docker and public API/UI based.
 
 ## Performance Metrics
 
@@ -342,11 +345,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P03 | 7m 10s | 2 tasks | 16 files |
 | Phase 08-controlled-dynamic-plugin-jars P02 | 9m 03s | 2 tasks | 8 files |
 | Phase 08-controlled-dynamic-plugin-jars P04 | 11m 00s | 2 tasks | 6 files |
+| Phase 08-controlled-dynamic-plugin-jars P06 | 7m 51s | 2 tasks | 5 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-04-PLAN.md
+- **Stopped At:** Completed 08-06-PLAN.md
 
 ## Next Action
 
