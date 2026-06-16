@@ -21,6 +21,10 @@ public final class McpSecretHeaderResolver {
         return new McpSecretHeaderResolver(ref -> Optional.empty());
     }
 
+    public static McpSecretHeaderResolver from(SecretLookup secretLookup) {
+        return new McpSecretHeaderResolver(secretLookup);
+    }
+
     public ResolvedTransportSecrets resolve(McpServerProperties server) {
         Objects.requireNonNull(server, "server must not be null");
         Map<String, String> headers = new LinkedHashMap<>();
