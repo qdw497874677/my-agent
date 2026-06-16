@@ -87,7 +87,7 @@ public final class ConformanceExtensionSources {
 
     public static ToolExtensionCapability workspaceWriteTool(ToolProvenance.SourceKind sourceKind) {
         return new ToolExtensionCapability(TOOL_WORKSPACE_WRITE,
-                descriptor(TOOL_WORKSPACE_WRITE, sourceKind, ToolSideEffect.WRITES_WORKSPACE),
+                descriptor(TOOL_WORKSPACE_WRITE, sourceKind, ToolSideEffect.WORKSPACE_WRITE),
                 (request, cancellationToken) -> new ToolExecutionResult(request.toolCallId(), request.toolId(),
                         ToolExecutionStatus.SUCCESS, "extension workspace write completed", Optional.empty(), Map.of(),
                         Map.of("workspace", "bounded"), Set.of(), Optional.empty(), Duration.ZERO,
