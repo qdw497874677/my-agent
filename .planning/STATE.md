@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-06-16T17:32:54.633Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-06-16T17:47:21.771Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 67
-  completed_plans: 62
+  completed_plans: 63
 ---
 
 # Project State: Pi Java Agent Platform
@@ -273,6 +273,9 @@ Key findings:
 - [Phase 08]: Plan 02 bridges PF4J plugins into ServiceLoaderExtensionDiscovery.DiscoveredSource semantics so DefaultExtensionContributionRegistry remains authoritative for compatibility, duplicate, disabled, ordering, and usable capability rules.
 - [Phase 08]: Plan 02 models plugin disable/quarantine as an infrastructure state overlay affecting new capability resolution only, without promising JVM hot unload or active call interruption.
 - [Phase 08]: Plan 02 exposes plugin provenance through sanitized metadata while keeping raw PF4J wrapper, descriptor, and classloader objects isolated to plugin infrastructure.
+- [Phase 08]: Plan 04 binds controlled plugin runtime settings under pi.plugins in Adapter Web and translates them into infrastructure PluginRegistryProperties without leaking PF4J types.
+- [Phase 08]: Plan 04 composes plugin tool capabilities after built-ins, Phase 6 extensions, and Phase 7 MCP tools so plugin tools do not silently override earlier governed sources.
+- [Phase 08]: Plan 04 exposes only status, refresh, disable, and quarantine Admin REST endpoints; plugin upload/install/delete/upgrade remain deferred and unsupported.
 
 ## Performance Metrics
 
@@ -338,11 +341,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P01 | 5m 54s | 2 tasks | 8 files |
 | Phase 08-controlled-dynamic-plugin-jars P03 | 7m 10s | 2 tasks | 16 files |
 | Phase 08-controlled-dynamic-plugin-jars P02 | 9m 03s | 2 tasks | 8 files |
+| Phase 08-controlled-dynamic-plugin-jars P04 | 11m 00s | 2 tasks | 6 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-03-PLAN.md
+- **Stopped At:** Completed 08-04-PLAN.md
 
 ## Next Action
 
