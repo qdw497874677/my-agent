@@ -48,6 +48,11 @@ import java.nio.file.Path;
 @Import(InMemoryCloudE2EConfiguration.class)
 public class WebConsoleE2EFixtureConfiguration {
 
+    public String pluginFixtureText() {
+        return "Plugin Governance: fake-plugin | sourceKind=PF4J_JAR | lifecycle=STARTED | path=fake-plugin.jar "
+                + "| metadata=redacted | warning=not-a-sandbox";
+    }
+
     @Bean
     @Primary
     AgentRuntime webConsoleE2ERuntime(EventSink eventSink, ToolExecutionGateway toolExecutionGateway) {
