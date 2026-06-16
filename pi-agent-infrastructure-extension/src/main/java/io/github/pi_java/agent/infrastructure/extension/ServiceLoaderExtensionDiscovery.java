@@ -60,7 +60,7 @@ public final class ServiceLoaderExtensionDiscovery {
         return ex.getClass().getSimpleName() + ":" + Integer.toHexString(Objects.toString(ex.getMessage(), "").hashCode());
     }
 
-    static String sanitize(Throwable ex) {
+    public static String sanitize(Throwable ex) {
         String message = Objects.toString(ex.getMessage(), "");
         message = message.replaceAll("(?i)(token|secret|password|key)=[^\\s,;]+", "$1=<redacted>");
         return ex.getClass().getSimpleName() + (message.isBlank() ? "" : ": " + message);
@@ -84,13 +84,13 @@ public final class ServiceLoaderExtensionDiscovery {
             redactedError = redactedError == null ? "" : redactedError;
         }
 
-        static DiscoveredSource discovered(ExtensionSource source) {
+        public static DiscoveredSource discovered(ExtensionSource source) {
             Objects.requireNonNull(source, "source must not be null");
             ExtensionMetadata metadata = source.metadata();
             return new DiscoveredSource(metadata.extensionId(), DiscoveryStatus.DISCOVERED, Optional.of(source), "");
         }
 
-        static DiscoveredSource failed(String sourceId, String redactedError) {
+        public static DiscoveredSource failed(String sourceId, String redactedError) {
             return new DiscoveredSource(sourceId, DiscoveryStatus.FAILED, Optional.empty(), redactedError);
         }
 

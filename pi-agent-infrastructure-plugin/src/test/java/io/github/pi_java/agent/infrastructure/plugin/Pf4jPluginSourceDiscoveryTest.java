@@ -12,13 +12,16 @@ import io.github.pi_java.agent.infrastructure.extension.ExtensionRegistrationPro
 import io.github.pi_java.agent.infrastructure.extension.ServiceLoaderExtensionDiscovery;
 import org.junit.jupiter.api.Test;
 import org.pf4j.DefaultPluginDescriptor;
+import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
+import org.pf4j.RuntimeMode;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.lang.reflect.Proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,11 +93,25 @@ class Pf4jPluginSourceDiscoveryTest {
                                          PluginState state, Throwable failure) {
         DefaultPluginDescriptor descriptor = new DefaultPluginDescriptor(id, description,
                 "io.github.pi_java.agent.test.Plugin", version, "1.0.0", provider, "Apache-2.0");
-        PluginWrapper wrapper = new PluginWrapper(null, descriptor, Path.of("/plugins/%s.jar".formatted(id)),
+        PluginWrapper wrapper = new PluginWrapper(pluginManager(), descriptor, Path.of("/plugins/%s.jar".formatted(id)),
                 Pf4jPluginSourceDiscoveryTest.class.getClassLoader());
         wrapper.setPluginState(state);
         wrapper.setFailedException(failure);
         return wrapper;
+    }
+
+    private static PluginManager pluginManager() {
+        return (PluginManager) Proxy.newProxyInstance(Pf4jPluginSourceDiscoveryTest.class.getClassLoader(),
+                new Class<?>[]{PluginManager.class}, (proxy, method, args) -> {
+                    if ("getRuntimeMode".equals(method.getName())) {
+                        return RuntimeMode.DEPLOYMENT;
+                    }
+                    return switch (method.getReturnType().getName()) {
+                        case "boolean" -> false;
+                        case "int" -> 0;
+                        default -> null;
+                    };
+                });
     }
 
     private static ExtensionSource source(String id, ExtensionCapability... capabilities) {
