@@ -222,6 +222,18 @@ Plans:
 **Requirements:** MCP-01, MCP-02, MCP-03, MCP-04, MCP-05, E2E-08  
 **UI hint**: yes
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Add isolated MCP infrastructure module and trusted server configuration model.
+- [ ] 07-02-PLAN.md — Define MCP governance App ports and public Admin DTOs.
+- [ ] 07-03-PLAN.md — Implement MCP client/transport factory, credential ref injection, and sanitized errors.
+- [ ] 07-04-PLAN.md — Discover MCP tools, normalize descriptors, and expose registry/governance status.
+- [ ] 07-05-PLAN.md — Execute MCP remote tools as governed ToolExecutorBinding instances.
+- [ ] 07-06-PLAN.md — Wire MCP registry and Admin governance REST into Cloud Server.
+- [ ] 07-07-PLAN.md — Render MCP status and refresh in Admin Governance UI.
+- [ ] 07-08-PLAN.md — Add MCP E2E, architecture gates, docs, and traceability.
+
 **Success criteria:**
 1. Admin can configure trusted MCP servers with credential references, transport settings, server allowlists, and network controls.
 2. Platform discovers MCP tools, normalizes their schemas into `ToolDescriptor`, and registers them with provenance/server health.
