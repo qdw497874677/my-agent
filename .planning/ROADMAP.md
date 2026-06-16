@@ -260,7 +260,7 @@ Plans:
 - [x] 08-02-PLAN.md — Bridge PF4J plugins into Pi ExtensionSource discovery with lifecycle disable/quarantine state.
 - [x] 08-03-PLAN.md — Define App/client plugin governance contracts and query/mutation use cases.
 - [x] 08-04-PLAN.md — Wire plugin infrastructure into Cloud Server ToolRegistry and Admin REST.
-- [ ] 08-05-PLAN.md — Add governed plugin tool E2E, disable/quarantine, and redaction coverage.
+- [x] 08-05-PLAN.md — Add governed plugin tool E2E, disable/quarantine, and redaction coverage.
 - [x] 08-06-PLAN.md — Render plugin governance, refresh, disable, and quarantine controls in Admin UI.
 - [ ] 08-07-PLAN.md — Add sample read-only plugin JAR packaging and product-path E2E.
 - [ ] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.

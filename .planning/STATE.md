@@ -5,12 +5,12 @@ milestone_name: milestone
 current_phase: 08
 status: executing
 stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-06-16T17:58:23.739Z"
+last_updated: "2026-06-16T18:05:33.323Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 67
-  completed_plans: 64
+  completed_plans: 65
 ---
 
 # Project State: Pi Java Agent Platform
@@ -279,6 +279,9 @@ Key findings:
 - [Phase 08]: Plan 06 renders plugin disable/quarantine as confirmed POST action plans with optional reason metadata, not as upload/install/delete/upgrade workflows.
 - [Phase 08]: Plan 06 displays JVM classloader isolation as lifecycle/dependency isolation only and explicitly warns that it is not a sandbox for untrusted code.
 - [Phase 08]: Plan 06 uses e2e-profile PluginGovernanceCatalog fixture data so browser smoke remains no-key/no-Docker and public API/UI based.
+- [Phase 08]: Plan 05 uses deterministic fake plugin tool descriptors and bindings for no-key product-path E2E, proving gateway behavior without subprocesses or sample plugin packaging.
+- [Phase 08]: Plan 05 verifies plugin disable/quarantine by rebuilding governance-derived registries to match new-run and new-resolution semantics.
+- [Phase 08]: Plan 05 treats plugin UI fixture text as a redaction public surface and keeps it sanitized.
 
 ## Performance Metrics
 
@@ -346,6 +349,7 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P02 | 9m 03s | 2 tasks | 8 files |
 | Phase 08-controlled-dynamic-plugin-jars P04 | 11m 00s | 2 tasks | 6 files |
 | Phase 08-controlled-dynamic-plugin-jars P06 | 7m 51s | 2 tasks | 5 files |
+| Phase 08-controlled-dynamic-plugin-jars P05 | 15m 20s | 2 tasks | 4 files |
 
 ## Last Session
 
