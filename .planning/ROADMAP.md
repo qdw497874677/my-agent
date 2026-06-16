@@ -253,6 +253,18 @@ Plans:
 **Requirements:** PLUG-01, PLUG-02, PLUG-03, PLUG-04, PLUG-05, PLUG-06, E2E-08  
 **UI hint**: yes
 
+**Plans:** 8 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Add isolated PF4J infrastructure module and typed controlled-directory configuration.
+- [ ] 08-02-PLAN.md — Bridge PF4J plugins into Pi ExtensionSource discovery with lifecycle disable/quarantine state.
+- [ ] 08-03-PLAN.md — Define App/client plugin governance contracts and query/mutation use cases.
+- [ ] 08-04-PLAN.md — Wire plugin infrastructure into Cloud Server ToolRegistry and Admin REST.
+- [ ] 08-05-PLAN.md — Add governed plugin tool E2E, disable/quarantine, and redaction coverage.
+- [ ] 08-06-PLAN.md — Render plugin governance, refresh, disable, and quarantine controls in Admin UI.
+- [ ] 08-07-PLAN.md — Add sample read-only plugin JAR packaging and product-path E2E.
+- [ ] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
+
 **Success criteria:**
 1. Admin can configure a controlled plugin directory for trusted plugin JARs.
 2. Platform loads descriptors, validates API/platform compatibility, and registers capabilities through the extension registry.
