@@ -75,8 +75,11 @@ class PluginToolRegistryWiringTest {
     void pluginToolRegistryIsComposedAfterBuiltinsAndKeepsPluginProvenance() {
         assertThat(pluginToolRegistry.listTools()).extracting(ToolDescriptor::id).containsExactly("plugin.fake.read");
 
-        assertThat(toolRegistry.listTools()).extracting(ToolDescriptor::id)
-                .containsSubsequence("builtin.info", "builtin.workspace.write", "builtin.workspace.command", "plugin.fake.read");
+        List<String> toolIds = toolRegistry.listTools().stream().map(ToolDescriptor::id).toList();
+        assertThat(toolIds).contains("builtin.info", "builtin.workspace.write", "builtin.workspace.command", "plugin.fake.read");
+        assertThat(toolIds.indexOf("plugin.fake.read")).isGreaterThan(toolIds.indexOf("builtin.info"));
+        assertThat(toolIds.indexOf("plugin.fake.read")).isGreaterThan(toolIds.indexOf("builtin.workspace.write"));
+        assertThat(toolIds.indexOf("plugin.fake.read")).isGreaterThan(toolIds.indexOf("builtin.workspace.command"));
         assertThat(toolRegistry.resolve("plugin.fake.read")).isPresent().get().satisfies(resolution -> {
             assertThat(resolution.descriptor().provenance().sourceKind()).isEqualTo(ToolProvenance.SourceKind.PLUGIN);
             assertThat(resolution.descriptor().provenance().metadata())
@@ -125,9 +128,11 @@ class PluginToolRegistryWiringTest {
                             Map.of("sourceKind", "PLUGIN", "version", "1.0.0")));
                 }
             };
+            PluginCompatibilitySummary compatibility = PluginCompatibilitySummary.compatible("1.0.0..2.0.0", "1.0.0");
             PluginDescriptorSummary descriptor = new PluginDescriptorSummary("fake-plugin", "Fake Plugin", "1.0.0",
-                    "Pi Test", "fake-plugin.jar", new PluginCompatibilitySummary(true, "COMPATIBLE", ""), Map.of());
-            PluginLifecycleSummary lifecycle = new PluginLifecycleSummary(ExtensionLifecycleState.STARTED, true, "");
+                    "Pi Test", "fake-plugin.jar", compatibility, Map.of());
+            PluginLifecycleSummary lifecycle = PluginLifecycleSummary.of("fake-plugin", ExtensionLifecycleState.STARTED,
+                    compatibility, true);
             return new Pf4jPluginSourceDiscovery.PluginDiscoveredSource("fake-plugin", descriptor, lifecycle,
                     ServiceLoaderExtensionDiscovery.DiscoveredSource.discovered(source));
         }
@@ -137,12 +142,12 @@ class PluginToolRegistryWiringTest {
             return new ToolDescriptor("plugin.fake.read", "Fake plugin read", "Safe read-only plugin tool", schema,
                     Optional.empty(), new ToolProvenance(ToolProvenance.SourceKind.PLUGIN, "fake-plugin",
                     "plugin.fake.read", Map.of()), "1.0.0", Set.of("tool:read"), ToolRiskLevel.LOW,
-                    ToolSideEffect.NONE, Duration.ofSeconds(2), Map.of());
+                    ToolSideEffect.READ_ONLY, Duration.ofSeconds(2), Map.of());
         }
 
         private static ToolExecutorBinding binding() {
             return (request, cancellationToken) -> new ToolExecutionResult(request.toolCallId(), request.toolId(),
-                    ToolExecutionStatus.SUCCEEDED, "ok", Optional.empty(), request.arguments(), Map.of("ok", true),
+                    ToolExecutionStatus.SUCCESS, "ok", Optional.empty(), request.arguments(), Map.of("ok", true),
                     Set.of(), Optional.empty(), Duration.ZERO, Optional.of(Map.of("ok", true)));
         }
     }

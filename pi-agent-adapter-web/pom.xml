@@ -41,6 +41,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.pi_java</groupId>
+            <artifactId>pi-agent-infrastructure-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.pi_java</groupId>
             <artifactId>pi-agent-spring-boot-starter</artifactId>
             <version>${project.version}</version>
         </dependency>

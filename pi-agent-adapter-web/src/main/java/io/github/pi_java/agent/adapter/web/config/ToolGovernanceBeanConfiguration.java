@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,13 +88,15 @@ public class ToolGovernanceBeanConfiguration {
     @ConditionalOnMissingBean(name = "toolRegistry")
     @Primary
     ToolRegistry toolRegistry(BuiltinToolCatalog builtinToolCatalog,
-                               Optional<DefaultExtensionContributionRegistry> extensionContributions,
-                               Optional<McpToolRegistry> mcpToolRegistry) {
+                                Optional<DefaultExtensionContributionRegistry> extensionContributions,
+                                Optional<McpToolRegistry> mcpToolRegistry,
+                                @Qualifier("pluginToolRegistry") Optional<ToolRegistry> pluginToolRegistry) {
         ToolRegistry builtins = builtinToolCatalog.registry();
         java.util.ArrayList<ToolRegistry> registries = new java.util.ArrayList<>();
         registries.add(builtins);
         extensionContributions.ifPresent(contributions -> registries.add(new ExtensionToolRegistry(contributions)));
         mcpToolRegistry.ifPresent(registries::add);
+        pluginToolRegistry.ifPresent(registries::add);
         return registries.size() == 1 ? builtins : new CompositeToolRegistry(registries);
     }
 
