@@ -58,6 +58,8 @@ public final class McpClientFactory {
     interface InitializedClient extends AutoCloseable {
         List<McpSchema.Tool> listTools();
 
+        McpSchema.CallToolResult callTool(McpSchema.CallToolRequest request);
+
         @Override
         void close();
     }
@@ -84,6 +86,11 @@ public final class McpClientFactory {
                 @Override
                 public List<McpSchema.Tool> listTools() {
                     return client.listTools().tools();
+                }
+
+                @Override
+                public McpSchema.CallToolResult callTool(McpSchema.CallToolRequest request) {
+                    return client.callTool(request);
                 }
 
                 @Override

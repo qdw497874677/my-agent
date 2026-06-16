@@ -1,28 +1,37 @@
 package io.github.pi_java.agent.infrastructure.mcp.registry;
 
-import io.github.pi_java.agent.app.port.tool.ToolExecutorBinding;
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
-import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.github.pi_java.agent.domain.tool.ToolDescriptor;
-import io.github.pi_java.agent.domain.tool.ToolExecutionRequest;
-import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
-import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
+import io.github.pi_java.agent.infrastructure.mcp.client.McpClientFactory;
+import io.github.pi_java.agent.infrastructure.mcp.client.McpSecretHeaderResolver;
+import io.github.pi_java.agent.infrastructure.mcp.invocation.McpToolExecutorBinding;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 public final class McpToolRegistry implements ToolRegistry {
     private final McpServerRegistry serverRegistry;
     private final McpToolDescriptorMapper mapper;
-    private final ToolExecutorBinding deferredExecutor = new DeferredMcpToolExecutorBinding();
+    private final ToolBindingFactory bindingFactory;
 
-    public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper) {
+    public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpSecretHeaderResolver secretResolver) {
+        this(serverRegistry, mapper, new McpClientFactory(secretResolver));
+    }
+
+    McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper,
+                    McpToolExecutorBinding.InvocationClientFactory invocationClientFactory) {
+        this(serverRegistry, mapper, new McpToolExecutorBindingFactory(invocationClientFactory));
+    }
+
+    public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpClientFactory clientFactory) {
+        this(serverRegistry, mapper, new McpClientToolBindingFactory(clientFactory));
+    }
+
+    private McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, ToolBindingFactory bindingFactory) {
         this.serverRegistry = Objects.requireNonNull(serverRegistry, "serverRegistry must not be null");
         this.mapper = Objects.requireNonNull(mapper, "mapper must not be null");
+        this.bindingFactory = Objects.requireNonNull(bindingFactory, "bindingFactory must not be null");
     }
 
     @Override
@@ -40,20 +49,40 @@ public final class McpToolRegistry implements ToolRegistry {
         if (toolId == null || toolId.isBlank()) {
             return Optional.empty();
         }
-        return listTools().stream()
-                .filter(descriptor -> descriptor.id().equals(toolId))
-                .findFirst()
-                .map(descriptor -> new ToolResolution(descriptor, deferredExecutor));
+        return serverRegistry.snapshots().stream()
+                .filter(snapshot -> "DISCOVERED".equals(snapshot.discoveryStatus()))
+                .flatMap(snapshot -> snapshot.tools().stream()
+                        .filter(McpServerRegistry.DiscoveredTool::available)
+                        .filter(tool -> mapper.toDescriptor(snapshot.server(), tool).id().equals(toolId))
+                        .map(tool -> new ToolResolution(mapper.toDescriptor(snapshot.server(), tool),
+                                bindingFactory.create(snapshot.server(), tool.name()))))
+                .findFirst();
     }
 
-    private static final class DeferredMcpToolExecutorBinding implements ToolExecutorBinding {
+    private interface ToolBindingFactory {
+        McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName);
+    }
+
+    private record McpClientToolBindingFactory(McpClientFactory clientFactory) implements ToolBindingFactory {
+        private McpClientToolBindingFactory {
+            Objects.requireNonNull(clientFactory, "clientFactory must not be null");
+        }
+
         @Override
-        public ToolExecutionResult execute(ToolExecutionRequest request, CancellationToken cancellationToken) {
-            String toolCallId = request == null ? "mcp-deferred" : request.toolCallId();
-            String toolId = request == null ? "mcp.deferred" : request.toolId();
-            return new ToolExecutionResult(toolCallId, toolId, ToolExecutionStatus.FAILED,
-                    "MCP remote execution is deferred to the governed execution adapter in Plan 07-05.",
-                    "MCP_EXECUTION_DEFERRED", Map.of("source", "mcp"), Map.of(), Set.of(), null, Duration.ZERO);
+        public McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
+            return new McpToolExecutorBinding(server, toolName, clientFactory);
+        }
+    }
+
+    private record McpToolExecutorBindingFactory(McpToolExecutorBinding.InvocationClientFactory invocationClientFactory)
+            implements ToolBindingFactory {
+        private McpToolExecutorBindingFactory {
+            Objects.requireNonNull(invocationClientFactory, "invocationClientFactory must not be null");
+        }
+
+        @Override
+        public McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
+            return new McpToolExecutorBinding(server, toolName, invocationClientFactory);
         }
     }
 }

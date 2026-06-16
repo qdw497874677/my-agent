@@ -33,6 +33,10 @@ public final class McpClientHandle implements AutoCloseable {
         return client.listTools();
     }
 
+    public McpSchema.CallToolResult callTool(McpSchema.CallToolRequest request) {
+        return client.callTool(Objects.requireNonNull(request, "request must not be null"));
+    }
+
     @Override
     public void close() {
         client.close();

@@ -124,6 +124,11 @@ class McpClientFactoryTest {
         }
 
         @Override
+        public McpSchema.CallToolResult callTool(McpSchema.CallToolRequest request) {
+            return new McpSchema.CallToolResult(List.of(), false);
+        }
+
+        @Override
         public void close() {
             closed = true;
         }

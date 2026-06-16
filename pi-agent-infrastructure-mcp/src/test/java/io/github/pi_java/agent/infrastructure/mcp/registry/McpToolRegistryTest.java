@@ -1,11 +1,15 @@
 package io.github.pi_java.agent.infrastructure.mcp.registry;
 
+import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpAuthProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
+import io.github.pi_java.agent.infrastructure.mcp.invocation.McpToolExecutorBinding;
 import io.github.pi_java.agent.domain.tool.ToolProvenance;
 import io.github.pi_java.agent.domain.tool.ToolRiskLevel;
 import io.github.pi_java.agent.domain.tool.ToolSideEffect;
 import io.github.pi_java.agent.domain.tool.ToolExecutionResult;
+import io.github.pi_java.agent.domain.tool.ToolExecutionRequest;
 import io.github.pi_java.agent.domain.tool.ToolExecutionStatus;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -74,15 +78,26 @@ class McpToolRegistryTest {
                 new McpSchema.ToolAnnotations("Search", true, false, true, false, null))));
         clients.fail("jira", new RuntimeException("403 Forbidden apiKey=" + FAKE_SECRET));
         serverRegistry.refresh();
-        McpToolRegistry toolRegistry = new McpToolRegistry(serverRegistry, new McpToolDescriptorMapper());
+        McpToolRegistry toolRegistry = new McpToolRegistry(serverRegistry, new McpToolDescriptorMapper(),
+                server -> new McpToolExecutorBinding.InvocationClient() {
+                    @Override
+                    public McpSchema.CallToolResult callTool(McpSchema.CallToolRequest request) {
+                        return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent("ok")), false);
+                    }
+
+                    @Override
+                    public void close() {
+                    }
+                });
         McpGovernanceCatalogAdapter governance = new McpGovernanceCatalogAdapter(serverRegistry, new McpToolDescriptorMapper());
 
         assertThat(toolRegistry.listTools()).extracting("id").containsExactly("mcp.github.search");
         assertThat(toolRegistry.resolve("mcp.github.search")).isPresent().get().satisfies(resolution -> {
             assertThat(resolution.descriptor().id()).isEqualTo("mcp.github.search");
-            ToolExecutionResult result = resolution.executor().execute(null, new CancellationToken());
-            assertThat(result.status()).isEqualTo(ToolExecutionStatus.FAILED);
-            assertThat(result.errorCategory()).contains("MCP_EXECUTION_DEFERRED");
+            ToolExecutionResult result = resolution.executor().execute(new ToolExecutionRequest("call-1",
+                    new RunId("run-1"), new StepId("step-1"), "mcp.github.search", "mcp", Map.of(), FIXED_CLOCK.instant()),
+                    new CancellationToken());
+            assertThat(result.status()).isEqualTo(ToolExecutionStatus.SUCCESS);
         });
         assertThat(toolRegistry.resolve("mcp.jira.anything")).isEmpty();
 
