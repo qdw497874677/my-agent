@@ -5,6 +5,8 @@ import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
+import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
+import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
@@ -150,6 +152,22 @@ public class ConsoleHttpClient {
 
     public Class<ExtensionGovernanceResponse> adminExtensionGovernanceResponseType() {
         return ExtensionGovernanceResponse.class;
+    }
+
+    public String adminMcpGovernancePath() {
+        return "/api/admin/governance/mcp";
+    }
+
+    public Class<McpGovernanceResponse> adminMcpGovernanceResponseType() {
+        return McpGovernanceResponse.class;
+    }
+
+    public String adminMcpRefreshPath() {
+        return "/api/admin/governance/mcp/refresh";
+    }
+
+    public Class<McpRefreshResponse> adminMcpRefreshResponseType() {
+        return McpRefreshResponse.class;
     }
 
     public String adminPolicyDecisionsPath() {
