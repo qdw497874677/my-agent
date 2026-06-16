@@ -83,7 +83,7 @@ public record McpAuthProperties(
     private static Map<String, String> copyRefs(Map<String, String> refs, String name) {
         Objects.requireNonNull(refs, name + " must not be null");
         Map<String, String> copy = new LinkedHashMap<>();
-        refs.forEach((header, ref) -> copy.put(requireNonBlank(header, "headerName"), normalizeOptionalRef(ref, name + "." + header)));
+        refs.forEach((header, ref) -> copy.put(requireNonBlank(header, "headerName"), requireNonBlank(ref, name + "." + header)));
         return Map.copyOf(copy);
     }
 
