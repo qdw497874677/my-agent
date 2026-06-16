@@ -5,12 +5,12 @@ milestone_name: milestone
 current_phase: 08
 status: executing
 stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-06-16T17:30:37.029Z"
+last_updated: "2026-06-16T17:32:54.633Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 67
-  completed_plans: 61
+  completed_plans: 62
 ---
 
 # Project State: Pi Java Agent Platform
@@ -270,6 +270,9 @@ Key findings:
 - [Phase 08]: Plan 03 keeps plugin governance behind a dedicated App port and pi-agent-client DTO boundary so PF4J/plugin infrastructure never leaks into App/client APIs.
 - [Phase 08]: Plan 03 limits plugin Admin mutations to refresh, disable, and quarantine; upload/install/delete/upgrade remain deferred.
 - [Phase 08]: Plan 03 replaces the plugin FUTURE_ENABLED overview placeholder with PluginGovernanceCatalog-derived counts for plugins, capabilities, disabled, quarantined, incompatible, and failed plugins.
+- [Phase 08]: Plan 02 bridges PF4J plugins into ServiceLoaderExtensionDiscovery.DiscoveredSource semantics so DefaultExtensionContributionRegistry remains authoritative for compatibility, duplicate, disabled, ordering, and usable capability rules.
+- [Phase 08]: Plan 02 models plugin disable/quarantine as an infrastructure state overlay affecting new capability resolution only, without promising JVM hot unload or active call interruption.
+- [Phase 08]: Plan 02 exposes plugin provenance through sanitized metadata while keeping raw PF4J wrapper, descriptor, and classloader objects isolated to plugin infrastructure.
 
 ## Performance Metrics
 
@@ -334,6 +337,7 @@ Key findings:
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P08 | 10m 56s | 3 tasks | 7 files |
 | Phase 08-controlled-dynamic-plugin-jars P01 | 5m 54s | 2 tasks | 8 files |
 | Phase 08-controlled-dynamic-plugin-jars P03 | 7m 10s | 2 tasks | 16 files |
+| Phase 08-controlled-dynamic-plugin-jars P02 | 9m 03s | 2 tasks | 8 files |
 
 ## Last Session
 
