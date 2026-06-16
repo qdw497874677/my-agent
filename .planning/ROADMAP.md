@@ -232,7 +232,7 @@ Plans:
 - [x] 07-05-PLAN.md — Execute MCP remote tools as governed ToolExecutorBinding instances.
 - [x] 07-06-PLAN.md — Wire MCP registry and Admin governance REST into Cloud Server.
 - [x] 07-07-PLAN.md — Render MCP status and refresh in Admin Governance UI.
-- [ ] 07-08-PLAN.md — Add MCP E2E, architecture gates, docs, and traceability.
+- [x] 07-08-PLAN.md — Add MCP E2E, architecture gates, docs, and traceability.
 
 **Success criteria:**
 1. Admin can configure trusted MCP servers with credential references, transport settings, server allowlists, and network controls.
