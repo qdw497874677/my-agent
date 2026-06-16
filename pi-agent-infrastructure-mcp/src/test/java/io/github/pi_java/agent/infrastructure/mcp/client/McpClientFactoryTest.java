@@ -5,6 +5,7 @@ import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpTransportKind;
 import io.github.pi_java.agent.app.port.model.ResolvedSecret;
 import io.github.pi_java.agent.domain.model.SecretRef;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -116,6 +117,11 @@ class McpClientFactoryTest {
 
     static final class CapturingInitializedClient implements McpClientFactory.InitializedClient {
         boolean closed;
+
+        @Override
+        public List<McpSchema.Tool> listTools() {
+            return List.of();
+        }
 
         @Override
         public void close() {

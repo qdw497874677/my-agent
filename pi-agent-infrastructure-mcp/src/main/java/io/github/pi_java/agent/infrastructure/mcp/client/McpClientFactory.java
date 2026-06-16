@@ -8,6 +8,7 @@ import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 
 public final class McpClientFactory {
@@ -55,6 +56,8 @@ public final class McpClientFactory {
     }
 
     interface InitializedClient extends AutoCloseable {
+        List<McpSchema.Tool> listTools();
+
         @Override
         void close();
     }
@@ -77,7 +80,17 @@ public final class McpClientFactory {
                     .capabilities(McpSchema.ClientCapabilities.builder().build())
                     .build();
             client.initialize();
-            return client::closeGracefully;
+            return new InitializedClient() {
+                @Override
+                public List<McpSchema.Tool> listTools() {
+                    return client.listTools().tools();
+                }
+
+                @Override
+                public void close() {
+                    client.closeGracefully();
+                }
+            };
         }
     }
 }

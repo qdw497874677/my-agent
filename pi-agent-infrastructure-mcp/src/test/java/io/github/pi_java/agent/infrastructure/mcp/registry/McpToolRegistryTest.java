@@ -1,7 +1,5 @@
 package io.github.pi_java.agent.infrastructure.mcp.registry;
 
-import io.github.pi_java.agent.infrastructure.mcp.client.McpClientErrorSanitizer;
-import io.github.pi_java.agent.infrastructure.mcp.client.McpClientException;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpAuthProperties;
 import io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties;
 import io.modelcontextprotocol.spec.McpSchema;
@@ -38,8 +36,7 @@ class McpToolRegistryTest {
             assertThat(snapshot.tools()).extracting(McpServerRegistry.DiscoveredTool::name).containsExactly("search");
         });
 
-        clients.fail("github", new McpClientException("github", McpClientErrorSanitizer.Category.AUTH_FAILED,
-                "401 Unauthorized token=" + FAKE_SECRET));
+        clients.fail("github", new RuntimeException("401 Unauthorized token=" + FAKE_SECRET));
 
         McpDiscoveryResult failedRefresh = registry.refresh();
 

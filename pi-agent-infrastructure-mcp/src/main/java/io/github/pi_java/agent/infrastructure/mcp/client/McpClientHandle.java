@@ -1,7 +1,9 @@
 package io.github.pi_java.agent.infrastructure.mcp.client;
 
 import io.github.pi_java.agent.infrastructure.mcp.config.McpTransportKind;
+import io.modelcontextprotocol.spec.McpSchema;
 
+import java.util.List;
 import java.util.Objects;
 
 public final class McpClientHandle implements AutoCloseable {
@@ -25,6 +27,10 @@ public final class McpClientHandle implements AutoCloseable {
 
     McpClientFactory.InitializedClient client() {
         return client;
+    }
+
+    public List<McpSchema.Tool> listTools() {
+        return client.listTools();
     }
 
     @Override
