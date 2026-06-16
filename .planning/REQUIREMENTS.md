@@ -67,11 +67,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### MCP Integration
 
-- [ ] **MCP-01**: Admin can configure trusted MCP servers for the platform to connect to as an MCP client.
+- [x] **MCP-01**: Admin can configure trusted MCP servers for the platform to connect to as an MCP client.
 - [ ] **MCP-02**: Platform can discover MCP tools, normalize their schemas into ToolDescriptor, and register them with provenance and server health metadata.
 - [ ] **MCP-03**: Platform executes MCP tool calls only through ToolExecutionGateway with policy, timeout, cancellation, audit, redaction, and events.
-- [ ] **MCP-04**: Platform records MCP connection state, discovery errors, invocation errors, auth failures, and server health in Admin GUI and event/audit records.
-- [ ] **MCP-05**: MCP integration includes security boundaries for server allowlists, credential references, transport configuration, and SSRF-sensitive network controls.
+- [x] **MCP-04**: Platform records MCP connection state, discovery errors, invocation errors, auth failures, and server health in Admin GUI and event/audit records.
+- [x] **MCP-05**: MCP integration includes security boundaries for server allowlists, credential references, transport configuration, and SSRF-sensitive network controls.
 
 ### Dynamic Plugins
 
@@ -205,11 +205,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXT-03 | Phase 6 | Complete — validated by public extension API metadata/lifecycle/health/compatibility contracts, conformance tests, and architecture gates |
 | EXT-04 | Phase 6 | Complete — validated by public extension governance DTOs, authenticated GET `/api/admin/governance/extensions`, and read-only Admin Registry rendering |
 | EXT-05 | Phase 6 | Complete — validated by SPI/Spring conformance and product-path E2E proving ToolGateway, policy, audit, event, redaction, and CredentialRef boundaries |
-| MCP-01 | Phase 7 | Pending |
+| MCP-01 | Phase 7 | Complete |
 | MCP-02 | Phase 7 | Pending |
 | MCP-03 | Phase 7 | Pending |
-| MCP-04 | Phase 7 | Pending |
-| MCP-05 | Phase 7 | Pending |
+| MCP-04 | Phase 7 | Complete |
+| MCP-05 | Phase 7 | Complete |
 | PLUG-01 | Phase 8 | Pending |
 | PLUG-02 | Phase 8 | Pending |
 | PLUG-03 | Phase 8 | Pending |

@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 7
-status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-06-16T07:43:28.496Z"
+current_phase: 07
+status: executing
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-06-16T08:47:52.180Z"
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 51
-  completed_plans: 51
+  total_plans: 59
+  completed_plans: 53
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 7
+**Status:** Executing Phase 07
+**Current Phase:** 07
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 06 — java-extension-surface-spi-and-spring
+**Current focus:** Phase 07 — mcp-client-bridge-and-governed-remote-tools
 
 ## Workflow Configuration
 
@@ -241,6 +241,10 @@ Key findings:
 - [Phase 06]: Close Phase 6 by enforcing both public SDK and Spring starter dependency boundaries with ArchUnit before MCP/PF4J phases build on the extension surface.
 - [Phase 06]: Document Phase 6 as the reusable source/capability/provenance/governance contract for Phase 7 MCP and Phase 8 dynamic plugin implementations.
 - [Phase 06]: Mark only Java SPI/Spring extension requirements complete; MCP, PF4J/plugin, OPS-01, and E2E-08 remain pending.
+- [Phase 07]: Plan 01 keeps Spring AI MCP client dependencies only in pi-agent-infrastructure-mcp; no root dependencyManagement pin was needed because the existing Spring AI BOM manages the starter.
+- [Phase 07]: Plan 01 represents all MCP auth material as refs and exposes only ref schemes/counts in public summaries.
+- [Phase 07]: Plan 01 makes Streamable HTTP the default transport while requiring stdio/SSE to be explicitly selected.
+- [Phase 07]: Plan 02 injects McpGovernanceCatalog into DefaultGovernanceQueryService and uses EmptyMcpGovernanceCatalog as adapter fallback until concrete bridge wiring arrives.
 
 ## Performance Metrics
 
@@ -295,11 +299,13 @@ Key findings:
 | Phase 06-java-extension-surface-spi-and-spring P06 | 6m 55s | 3 tasks | 8 files |
 | Phase 06-java-extension-surface-spi-and-spring P07 | 11m 54s | 3 tasks | 6 files |
 | Phase 06-java-extension-surface-spi-and-spring P08 | 5m 05s | 3 tasks | 7 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P01 | 6m 50s | 3 tasks | 7 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P02 | 7m 33s | 3 tasks | 14 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Phase 7 context gathered
+- **Stopped At:** Completed 07-02-PLAN.md
 
 ## Next Action
 

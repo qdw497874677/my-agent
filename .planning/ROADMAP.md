@@ -225,8 +225,8 @@ Plans:
 **Plans:** 8 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Add isolated MCP infrastructure module and trusted server configuration model.
-- [ ] 07-02-PLAN.md — Define MCP governance App ports and public Admin DTOs.
+- [x] 07-01-PLAN.md — Add isolated MCP infrastructure module and trusted server configuration model.
+- [x] 07-02-PLAN.md — Define MCP governance App ports and public Admin DTOs.
 - [ ] 07-03-PLAN.md — Implement MCP client/transport factory, credential ref injection, and sanitized errors.
 - [ ] 07-04-PLAN.md — Discover MCP tools, normalize descriptors, and expose registry/governance status.
 - [ ] 07-05-PLAN.md — Execute MCP remote tools as governed ToolExecutorBinding instances.
