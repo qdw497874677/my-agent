@@ -31,6 +31,7 @@ import io.github.pi_java.agent.infrastructure.workspace.AllowlistedCommandExecut
 import io.github.pi_java.agent.infrastructure.workspace.LocalTempWorkspaceGateway;
 import io.github.pi_java.agent.infrastructure.extension.DefaultExtensionContributionRegistry;
 import io.github.pi_java.agent.infrastructure.extension.ExtensionToolRegistry;
+import io.github.pi_java.agent.infrastructure.mcp.registry.McpToolRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -86,12 +87,14 @@ public class ToolGovernanceBeanConfiguration {
     @ConditionalOnMissingBean(name = "toolRegistry")
     @Primary
     ToolRegistry toolRegistry(BuiltinToolCatalog builtinToolCatalog,
-                               Optional<DefaultExtensionContributionRegistry> extensionContributions) {
+                               Optional<DefaultExtensionContributionRegistry> extensionContributions,
+                               Optional<McpToolRegistry> mcpToolRegistry) {
         ToolRegistry builtins = builtinToolCatalog.registry();
-        return extensionContributions
-                .<ToolRegistry>map(contributions -> new CompositeToolRegistry(
-                        List.of(builtins, new ExtensionToolRegistry(contributions))))
-                .orElse(builtins);
+        java.util.ArrayList<ToolRegistry> registries = new java.util.ArrayList<>();
+        registries.add(builtins);
+        extensionContributions.ifPresent(contributions -> registries.add(new ExtensionToolRegistry(contributions)));
+        mcpToolRegistry.ifPresent(registries::add);
+        return registries.size() == 1 ? builtins : new CompositeToolRegistry(registries);
     }
 
     @Bean

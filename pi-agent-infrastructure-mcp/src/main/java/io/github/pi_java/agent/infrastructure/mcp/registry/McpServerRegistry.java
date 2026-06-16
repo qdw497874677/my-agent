@@ -31,7 +31,7 @@ public final class McpServerRegistry {
         this(servers, new McpClientFactory(secretResolver), clock);
     }
 
-    McpServerRegistry(List<McpServerProperties> servers, DiscoveryClientFactory clientFactory, Clock clock) {
+    public McpServerRegistry(List<McpServerProperties> servers, DiscoveryClientFactory clientFactory, Clock clock) {
         this.servers = List.copyOf(Objects.requireNonNull(servers, "servers must not be null"));
         this.clientFactory = Objects.requireNonNull(clientFactory, "clientFactory must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
