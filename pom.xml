@@ -19,6 +19,7 @@
         <module>pi-agent-extension-api</module>
         <module>pi-agent-infrastructure</module>
         <module>pi-agent-infrastructure-extension</module>
+        <module>pi-agent-infrastructure-plugin</module>
         <module>pi-agent-infrastructure-mcp</module>
         <module>pi-agent-spring-boot-starter</module>
         <module>pi-agent-infrastructure-model-openai</module>
@@ -35,6 +36,7 @@
         <vaadin.version>24.8.4</vaadin.version>
         <resilience4j.version>2.2.0</resilience4j.version>
         <json-schema-validator.version>2.0.0</json-schema-validator.version>
+        <pf4j.version>3.12.0</pf4j.version>
         <testcontainers.version>2.0.3</testcontainers.version>
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <assertj.version>3.26.3</assertj.version>
@@ -84,6 +86,11 @@
                 <groupId>com.networknt</groupId>
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.pf4j</groupId>
+                <artifactId>pf4j</artifactId>
+                <version>${pf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
