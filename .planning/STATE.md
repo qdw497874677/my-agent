@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 07
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-06-16T08:47:52.180Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-06-16T08:57:47.820Z"
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 59
-  completed_plans: 53
+  completed_plans: 54
 ---
 
 # Project State: Pi Java Agent Platform
@@ -245,6 +245,10 @@ Key findings:
 - [Phase 07]: Plan 01 represents all MCP auth material as refs and exposes only ref schemes/counts in public summaries.
 - [Phase 07]: Plan 01 makes Streamable HTTP the default transport while requiring stdio/SSE to be explicitly selected.
 - [Phase 07]: Plan 02 injects McpGovernanceCatalog into DefaultGovernanceQueryService and uses EmptyMcpGovernanceCatalog as adapter fallback until concrete bridge wiring arrives.
+- [Phase 07]: Plan 03 keeps MCP SDK client and transport types inside pi-agent-infrastructure-mcp; public handles expose only server id and transport kind.
+- [Phase 07]: Plan 03 uses fakeable TransportFactory and ClientBuilder seams so no-key unit tests assert MCP transport selection and initialization without network/process side effects.
+- [Phase 07]: Plan 03 resolves raw static MCP credential refs only in McpSecretHeaderResolver immediately before transport creation, with redacted summaries exposing counts only.
+- [Phase 07]: Plan 03 normalizes MCP initialization failures into McpClientException categories with safe operator hints instead of propagating raw remote bodies or headers.
 
 ## Performance Metrics
 
@@ -301,11 +305,12 @@ Key findings:
 | Phase 06-java-extension-surface-spi-and-spring P08 | 5m 05s | 3 tasks | 7 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P01 | 6m 50s | 3 tasks | 7 files |
 | Phase 07-mcp-client-bridge-and-governed-remote-tools P02 | 7m 33s | 3 tasks | 14 files |
+| Phase 07-mcp-client-bridge-and-governed-remote-tools P03 | 6m 57s | 3 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 07-02-PLAN.md
+- **Stopped At:** Completed 07-03-PLAN.md
 
 ## Next Action
 
