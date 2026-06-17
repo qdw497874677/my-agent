@@ -20,7 +20,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(PluginGovernanceBeanConfiguration.PluginProperties.class)
@@ -57,9 +56,30 @@ public class PluginGovernanceBeanConfiguration {
     }
 
     @Bean
-    @Primary
     PluginGovernanceCatalog pluginGovernanceCatalog(PluginGovernanceCatalogAdapter adapter) {
-        return adapter;
+        return new PluginGovernanceCatalog() {
+            @Override
+            public List<io.github.pi_java.agent.app.port.plugin.PluginSourceStatus> plugins() {
+                return adapter.plugins();
+            }
+
+            @Override
+            public io.github.pi_java.agent.app.port.plugin.PluginMutationStatus refresh() {
+                return adapter.refresh();
+            }
+
+            @Override
+            public io.github.pi_java.agent.app.port.plugin.PluginMutationStatus disable(String pluginId, String actor,
+                                                                                       String reason) {
+                return adapter.disable(pluginId, actor, reason);
+            }
+
+            @Override
+            public io.github.pi_java.agent.app.port.plugin.PluginMutationStatus quarantine(String pluginId, String actor,
+                                                                                          String reason) {
+                return adapter.quarantine(pluginId, actor, reason);
+            }
+        };
     }
 
     @Bean

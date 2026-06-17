@@ -1,7 +1,6 @@
 package io.github.pi_java.agent.infrastructure.plugin;
 
 import io.github.pi_java.agent.app.port.plugin.PluginCapabilityStatus;
-import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.plugin.PluginMutationStatus;
 import io.github.pi_java.agent.app.port.plugin.PluginSourceStatus;
 import io.github.pi_java.agent.extension.api.ExtensionLifecycleState;
@@ -18,7 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class PluginGovernanceCatalogAdapter implements PluginGovernanceCatalog {
+public final class PluginGovernanceCatalogAdapter {
 
     private final List<Pf4jPluginSourceDiscovery.PluginDiscoveredSource> discoveredPlugins;
     private final PluginStateStore stateStore;
@@ -38,7 +37,6 @@ public final class PluginGovernanceCatalogAdapter implements PluginGovernanceCat
         return contributionRegistry;
     }
 
-    @Override
     public List<PluginSourceStatus> plugins() {
         Map<String, List<DefaultExtensionContributionRegistry.CapabilityEntry>> capabilitiesBySource = contributionRegistry
                 .capabilityEntries().stream().collect(Collectors.groupingBy(DefaultExtensionContributionRegistry.CapabilityEntry::sourceId));
@@ -53,20 +51,17 @@ public final class PluginGovernanceCatalogAdapter implements PluginGovernanceCat
         return List.copyOf(statuses);
     }
 
-    @Override
     public PluginMutationStatus refresh() {
         return new PluginMutationStatus(true, "", "refresh", "", "", "REFRESH_REQUESTED", "",
                 Map.of("mode", "manual"));
     }
 
-    @Override
     public PluginMutationStatus disable(String pluginId, String actor, String reason) {
         String previous = stateStore.state(pluginId).map(record -> record.lifecycleState().name()).orElse("");
         PluginStateStore.PluginStateRecord record = stateStore.disable(pluginId, actor, reason);
         return mutation("disable", previous, record, false);
     }
 
-    @Override
     public PluginMutationStatus quarantine(String pluginId, String actor, String reason) {
         String previous = stateStore.state(pluginId).map(record -> record.lifecycleState().name()).orElse("");
         PluginStateStore.PluginStateRecord record = stateStore.quarantine(pluginId, actor, reason);

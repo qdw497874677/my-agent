@@ -75,12 +75,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dynamic Plugins
 
-- [x] **PLUG-01**: Admin can configure a controlled plugin directory for trusted dynamic plugin JARs.
-- [x] **PLUG-02**: Platform can load plugin descriptors, validate platform/API compatibility, and register plugin-provided capabilities through the same extension registry.
-- [x] **PLUG-03**: Platform tracks plugin lifecycle states including discovered, loaded, started, disabled, failed, and quarantined.
-- [x] **PLUG-04**: Admin can view plugin metadata, registered capabilities, health, load errors, and compatibility errors in the Admin GUI.
-- [x] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs.
-- [x] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code.
+- [x] **PLUG-01**: Admin can configure a controlled plugin directory for trusted dynamic plugin JARs. Validated in Phase 8: `pi.plugins.directory`, `PluginRegistryProperties`, `PluginGovernanceBeanConfiguration`, `SamplePluginJarE2ETest`, and `docs/phase-08-controlled-dynamic-plugin-jars.md`.
+- [x] **PLUG-02**: Platform can load plugin descriptors, validate platform/API compatibility, and register plugin-provided capabilities through the same extension registry. Validated in Phase 8: `Pf4jPluginSourceDiscovery`, `Pf4jPluginExtensionBridge`, `PluginGovernanceCatalogAdapter`, sample `plugin.properties`, `SamplePluginJarCompatibilityE2ETest`, and `PluginInfrastructureArchitectureTest`.
+- [x] **PLUG-03**: Platform tracks plugin lifecycle states including discovered, loaded, started, disabled, failed, and quarantined. Validated in Phase 8: `PluginLifecycleSummary`, `PluginSourceDto`, `PluginCapabilityDisablementTest`, `PluginGovernanceApiTest`, and `SamplePluginJarCompatibilityE2ETest`.
+- [x] **PLUG-04**: Admin can view plugin metadata, registered capabilities, health, load errors, and compatibility errors in the Admin GUI. Validated in Phase 8: `GET /api/admin/governance/plugins`, `PluginGovernanceResponse`, `AdminPluginGovernanceViewTest`, and `docs/phase-08-controlled-dynamic-plugin-jars.md`.
+- [x] **PLUG-05**: Admin can disable or quarantine a plugin so its capabilities are unavailable for new runs. Validated in Phase 8: `POST /api/admin/governance/plugins/{pluginId}/disable`, `POST /api/admin/governance/plugins/{pluginId}/quarantine`, `PluginCapabilityDisablementTest`, `PluginGovernanceApiTest`, and sample plugin disable/quarantine E2E.
+- [x] **PLUG-06**: v1 explicitly treats dynamic plugin isolation as lifecycle/dependency isolation, not a security sandbox for untrusted code. Validated in Phase 8: `PluginRegistryProperties` non-sandbox acknowledgement, Admin UI warning copy, `PluginSecurityRedactionE2ETest`, and `docs/phase-08-controlled-dynamic-plugin-jars.md`.
 
 ### Agent Web Console and Admin Governance
 
@@ -111,7 +111,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **E2E-05**: Headless E2E verifies SSE ordering, terminal events, and reconnect/replay behavior using event sequence or lastEventId.
 - [x] **E2E-06**: Security E2E verifies raw secrets and sensitive payloads do not appear in API responses, RunEvents, audit records, logs, or Web Console views by default. Validated in Phase 4: `GovernedToolSecurityRedactionE2ETest` covers default API/event/audit/persisted payload paths; Web Console display consumes the same redacted APIs in Phase 5.
 - [x] **E2E-07**: Browser E2E verifies Agent Catalog, Agent interaction page, streaming output, tool cards, approval cards, session history, cancel action, and basic governance views. Validated in Phase 5: Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures.
-- [x] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline. MCP portion validated in Phase 7 by `McpGovernedToolE2ETest`, `McpSecurityRedactionE2ETest`, and `e2e/phase-07-mcp-governance.spec.ts`; plugin governed execution, disable/quarantine, and redaction portions validated in Phase 8 Plan 05 by `PluginGovernedToolE2ETest`, `PluginCapabilityDisablementTest`, and `PluginSecurityRedactionE2ETest`. Sample plugin JAR packaging remains covered by Phase 8 Plan 07 as additional product-path evidence.
+- [x] **E2E-08**: Integration E2E verifies Fake MCP server discovery/execution and sample plugin JAR loading/disable flows through the same ToolExecutionGateway, policy, audit, and event pipeline. MCP portion validated in Phase 7 by `McpGovernedToolE2ETest`, `McpSecurityRedactionE2ETest`, and `e2e/phase-07-mcp-governance.spec.ts`; plugin governed execution, disable/quarantine, and redaction portions validated in Phase 8 by `PluginGovernedToolE2ETest`, `PluginCapabilityDisablementTest`, `PluginSecurityRedactionE2ETest`, `SamplePluginJarE2ETest`, and `SamplePluginJarCompatibilityE2ETest`.
 
 ## v2 Requirements
 
@@ -210,12 +210,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCP-03 | Phase 7 | Complete — validated by `McpToolExecutorBindingTest`, `McpGovernedToolE2ETest`, and `McpSecurityRedactionE2ETest` proving `ToolExecutionGateway`, policy, audit, events, timeout/cancellation, and redaction |
 | MCP-04 | Phase 7 | Complete — validated by Admin governance API/UI tests, Playwright MCP governance smoke, and E2E auth/server-down/invocation status assertions |
 | MCP-05 | Phase 7 | Complete — validated by credential refs, transport/SSRF validation, redacted error normalization, architecture boundary gates, and security-redaction E2E |
-| PLUG-01 | Phase 8 | Complete |
-| PLUG-02 | Phase 8 | Complete |
-| PLUG-03 | Phase 8 | Complete |
-| PLUG-04 | Phase 8 | Complete |
-| PLUG-05 | Phase 8 | Complete |
-| PLUG-06 | Phase 8 | Complete |
+| PLUG-01 | Phase 8 | Complete — validated by controlled `pi.plugins.directory` configuration, typed `PluginRegistryProperties`, Adapter Web binding, sample plugin controlled-directory E2E, and Phase 8 operations docs |
+| PLUG-02 | Phase 8 | Complete — validated by PF4J descriptor discovery, compatibility checks, bridge into `ExtensionSource`/`DefaultExtensionContributionRegistry`, sample plugin packaging, and architecture gates |
+| PLUG-03 | Phase 8 | Complete — validated by plugin lifecycle summaries, public plugin DTOs, disable/quarantine state overlay, failed/incompatible visibility, and lifecycle regression tests |
+| PLUG-04 | Phase 8 | Complete — validated by Admin plugin REST/UI views exposing metadata, capabilities, health, compatibility/load errors, redacted source summaries, and action plans |
+| PLUG-05 | Phase 8 | Complete — validated by disable/quarantine REST operations, audited mutation responses, capability removal from new registry resolution, and sample plugin disable/quarantine E2E |
+| PLUG-06 | Phase 8 | Complete — validated by non-sandbox config acknowledgement, Admin UI warning copy, redaction/security E2E, and docs explicitly stating PF4J classloader isolation is not a sandbox |
 | GUI-01 | Phase 5 | Complete — validated by `/api/agents`, catalog cards, browser E2E, and `docs/phase-05-web-console.md` |
 | GUI-02 | Phase 5 | Complete — validated by Console route/action plans, model event assertions, and no-key Playwright E2E |
 | GUI-03 | Phase 5 | Complete — validated by tool lifecycle cards and browser E2E `tool.*` event assertions |
@@ -237,7 +237,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | E2E-05 | Phase 2 | Complete |
 | E2E-06 | Phase 4 | Complete — validated by `GovernedToolSecurityRedactionE2ETest` fake-secret absence checks across REST, event history, persisted RunEvents, audit records, and safe exception paths |
 | E2E-07 | Phase 5 | Complete — validated by Playwright `e2e/phase-05-web-console.spec.ts` using no-key fake runtime fixtures |
-| E2E-08 | Phase 7, Phase 8 | Pending — MCP portion complete in Phase 7; sample plugin JAR load/disable/quarantine flows remain pending Phase 8 |
+| E2E-08 | Phase 7, Phase 8 | Complete — MCP portion validated in Phase 7 by governed fake MCP discovery/execution/status tests; plugin portion validated in Phase 8 by governed plugin execution/redaction tests plus real sample plugin JAR load, compatibility, disable, and quarantine product-path E2E |
 
 **Coverage:**
 - v1 requirements: 75 total
