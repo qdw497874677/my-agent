@@ -7,16 +7,20 @@ import io.github.pi_java.agent.infrastructure.plugin.InMemoryPluginStateStore;
 import io.github.pi_java.agent.infrastructure.plugin.PluginGovernanceCatalogAdapter;
 import io.github.pi_java.agent.infrastructure.plugin.PluginRegistryProperties;
 import io.github.pi_java.agent.infrastructure.plugin.PluginStateStore;
+import io.github.pi_java.agent.infrastructure.plugin.Pf4jPluginSourceDiscovery;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(PluginGovernanceBeanConfiguration.PluginProperties.class)
@@ -34,13 +38,26 @@ public class PluginGovernanceBeanConfiguration {
 
     @Bean
     PluginGovernanceCatalogAdapter pluginGovernanceCatalogAdapter(PluginRegistryProperties properties,
-                                                                   PluginStateStore stateStore) {
-        return new PluginGovernanceCatalogAdapter(List.of(), stateStore,
+                                                                    PluginStateStore stateStore) {
+        List<Pf4jPluginSourceDiscovery.PluginDiscoveredSource> discovered = discoverPlugins(properties);
+        return new PluginGovernanceCatalogAdapter(discovered, stateStore,
                 new io.github.pi_java.agent.infrastructure.extension.ExtensionRegistrationProperties(
                         Set.of(), Set.of(), properties.allowDuplicateOverrides(), properties.platformApiVersion()));
     }
 
+    private List<Pf4jPluginSourceDiscovery.PluginDiscoveredSource> discoverPlugins(PluginRegistryProperties properties) {
+        if (!properties.enabled() || properties.pluginDirectory().isEmpty()) {
+            return List.of();
+        }
+        Path directory = properties.pluginDirectory().orElseThrow();
+        PluginManager pluginManager = new DefaultPluginManager(List.of(directory));
+        pluginManager.loadPlugins();
+        pluginManager.startPlugins();
+        return new Pf4jPluginSourceDiscovery(pluginManager, directory, properties.platformApiVersion()).discover();
+    }
+
     @Bean
+    @Primary
     PluginGovernanceCatalog pluginGovernanceCatalog(PluginGovernanceCatalogAdapter adapter) {
         return adapter;
     }

@@ -7,6 +7,7 @@ import io.github.pi_java.agent.extension.api.ExtensionHealth;
 import io.github.pi_java.agent.extension.api.ExtensionLifecycleState;
 import io.github.pi_java.agent.extension.api.ExtensionMetadata;
 import io.github.pi_java.agent.extension.api.ExtensionSource;
+import io.github.pi_java.agent.extension.api.ToolExtensionCapability;
 import io.github.pi_java.agent.infrastructure.extension.ServiceLoaderExtensionDiscovery;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -51,8 +52,7 @@ public final class Pf4jPluginExtensionBridge {
                 : PluginCompatibilitySummary.incompatible(requires, platformApiVersion);
         return PluginDescriptorSummary.fromControlledPath(wrapper.getPluginId(), wrapper.getDescriptor().getPluginDescription(),
                 wrapper.getDescriptor().getVersion(), wrapper.getDescriptor().getProvider(), controlledDirectory,
-                wrapper.getPluginPath(), compatibility, Map.of("pluginClass", wrapper.getDescriptor().getPluginClass(),
-                        "license", wrapper.getDescriptor().getLicense()));
+                wrapper.getPluginPath(), compatibility, safeDescriptorMetadata(wrapper));
     }
 
     private PluginLifecycleSummary lifecycle(PluginWrapper wrapper, PluginCompatibilitySummary compatibility) {
@@ -114,6 +114,11 @@ public final class Pf4jPluginExtensionBridge {
     }
 
     private static ExtensionCapability enrichCapability(ExtensionCapability delegate, PluginDescriptorSummary descriptor) {
+        if (delegate instanceof ToolExtensionCapability tool) {
+            LinkedHashMap<String, Object> redacted = new LinkedHashMap<>(tool.redactedMetadata());
+            addPluginMetadata(redacted, descriptor);
+            return new ToolExtensionCapability(tool.capabilityId(), tool.descriptor(), tool.binding(), redacted);
+        }
         return new ExtensionCapability() {
             @Override
             public String capabilityId() {
@@ -132,6 +137,17 @@ public final class Pf4jPluginExtensionBridge {
                 return Map.copyOf(redacted);
             }
         };
+    }
+
+    private static Map<String, String> safeDescriptorMetadata(PluginWrapper wrapper) {
+        LinkedHashMap<String, String> metadata = new LinkedHashMap<>();
+        if (wrapper.getDescriptor().getPluginClass() != null && !wrapper.getDescriptor().getPluginClass().isBlank()) {
+            metadata.put("pluginClass", wrapper.getDescriptor().getPluginClass());
+        }
+        if (wrapper.getDescriptor().getLicense() != null && !wrapper.getDescriptor().getLicense().isBlank()) {
+            metadata.put("license", wrapper.getDescriptor().getLicense());
+        }
+        return Map.copyOf(metadata);
     }
 
     private static void addPluginMetadata(Map<String, Object> metadata, PluginDescriptorSummary descriptor) {
