@@ -49,6 +49,8 @@ class ExtensionApiArchitectureTest {
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "io.github.pi_java.agent.extension.api..",
                         "io.github.pi_java.agent.infrastructure.extension..",
+                        "io.github.pi_java.agent.infrastructure.plugin..",
+                        "org.pf4j..",
                         "io.github.pi_java.agent.spring.."
                 )
                 .check(classes);
