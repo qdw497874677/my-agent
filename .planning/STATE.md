@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-06-17T16:47:19.537Z"
+stopped_at: Completed 08-08-PLAN.md
+last_updated: "2026-06-17T17:00:13.189Z"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 67
-  completed_plans: 66
+  completed_plans: 67
 ---
 
 # Project State: Pi Java Agent Platform
@@ -282,6 +282,9 @@ Key findings:
 - [Phase 08]: Plan 05 uses deterministic fake plugin tool descriptors and bindings for no-key product-path E2E, proving gateway behavior without subprocesses or sample plugin packaging.
 - [Phase 08]: Plan 05 verifies plugin disable/quarantine by rebuilding governance-derived registries to match new-run and new-resolution semantics.
 - [Phase 08]: Plan 05 treats plugin UI fixture text as a redaction public surface and keeps it sanitized.
+- [Phase 08]: Keep PF4J/plugin implementation leakage guarded by package-level ArchUnit rules across core, client, extension API, Spring starter, MCP, and model/provider modules.
+- [Phase 08]: Document Phase 8 as trusted controlled-directory plugin loading, not a sandbox or marketplace/upload system.
+- [Phase 08]: Expose PluginGovernanceCatalog through an Adapter Web facade bean instead of making the infrastructure adapter itself the App port bean, avoiding duplicate primary bean conflicts in tests and composition.
 
 ## Performance Metrics
 
@@ -351,11 +354,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P06 | 7m 51s | 2 tasks | 5 files |
 | Phase 08-controlled-dynamic-plugin-jars P05 | 15m 20s | 2 tasks | 4 files |
 | Phase 08-controlled-dynamic-plugin-jars P07 | 12m | 2 tasks | 9 files |
+| Phase 08-controlled-dynamic-plugin-jars P08 | 10m 05s | 3 tasks | 6 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-06-PLAN.md
+- **Stopped At:** Completed 08-08-PLAN.md
 
 ## Next Action
 

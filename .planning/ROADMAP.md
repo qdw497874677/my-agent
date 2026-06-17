@@ -263,7 +263,7 @@ Plans:
 - [x] 08-05-PLAN.md — Add governed plugin tool E2E, disable/quarantine, and redaction coverage.
 - [x] 08-06-PLAN.md — Render plugin governance, refresh, disable, and quarantine controls in Admin UI.
 - [x] 08-07-PLAN.md — Add sample read-only plugin JAR packaging and product-path E2E.
-- [ ] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
+- [x] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
 
 **Success criteria:**
 1. Admin can configure a controlled plugin directory for trusted plugin JARs.
