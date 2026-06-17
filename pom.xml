@@ -23,6 +23,7 @@
         <module>pi-agent-infrastructure-mcp</module>
         <module>pi-agent-spring-boot-starter</module>
         <module>pi-agent-infrastructure-model-openai</module>
+        <module>pi-sample-plugin-readonly</module>
         <module>pi-agent-adapter-web</module>
         <module>pi-testkit</module>
     </modules>
