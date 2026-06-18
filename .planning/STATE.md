@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-10-PLAN.md
-last_updated: "2026-06-18T01:55:54.975Z"
+stopped_at: Completed 08-11-PLAN.md
+last_updated: "2026-06-18T02:03:15.725Z"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 70
-  completed_plans: 69
+  completed_plans: 70
 ---
 
 # Project State: Pi Java Agent Platform
@@ -291,6 +291,9 @@ Key findings:
 - [Phase 08]: Plan 10 keeps Adapter Web as Spring composition only for dynamic plugins; PF4J manager lifecycle and discovery stay behind plugin infrastructure services.
 - [Phase 08]: Plan 10 uses DynamicPluginToolRegistry supplier-based resolution so disable/quarantine/refresh affect new ToolRegistry list and resolve calls without rebuilding the Spring context.
 - [Phase 08]: Plan 10 splits architecture gates: core modules remain isolated from plugin infrastructure/PF4J, while Adapter Web is specifically forbidden from direct org.pf4j dependencies.
+- [Phase 08]: Plan 11 documented plugin refresh as explicit controlled-directory rediscovery, not hot watching or guaranteed unload.
+- [Phase 08]: Plan 11 tied PLUG/E2E evidence to concrete gap-closure classes and product-path tests: Pf4jControlledPluginDiscoveryService, DynamicPluginToolRegistry, SamplePluginJarCompatibilityE2ETest, and Adapter Web PF4J architecture gates.
+- [Phase 08]: Plan 11 left OPS-01 pending because plugin lifecycle telemetry remains Phase 09 scope.
 
 ## Performance Metrics
 
@@ -363,11 +366,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P08 | 10m 05s | 3 tasks | 6 files |
 | Phase 08-controlled-dynamic-plugin-jars P09 | 5m 56s | 3 tasks | 6 files |
 | Phase 08-controlled-dynamic-plugin-jars P10 | 12m | 3 tasks | 4 files |
+| Phase 08-controlled-dynamic-plugin-jars P11 | 4m 45s | 2 tasks | 3 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-10-PLAN.md
+- **Stopped At:** Completed 08-11-PLAN.md
 
 ## Next Action
 

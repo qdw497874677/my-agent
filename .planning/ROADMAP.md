@@ -266,7 +266,7 @@ Plans:
 - [x] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
 - [x] 08-09-PLAN.md — Close dynamic plugin infrastructure refresh, state, and selection gaps.
 - [x] 08-10-PLAN.md — Wire live Cloud Server dynamic plugin registry and product-path gap tests.
-- [ ] 08-11-PLAN.md — Update docs, traceability, and final gap-closure smoke gate.
+- [x] 08-11-PLAN.md — Update docs, traceability, and final gap-closure smoke gate.
 
 **Success criteria:**
 1. Admin can configure a controlled plugin directory for trusted plugin JARs.
