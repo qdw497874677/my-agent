@@ -76,4 +76,39 @@ class PluginRegistryPropertiesTest {
         assertThat(properties.validate())
                 .containsExactly("selectedPluginIds contains values outside allowedPluginIds: [blocked]");
     }
+
+    @Test
+    void controlledPf4jDiscoverySkipsPf4jWhenRegistryDisabled() {
+        PluginRegistryProperties properties = new PluginRegistryProperties(
+                false,
+                Optional.of(Path.of("plugins")),
+                true,
+                true,
+                List.of(),
+                List.of(),
+                "1.0.0",
+                false,
+                false);
+
+        assertThat(new Pf4jControlledPluginDiscoveryService(properties).discover()).isEmpty();
+    }
+
+    @Test
+    void controlledPf4jDiscoverySkipsPf4jWhenDirectoryMissingOrStartupDiscoveryDisabled() {
+        PluginRegistryProperties withoutDirectory = new PluginRegistryProperties(
+                false, Optional.empty(), true, true, List.of(), List.of(), "1.0.0", false, false);
+        PluginRegistryProperties withoutStartupDiscovery = new PluginRegistryProperties(
+                true,
+                Optional.of(Path.of("plugins/does-not-need-to-exist")),
+                false,
+                true,
+                List.of(),
+                List.of(),
+                "1.0.0",
+                false,
+                true);
+
+        assertThat(new Pf4jControlledPluginDiscoveryService(withoutDirectory).discover()).isEmpty();
+        assertThat(new Pf4jControlledPluginDiscoveryService(withoutStartupDiscovery).discover()).isEmpty();
+    }
 }
