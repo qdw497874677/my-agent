@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-09-PLAN.md
-last_updated: "2026-06-18T01:41:02.083Z"
+stopped_at: Completed 08-10-PLAN.md
+last_updated: "2026-06-18T01:55:54.975Z"
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 70
-  completed_plans: 68
+  completed_plans: 69
 ---
 
 # Project State: Pi Java Agent Platform
@@ -288,6 +288,9 @@ Key findings:
 - [Phase 08]: Plan 09 keeps PF4J discovery in pi-agent-infrastructure-plugin through Pf4jControlledPluginDiscoveryService so Adapter Web can consume a PF4J-free service boundary.
 - [Phase 08]: Plan 09 rebuilds DefaultExtensionContributionRegistry from the current discovery snapshot and PluginStateStore on each contributionRegistry() call so disable/quarantine affect new resolutions on the same adapter instance.
 - [Phase 08]: Plan 09 models allowlist/selected rejections as disabled contribution sources with governance metadata selectionStatus rather than hiding plugins from admin status.
+- [Phase 08]: Plan 10 keeps Adapter Web as Spring composition only for dynamic plugins; PF4J manager lifecycle and discovery stay behind plugin infrastructure services.
+- [Phase 08]: Plan 10 uses DynamicPluginToolRegistry supplier-based resolution so disable/quarantine/refresh affect new ToolRegistry list and resolve calls without rebuilding the Spring context.
+- [Phase 08]: Plan 10 splits architecture gates: core modules remain isolated from plugin infrastructure/PF4J, while Adapter Web is specifically forbidden from direct org.pf4j dependencies.
 
 ## Performance Metrics
 
@@ -359,11 +362,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P07 | 12m | 2 tasks | 9 files |
 | Phase 08-controlled-dynamic-plugin-jars P08 | 10m 05s | 3 tasks | 6 files |
 | Phase 08-controlled-dynamic-plugin-jars P09 | 5m 56s | 3 tasks | 6 files |
+| Phase 08-controlled-dynamic-plugin-jars P10 | 12m | 3 tasks | 4 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-09-PLAN.md
+- **Stopped At:** Completed 08-10-PLAN.md
 
 ## Next Action
 

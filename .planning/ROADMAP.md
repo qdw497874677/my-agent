@@ -265,7 +265,7 @@ Plans:
 - [x] 08-07-PLAN.md — Add sample read-only plugin JAR packaging and product-path E2E.
 - [x] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
 - [x] 08-09-PLAN.md — Close dynamic plugin infrastructure refresh, state, and selection gaps.
-- [ ] 08-10-PLAN.md — Wire live Cloud Server dynamic plugin registry and product-path gap tests.
+- [x] 08-10-PLAN.md — Wire live Cloud Server dynamic plugin registry and product-path gap tests.
 - [ ] 08-11-PLAN.md — Update docs, traceability, and final gap-closure smoke gate.
 
 **Success criteria:**
