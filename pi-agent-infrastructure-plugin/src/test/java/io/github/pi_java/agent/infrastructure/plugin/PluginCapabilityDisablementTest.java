@@ -17,7 +17,6 @@ import io.github.pi_java.agent.extension.api.ExtensionMetadata;
 import io.github.pi_java.agent.extension.api.ExtensionSource;
 import io.github.pi_java.agent.extension.api.ToolExtensionCapability;
 import io.github.pi_java.agent.infrastructure.extension.ExtensionRegistrationProperties;
-import io.github.pi_java.agent.infrastructure.extension.ExtensionToolRegistry;
 import io.github.pi_java.agent.infrastructure.extension.ServiceLoaderExtensionDiscovery;
 import java.time.Duration;
 import java.util.List;
@@ -32,16 +31,15 @@ class PluginCapabilityDisablementTest {
     void disabledPluginToolCannotBeResolvedForNewRegistryLookupAfterDisableMutation() {
         InMemoryPluginStateStore stateStore = new InMemoryPluginStateStore();
         Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered = discovered("weather-plugin", "plugin.weather.read");
-        PluginGovernanceCatalogAdapter before = adapter(List.of(discovered), stateStore);
+        PluginGovernanceCatalogAdapter adapter = adapter(List.of(discovered), stateStore);
 
-        assertThat(new ExtensionToolRegistry(before.contributionRegistry()).resolve("plugin.weather.read")).isPresent();
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.weather.read")).isPresent();
 
-        stateStore.disable("weather-plugin", "admin-1", "maintenance secret=raw");
-        PluginGovernanceCatalogAdapter after = adapter(List.of(discovered), stateStore);
+        adapter.disable("weather-plugin", "admin-1", "maintenance secret=raw");
 
-        assertThat(new ExtensionToolRegistry(after.contributionRegistry()).resolve("plugin.weather.read")).isEmpty();
-        assertThat(after.contributionRegistry().usableCapabilities()).isEmpty();
-        assertThat(after.plugins()).singleElement().satisfies(plugin -> {
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.weather.read")).isEmpty();
+        assertThat(adapter.contributionRegistry().usableCapabilities()).isEmpty();
+        assertThat(adapter.plugins()).singleElement().satisfies(plugin -> {
             assertThat(plugin.lifecycleStatus()).isEqualTo("DISABLED");
             assertThat(plugin.enabled()).isFalse();
             assertThat(plugin.reason()).contains("secret=<redacted>").doesNotContain("raw");
@@ -58,11 +56,11 @@ class PluginCapabilityDisablementTest {
         InMemoryPluginStateStore stateStore = new InMemoryPluginStateStore();
         Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered = discovered("risk-plugin", "plugin.risk.read");
 
-        stateStore.quarantine("risk-plugin", "admin-1", "operator isolation path=/var/secret/plugins/risk.jar");
         PluginGovernanceCatalogAdapter adapter = adapter(List.of(discovered), stateStore);
+        adapter.quarantine("risk-plugin", "admin-1", "operator isolation path=/var/secret/plugins/risk.jar");
 
-        assertThat(new ExtensionToolRegistry(adapter.contributionRegistry()).listTools()).isEmpty();
-        assertThat(new ExtensionToolRegistry(adapter.contributionRegistry()).resolve("plugin.risk.read")).isEmpty();
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).listTools()).isEmpty();
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.risk.read")).isEmpty();
         assertThat(adapter.plugins()).singleElement().satisfies(plugin -> {
             assertThat(plugin.lifecycleStatus()).isEqualTo("QUARANTINED");
             assertThat(plugin.enabled()).isFalse();

@@ -22,6 +22,7 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -105,6 +106,46 @@ class PluginGovernanceCatalogAdapterTest {
         assertThat(quarantine.metadata().get("reason")).contains("token=<redacted>").doesNotContain("raw");
     }
 
+    @Test
+    void refreshUsesDiscoverySupplierAndReplacesCurrentContributionSnapshot() {
+        Pf4jPluginSourceDiscovery.PluginDiscoveredSource before = discovered("old-plugin", PluginState.STARTED,
+                source("old-source", toolCapability("plugin.old.read")));
+        Pf4jPluginSourceDiscovery.PluginDiscoveredSource after = discovered("new-plugin", PluginState.STARTED,
+                source("new-source", toolCapability("plugin.new.read")));
+        PluginRegistryProperties properties = new PluginRegistryProperties(
+                true, java.util.Optional.of(Path.of("plugins")), true, true, List.of(), List.of(), "1.0.0", false, true);
+        PluginGovernanceCatalogAdapter adapter = new PluginGovernanceCatalogAdapter(
+                List.of(before), new InMemoryPluginStateStore(), new ExtensionRegistrationProperties(), properties,
+                () -> List.of(after));
+
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.old.read")).isPresent();
+
+        PluginMutationStatus refresh = adapter.refresh();
+
+        assertThat(refresh.applied()).isTrue();
+        assertThat(refresh.status()).isEqualTo("REFRESHED");
+        assertThat(refresh.metadata()).containsEntry("pluginCount", "1");
+        assertThat(adapter.plugins()).extracting(PluginSourceStatus::pluginId).containsExactly("new-plugin");
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.old.read")).isEmpty();
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.new.read")).isPresent();
+    }
+
+    @Test
+    void refreshReturnsDisabledStatusWhenManualRefreshIsDisabled() {
+        PluginRegistryProperties properties = new PluginRegistryProperties(
+                true, java.util.Optional.of(Path.of("plugins")), true, false, List.of(), List.of(), "1.0.0", false, true);
+        PluginGovernanceCatalogAdapter adapter = new PluginGovernanceCatalogAdapter(
+                List.of(), new InMemoryPluginStateStore(), new ExtensionRegistrationProperties(), properties, () -> {
+                    throw new AssertionError("refresh supplier must not run when manual refresh is disabled");
+                });
+
+        PluginMutationStatus refresh = adapter.refresh();
+
+        assertThat(refresh.applied()).isFalse();
+        assertThat(refresh.operation()).isEqualTo("refresh");
+        assertThat(refresh.status()).isEqualTo("REFRESH_DISABLED");
+    }
+
     private static Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered(String pluginId, PluginState state,
                                                                                ExtensionSource source) {
         return new Pf4jPluginExtensionBridge(Path.of("/plugins"), "1.0.0")
@@ -181,5 +222,22 @@ class PluginGovernanceCatalogAdapterTest {
                 return Map.of("version", "1.0.0");
             }
         };
+    }
+
+    private static ExtensionCapability toolCapability(String id) {
+        return new io.github.pi_java.agent.extension.api.ToolExtensionCapability(id,
+                new io.github.pi_java.agent.domain.tool.ToolDescriptor(id, id, "Dynamic plugin test tool",
+                        new io.github.pi_java.agent.domain.tool.ToolSchema("json-schema", Map.of("type", "object"), Set.of(), 4096),
+                        java.util.Optional.empty(),
+                        new io.github.pi_java.agent.domain.tool.ToolProvenance(
+                                io.github.pi_java.agent.domain.tool.ToolProvenance.SourceKind.PLUGIN, id, id, Map.of()),
+                        "1.0.0", Set.of("tool:plugin"), io.github.pi_java.agent.domain.tool.ToolRiskLevel.LOW,
+                        io.github.pi_java.agent.domain.tool.ToolSideEffect.READ_ONLY, java.time.Duration.ofSeconds(2), Map.of()),
+                (request, cancellationToken) -> new io.github.pi_java.agent.domain.tool.ToolExecutionResult(
+                        request.toolCallId(), request.toolId(),
+                        io.github.pi_java.agent.domain.tool.ToolExecutionStatus.SUCCESS, "ok", java.util.Optional.empty(),
+                        Map.of(), Map.of("ok", true), Set.of(), java.util.Optional.empty(), java.time.Duration.ZERO,
+                        java.util.Optional.of(Map.of("ok", true))),
+                Map.of("version", "1.0.0", "sourceKind", "PLUGIN"));
     }
 }
