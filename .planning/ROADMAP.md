@@ -253,7 +253,7 @@ Plans:
 **Requirements:** PLUG-01, PLUG-02, PLUG-03, PLUG-04, PLUG-05, PLUG-06, E2E-08  
 **UI hint**: yes
 
-**Plans:** 8 plans
+**Plans:** 11 plans
 
 Plans:
 - [x] 08-01-PLAN.md — Add isolated PF4J infrastructure module and typed controlled-directory configuration.
@@ -264,6 +264,9 @@ Plans:
 - [x] 08-06-PLAN.md — Render plugin governance, refresh, disable, and quarantine controls in Admin UI.
 - [x] 08-07-PLAN.md — Add sample read-only plugin JAR packaging and product-path E2E.
 - [x] 08-08-PLAN.md — Add plugin architecture gates, docs, traceability, and final smoke gate.
+- [ ] 08-09-PLAN.md — Close dynamic plugin infrastructure refresh, state, and selection gaps.
+- [ ] 08-10-PLAN.md — Wire live Cloud Server dynamic plugin registry and product-path gap tests.
+- [ ] 08-11-PLAN.md — Update docs, traceability, and final gap-closure smoke gate.
 
 **Success criteria:**
 1. Admin can configure a controlled plugin directory for trusted plugin JARs.
