@@ -34,6 +34,18 @@ class PluginInfrastructureArchitectureTest {
     }
 
     @Test
+    void adapter_web_production_code_must_not_depend_on_pf4j_directly() {
+        JavaClasses classes = new ClassFileImporter().importPackages(
+                "io.github.pi_java.agent.adapter.web");
+
+        noClasses().that().resideInAnyPackage(
+                        "io.github.pi_java.agent.adapter.web..")
+                .should().dependOnClassesThat().resideInAnyPackage("org.pf4j..")
+                .allowEmptyShould(true)
+                .check(classes);
+    }
+
+    @Test
     void plugin_infrastructure_must_not_depend_on_adapter_ui_persistence_mcp_or_model_provider_implementations() {
         JavaClasses classes = new ClassFileImporter().importPackages("io.github.pi_java.agent.infrastructure.plugin");
 
