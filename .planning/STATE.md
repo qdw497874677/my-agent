@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 08
 status: executing
-stopped_at: Completed 08-08-PLAN.md
-last_updated: "2026-06-17T17:00:13.189Z"
+stopped_at: Completed 08-09-PLAN.md
+last_updated: "2026-06-18T01:41:02.083Z"
 progress:
   total_phases: 9
-  completed_phases: 8
-  total_plans: 67
-  completed_plans: 67
+  completed_phases: 7
+  total_plans: 70
+  completed_plans: 68
 ---
 
 # Project State: Pi Java Agent Platform
@@ -285,6 +285,9 @@ Key findings:
 - [Phase 08]: Keep PF4J/plugin implementation leakage guarded by package-level ArchUnit rules across core, client, extension API, Spring starter, MCP, and model/provider modules.
 - [Phase 08]: Document Phase 8 as trusted controlled-directory plugin loading, not a sandbox or marketplace/upload system.
 - [Phase 08]: Expose PluginGovernanceCatalog through an Adapter Web facade bean instead of making the infrastructure adapter itself the App port bean, avoiding duplicate primary bean conflicts in tests and composition.
+- [Phase 08]: Plan 09 keeps PF4J discovery in pi-agent-infrastructure-plugin through Pf4jControlledPluginDiscoveryService so Adapter Web can consume a PF4J-free service boundary.
+- [Phase 08]: Plan 09 rebuilds DefaultExtensionContributionRegistry from the current discovery snapshot and PluginStateStore on each contributionRegistry() call so disable/quarantine affect new resolutions on the same adapter instance.
+- [Phase 08]: Plan 09 models allowlist/selected rejections as disabled contribution sources with governance metadata selectionStatus rather than hiding plugins from admin status.
 
 ## Performance Metrics
 
@@ -355,11 +358,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P05 | 15m 20s | 2 tasks | 4 files |
 | Phase 08-controlled-dynamic-plugin-jars P07 | 12m | 2 tasks | 9 files |
 | Phase 08-controlled-dynamic-plugin-jars P08 | 10m 05s | 3 tasks | 6 files |
+| Phase 08-controlled-dynamic-plugin-jars P09 | 5m 56s | 3 tasks | 6 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 08-08-PLAN.md
+- **Stopped At:** Completed 08-09-PLAN.md
 
 ## Next Action
 
