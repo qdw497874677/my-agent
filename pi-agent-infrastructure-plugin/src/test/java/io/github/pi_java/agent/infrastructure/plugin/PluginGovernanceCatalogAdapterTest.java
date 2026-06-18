@@ -146,6 +146,44 @@ class PluginGovernanceCatalogAdapterTest {
         assertThat(refresh.status()).isEqualTo("REFRESH_DISABLED");
     }
 
+    @Test
+    void notAllowlistedPluginRemainsVisibleButDoesNotContributeTools() {
+        Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered = discovered("blocked-plugin", PluginState.STARTED,
+                source("blocked-plugin", toolCapability("plugin.blocked.read")));
+        PluginRegistryProperties properties = new PluginRegistryProperties(
+                true, java.util.Optional.of(Path.of("plugins")), true, true, List.of("allowed-plugin"), List.of(),
+                "1.0.0", false, true);
+        PluginGovernanceCatalogAdapter adapter = new PluginGovernanceCatalogAdapter(
+                List.of(discovered), new InMemoryPluginStateStore(), new ExtensionRegistrationProperties(), properties,
+                () -> List.of(discovered));
+
+        assertThat(adapter.plugins()).singleElement().satisfies(plugin -> {
+            assertThat(plugin.pluginId()).isEqualTo("blocked-plugin");
+            assertThat(plugin.enabled()).isFalse();
+            assertThat(plugin.metadata()).containsEntry("selectionStatus", "NOT_ALLOWLISTED");
+        });
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.blocked.read")).isEmpty();
+    }
+
+    @Test
+    void notSelectedPluginRemainsVisibleButDoesNotContributeTools() {
+        Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered = discovered("optional-plugin", PluginState.STARTED,
+                source("optional-plugin", toolCapability("plugin.optional.read")));
+        PluginRegistryProperties properties = new PluginRegistryProperties(
+                true, java.util.Optional.of(Path.of("plugins")), true, true,
+                List.of("optional-plugin", "selected-plugin"), List.of("selected-plugin"), "1.0.0", false, true);
+        PluginGovernanceCatalogAdapter adapter = new PluginGovernanceCatalogAdapter(
+                List.of(discovered), new InMemoryPluginStateStore(), new ExtensionRegistrationProperties(), properties,
+                () -> List.of(discovered));
+
+        assertThat(adapter.plugins()).singleElement().satisfies(plugin -> {
+            assertThat(plugin.pluginId()).isEqualTo("optional-plugin");
+            assertThat(plugin.enabled()).isFalse();
+            assertThat(plugin.metadata()).containsEntry("selectionStatus", "NOT_SELECTED");
+        });
+        assertThat(new DynamicPluginToolRegistry(adapter::contributionRegistry).resolve("plugin.optional.read")).isEmpty();
+    }
+
     private static Pf4jPluginSourceDiscovery.PluginDiscoveredSource discovered(String pluginId, PluginState state,
                                                                                ExtensionSource source) {
         return new Pf4jPluginExtensionBridge(Path.of("/plugins"), "1.0.0")

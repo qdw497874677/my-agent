@@ -110,8 +110,10 @@ public final class PluginGovernanceCatalogAdapter {
     private PluginSourceStatus sourceStatus(Pf4jPluginSourceDiscovery.PluginDiscoveredSource plugin,
                                             List<PluginCapabilityStatus> capabilities) {
         PluginStateStore.PluginStateRecord override = stateStore.state(plugin.pluginId()).orElse(null);
+        String selectionStatus = selectionStatus(plugin);
         String lifecycle = override == null ? plugin.lifecycle().lifecycleState().name() : override.lifecycleState().name();
-        boolean enabled = override == null && plugin.discoveredSource().status() == ServiceLoaderExtensionDiscovery.DiscoveryStatus.DISCOVERED
+        boolean selected = selectionStatus.isEmpty();
+        boolean enabled = selected && override == null && plugin.discoveredSource().status() == ServiceLoaderExtensionDiscovery.DiscoveryStatus.DISCOVERED
                 && plugin.lifecycle().lifecycleState() != ExtensionLifecycleState.FAILED
                 && plugin.descriptor().compatibility().compatible();
         Map<String, String> counts = capabilities.stream()
@@ -119,6 +121,9 @@ public final class PluginGovernanceCatalogAdapter {
         LinkedHashMap<String, String> metadata = new LinkedHashMap<>(plugin.descriptor().redactedMetadata());
         metadata.put("operatorActionRequired", String.valueOf(override != null && override.lifecycleState() == ExtensionLifecycleState.QUARANTINED));
         metadata.put("nonSandboxWarning", String.valueOf(plugin.lifecycle().nonSandboxWarning()));
+        if (!selectionStatus.isEmpty()) {
+            metadata.put("selectionStatus", selectionStatus);
+        }
         return new PluginSourceStatus(plugin.pluginId(), plugin.descriptor().name(), plugin.descriptor().version(),
                 plugin.descriptor().provider(), "PF4J_JAR", lifecycle, enabled,
                 plugin.lifecycle().lifecycleState() == ExtensionLifecycleState.FAILED ? "DOWN" : "UP",
@@ -149,7 +154,7 @@ public final class PluginGovernanceCatalogAdapter {
                 .filter(plugin -> stateStore.state(plugin.pluginId())
                         .map(record -> record.lifecycleState() == ExtensionLifecycleState.DISABLED
                                 || record.lifecycleState() == ExtensionLifecycleState.QUARANTINED)
-                        .orElse(false))
+                        .orElse(false) || !selectionStatus(plugin).isEmpty())
                 .map(plugin -> plugin.discoveredSource().sourceId())
                 .collect(Collectors.toSet());
         disabledSources.addAll(properties.disabledSources());
@@ -161,5 +166,20 @@ public final class PluginGovernanceCatalogAdapter {
         return discoveredPlugins.get().stream()
                 .map(Pf4jPluginSourceDiscovery.PluginDiscoveredSource::discoveredSource)
                 .toList();
+    }
+
+    private String selectionStatus(Pf4jPluginSourceDiscovery.PluginDiscoveredSource plugin) {
+        if (registryProperties == null) {
+            return "";
+        }
+        if (!registryProperties.allowedPluginIds().isEmpty()
+                && !registryProperties.allowedPluginIds().contains(plugin.pluginId())) {
+            return "NOT_ALLOWLISTED";
+        }
+        if (!registryProperties.selectedPluginIds().isEmpty()
+                && !registryProperties.selectedPluginIds().contains(plugin.pluginId())) {
+            return "NOT_SELECTED";
+        }
+        return "";
     }
 }
