@@ -6,6 +6,8 @@ import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
 import io.github.pi_java.agent.app.port.tool.ToolPolicyEvaluator;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.event.RunEventDto;
+import io.github.pi_java.agent.client.admin.PluginMutationRequest;
+import io.github.pi_java.agent.client.admin.PluginMutationResponse;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
@@ -52,6 +54,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -59,6 +62,7 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(classes = {PiCloudServerApplication.class, SamplePluginJarE2ETest.SamplePluginRuntimeConfiguration.class,
         InMemoryCloudE2EConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @TestPropertySource(properties = {
         "spring.main.allow-bean-definition-overriding=true",
         "spring.flyway.enabled=false",
@@ -115,6 +119,51 @@ class SamplePluginJarE2ETest {
                 assertThat(event.payload().toString()).contains(SAMPLE_TOOL_ID, SAMPLE_PLUGIN_ID,
                         "sample plugin read-only result"));
         assertThat(stores.auditsForRun(run.runId()).toString()).contains(SAMPLE_TOOL_ID, "tool.completed", "policyDecision=ALLOW");
+    }
+
+    @Test
+    void adminDisableRemovesSamplePluginToolFromCatalogAndNewRunResolution() {
+        assertThat(get("/api/tools", String.class)).contains(SAMPLE_TOOL_ID);
+
+        PluginMutationResponse mutation = post("/api/admin/governance/plugins/%s/disable".formatted(SAMPLE_PLUGIN_ID),
+                new PluginMutationRequest("disable", "maintenance through product path"), PluginMutationResponse.class);
+
+        assertThat(mutation.applied()).isTrue();
+        assertThat(mutation.resultingLifecycleStatus()).isEqualTo("DISABLED");
+        assertThat(get("/api/tools", String.class)).doesNotContain(SAMPLE_TOOL_ID);
+
+        RunOutcome outcome = createRunRequestingSamplePluginTool("workspace-sample-plugin-disabled");
+        assertThat(outcome.status().status()).isNotEqualTo("COMPLETED");
+        assertThat(outcome.events().events()).filteredOn(event -> "tool.completed".equals(event.type())).isEmpty();
+    }
+
+    @Test
+    void adminQuarantineKeepsSamplePluginToolUnavailableForNewResolution() {
+        assertThat(get("/api/tools", String.class)).contains(SAMPLE_TOOL_ID);
+
+        PluginMutationResponse mutation = post("/api/admin/governance/plugins/%s/quarantine".formatted(SAMPLE_PLUGIN_ID),
+                new PluginMutationRequest("quarantine", "operator investigation through product path"), PluginMutationResponse.class);
+
+        assertThat(mutation.applied()).isTrue();
+        assertThat(mutation.resultingLifecycleStatus()).isEqualTo("QUARANTINED");
+        assertThat(get("/api/admin/governance/plugins", String.class)).contains("QUARANTINED");
+        assertThat(get("/api/tools", String.class)).doesNotContain(SAMPLE_TOOL_ID);
+
+        RunOutcome outcome = createRunRequestingSamplePluginTool("workspace-sample-plugin-quarantined");
+        assertThat(outcome.status().status()).isNotEqualTo("COMPLETED");
+        assertThat(outcome.events().events()).filteredOn(event -> "tool.completed".equals(event.type())).isEmpty();
+    }
+
+    private RunOutcome createRunRequestingSamplePluginTool(String workspaceId) {
+        SessionResponse session = post("/api/sessions", new CreateSessionRequest(workspaceId, Map.of()),
+                SessionResponse.class);
+        RunResponse run = post("/api/sessions/%s/runs".formatted(session.sessionId()),
+                new CreateRunRequest("test-general-agent", "task", Map.of("objective", "sample plugin lookup"),
+                        workspaceId, Map.of()), RunResponse.class);
+        RunStatusResponse status = awaitTerminal(session.sessionId(), run.runId());
+        EventHistoryResponse events = get("/api/sessions/%s/runs/%s/events?afterSequence=0&limit=500".formatted(
+                session.sessionId(), run.runId()), EventHistoryResponse.class);
+        return new RunOutcome(status, events);
     }
 
     private RunStatusResponse awaitTerminal(String sessionId, String runId) {
@@ -188,6 +237,9 @@ class SamplePluginJarE2ETest {
                     .orElseThrow(() -> new IllegalStateException("Sample plugin jar not found in " + target
                             + "; run `mvn -pl pi-sample-plugin-readonly -am package` first."));
         }
+    }
+
+    private record RunOutcome(RunStatusResponse status, EventHistoryResponse events) {
     }
 
     @TestConfiguration(proxyBeanMethods = false)
