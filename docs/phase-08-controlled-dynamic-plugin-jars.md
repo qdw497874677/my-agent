@@ -186,4 +186,4 @@ All Java gates are no-key and use fake runtime/tool fixtures, in-memory state, t
 - Running untrusted or semi-trusted arbitrary plugin code.
 - Fine-grained plugin permission systems beyond existing `ToolExecutionGateway`, policy, audit, workspace, and credential boundaries.
 - Broad sample plugin coverage for model providers, policy providers, workspace providers, memory providers, and event listeners.
-- Production telemetry spans/metrics for plugin lifecycle — Phase 09 `OPS-01`.
+- Production telemetry spans/metrics for plugin lifecycle — completed in Phase 09 `OPS-01`; see `docs/phase-09-production-hardening.md` and the Phase 09 telemetry/plugin regression evidence.

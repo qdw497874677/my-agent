@@ -298,7 +298,7 @@ Plans:
 - [x] 09-06-PLAN.md — Configure Prometheus/OTLP hooks, structured logs, and actuator security.
 - [x] 09-07-PLAN.md — Expose Admin operations metrics API read models.
 - [x] 09-08-PLAN.md — Render Admin operations summary UI and no-key smoke coverage.
-- [ ] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
+- [x] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
 
 **Success criteria:**
 1. Platform emits structured logs, metrics, and OpenTelemetry-compatible spans for run, model, tool, MCP, plugin, and policy lifecycles.

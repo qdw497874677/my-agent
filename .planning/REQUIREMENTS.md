@@ -95,7 +95,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Observability, Policy, and Security
 
-- [x] **OPS-01**: Platform emits structured logs, metrics, and OpenTelemetry-compatible trace/span hooks for runs, model calls, tool calls, MCP calls, plugin lifecycle, and policy decisions.
+- [x] **OPS-01**: Platform emits structured logs, metrics, and OpenTelemetry-compatible trace/span hooks for runs, model calls, tool calls, MCP calls, plugin lifecycle, and policy decisions. Validated in Phase 9 by `pi-agent-infrastructure-observability`, `RunEventTelemetrySink`, `TelemetryToolExecutionGateway`, `TelemetryStreamingModelClient`, `TelemetryMcpGovernanceCatalog`, `TelemetryPluginGovernanceCatalog`, Admin operations API/UI, `Phase09TelemetryRedactionRegressionTest`, `Phase09CriticalPathRegressionTest`, and `docs/phase-09-production-hardening.md`.
 - [x] **OPS-02**: Platform stores audit records for security-sensitive actions including run creation/cancellation, tool decisions, provider credential usage, plugin changes, and MCP calls. Validated in Phase 4: tool decision/preview/execution audit assertions in Cloud Server E2E.
 - [x] **OPS-03**: Platform includes a default policy engine implementation and a pluggable policy interface for future RBAC/ABAC/quota/compliance checks. Validated in Phase 4: `DefaultToolPolicyEvaluator` and App `ToolPolicyEvaluator` port.
 - [x] **OPS-04**: Platform models tenant ID, user ID, session ID, run ID, workspace ID, and trace ID in runtime context even if v1 runs single-tenant.
@@ -224,7 +224,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GUI-06 | Phase 5 | Complete — validated by approval DTO/API/cards and Playwright approve/reject branches |
 | GUI-07 | Phase 5 | Complete — validated by Admin Governance APIs/views and browser E2E overview/policy/audit checks |
 | GUI-08 | Phase 5 | Complete — validated by public REST/SSE/read-model client boundaries and browser E2E API consumption |
-| OPS-01 | Phase 9 | Complete |
+| OPS-01 | Phase 9 | Complete — validated by `pi-agent-infrastructure-observability`, run/model/tool/policy/MCP/plugin telemetry wrappers, Admin operations API/UI, Phase 9 redaction and critical-path regression tests, and production hardening documentation. |
 | OPS-02 | Phase 4 | Complete |
 | OPS-03 | Phase 4 | Complete |
 | OPS-04 | Phase 1 | Complete |
