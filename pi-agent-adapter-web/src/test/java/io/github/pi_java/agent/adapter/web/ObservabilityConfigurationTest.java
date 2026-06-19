@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
 import io.github.pi_java.agent.infrastructure.observability.PiTelemetryRedactor;
+import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ class ObservabilityConfigurationTest {
 
     @MockBean
     private TransactionTemplate transactionTemplate;
+
+    @MockBean
+    private AgentRuntime agentRuntime;
 
     @Test
     void providesPiTelemetryBeansWithoutExternalBackend() {

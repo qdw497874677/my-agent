@@ -6,21 +6,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@SpringBootTest(classes = PiCloudServerApplication.class)
-@AutoConfigureMockMvc
+@SpringBootTest(classes = PiCloudServerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class ActuatorSecurityTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
+
+    @LocalServerPort
+    private int port;
 
     @MockBean
     private JdbcTemplate jdbcTemplate;
@@ -33,22 +39,28 @@ class ActuatorSecurityTest {
 
     @Test
     void healthRemainsPublic() throws Exception {
-        mockMvc.perform(get("/actuator/health"))
-                .andExpect(status().isOk());
+        ResponseEntity<String> response = restTemplate.getForEntity(url("/actuator/health"), String.class);
+        org.assertj.core.api.Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
     void prometheusRequiresAuthentication() throws Exception {
-        mockMvc.perform(get("/actuator/prometheus")
-                        .header("X-Pi-Dev-Disable-Defaults", "true"))
-                .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Pi-Dev-Disable-Defaults", "true");
+        ResponseEntity<String> response = restTemplate.exchange(url("/actuator/prometheus"), HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        org.assertj.core.api.Assertions.assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
 
     @Test
     void prometheusAllowsAuthenticatedDevPrincipal() throws Exception {
-        mockMvc.perform(get("/actuator/prometheus")
-                        .header("X-Pi-Dev-Tenant", "tenant-a")
-                        .header("X-Pi-Dev-User", "user-a"))
-                .andExpect(status().isOk());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Pi-Dev-Tenant", "tenant-a");
+        headers.add("X-Pi-Dev-User", "user-a");
+        ResponseEntity<String> response = restTemplate.exchange(url("/actuator/prometheus"), HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        org.assertj.core.api.Assertions.assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    private String url(String path) {
+        return "http://localhost:" + port + path;
     }
 }
