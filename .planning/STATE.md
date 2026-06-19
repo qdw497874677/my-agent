@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 09
 status: executing
-stopped_at: Completed 09-07-PLAN.md
-last_updated: "2026-06-19T23:08:45.358Z"
+stopped_at: Completed 09-08-PLAN.md
+last_updated: "2026-06-19T23:29:01.401Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 79
-  completed_plans: 77
+  completed_plans: 78
 ---
 
 # Project State: Pi Java Agent Platform
@@ -312,6 +312,9 @@ Key findings:
 - [Phase 09]: Plan 07 exposes Admin operations as Pi-specific public DTOs instead of a generic metrics explorer or raw Micrometer surface.
 - [Phase 09]: Plan 07 keeps OperationsMetricsReader optional in DefaultGovernanceQueryService with a clock-based empty fallback for minimal/test contexts.
 - [Phase 09]: Plan 07 maps non-zero error/status meters into generic operational warnings while redacting all meter tag keys and values.
+- [Phase 09]: Plan 08 keeps AdminOperationsView as a deterministic Vaadin summary component over public OperationsSummaryResponse rather than a metrics explorer.
+- [Phase 09]: Plan 08 exposes operations navigation through the existing Admin Governance overview route instead of creating a new mutable Admin surface.
+- [Phase 09]: Plan 08 uses the existing no-key Playwright harness for operations governance smoke and avoids Prometheus, OTLP Collector, Docker, or model-key dependencies.
 
 ## Performance Metrics
 
@@ -391,11 +394,12 @@ Key findings:
 | Phase 09-observability-policy-tenancy-and-production-hardening P03 | 10m 26s | 2 tasks | 6 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P04 | 10m40s | 2 tasks | 7 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P07 | 7m 48s | 2 tasks | 16 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P08 | 16m 25s | 2 tasks | 6 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 09-07-PLAN.md
+- **Stopped At:** Completed 09-08-PLAN.md
 
 ## Next Action
 
