@@ -31,6 +31,7 @@ import io.github.pi_java.agent.infrastructure.jdbc.JdbcRunEventStore;
 import io.github.pi_java.agent.infrastructure.jdbc.JdbcRunProjectionRepository;
 import io.github.pi_java.agent.infrastructure.jdbc.JdbcSessionRepository;
 import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.RunEventTelemetrySink;
 import io.github.pi_java.agent.infrastructure.observability.TelemetryRunDispatcher;
 import io.github.pi_java.agent.infrastructure.queue.PostgresRunQueue;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,8 +107,11 @@ public class CloudRuntimeBeanConfiguration {
             TransactionTemplate transactionTemplate,
             RunEventStore runEventStore,
             RunProjectionRepository runProjectionRepository,
-            RunEventFanout runEventFanout) {
-        return new PersistingEventSink(transactionTemplate, runEventStore, runProjectionRepository, runEventFanout);
+            RunEventFanout runEventFanout,
+            ObjectProvider<PiTelemetry> piTelemetry) {
+        EventSink persistingEventSink = new PersistingEventSink(transactionTemplate, runEventStore, runProjectionRepository, runEventFanout);
+        PiTelemetry telemetry = piTelemetry.getIfAvailable();
+        return telemetry == null ? persistingEventSink : new RunEventTelemetrySink(persistingEventSink, telemetry);
     }
 
     @Bean
