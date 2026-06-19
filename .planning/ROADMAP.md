@@ -290,8 +290,8 @@ Plans:
 **Plans:** 9 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Normalize W3C trace IDs and migrate historical trace data.
-- [ ] 09-02-PLAN.md — Create isolated observability module and telemetry primitives.
+- [x] 09-01-PLAN.md — Normalize W3C trace IDs and migrate historical trace data.
+- [x] 09-02-PLAN.md — Create isolated observability module and telemetry primitives.
 - [ ] 09-03-PLAN.md — Instrument run event and dispatcher lifecycle telemetry.
 - [ ] 09-04-PLAN.md — Instrument governed tool and policy decision telemetry.
 - [ ] 09-05-PLAN.md — Instrument model, MCP, and plugin lifecycle telemetry.

@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 9
-status: planning
-stopped_at: Phase 9 context gathered
-last_updated: "2026-06-19T15:13:08.999Z"
+current_phase: 09
+status: executing
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-06-19T22:42:21.779Z"
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 70
-  completed_plans: 70
+  total_plans: 79
+  completed_plans: 72
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Ready to plan
-**Current Phase:** 9
+**Status:** Executing Phase 09
+**Current Phase:** 09
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-06-13)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 08 — controlled-dynamic-plugin-jars
+**Current focus:** Phase 09 — observability-policy-tenancy-and-production-hardening
 
 ## Workflow Configuration
 
@@ -294,6 +294,12 @@ Key findings:
 - [Phase 08]: Plan 11 documented plugin refresh as explicit controlled-directory rediscovery, not hot watching or guaranteed unload.
 - [Phase 08]: Plan 11 tied PLUG/E2E evidence to concrete gap-closure classes and product-path tests: Pf4jControlledPluginDiscoveryService, DynamicPluginToolRegistry, SamplePluginJarCompatibilityE2ETest, and Adapter Web PF4J architecture gates.
 - [Phase 08]: Plan 11 left OPS-01 pending because plugin lifecycle telemetry remains Phase 09 scope.
+- [Phase 09]: TraceId is now a strict W3C trace-id value object: exactly 32 lowercase hex characters and never all zeros.
+- [Phase 09]: CorrelationId remains permissive and unchanged so operator-supplied correlation headers are not rewritten during trace normalization.
+- [Phase 09]: Docker-backed migration verification is gated with Testcontainers disabledWithoutDocker to keep local no-Docker execution from failing while preserving the product-path migration test.
+- [Phase 09]: Plan 02 keeps Micrometer, OpenTelemetry, SLF4J, and test Logback dependencies isolated inside pi-agent-infrastructure-observability so Domain/App/client/extension/starter modules remain telemetry-implementation-free.
+- [Phase 09]: Plan 02 uses explicit AutoCloseable PiTelemetryContext scopes to save, write, and restore MDC values for RequestContext and RunEvent instead of relying on inherited MDC.
+- [Phase 09]: Plan 02 redacts suspicious telemetry tag/span values containing secret, password, authorization, bearer, api_key, apikey, or token markers.
 
 ## Performance Metrics
 
@@ -367,11 +373,13 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P09 | 5m 56s | 3 tasks | 6 files |
 | Phase 08-controlled-dynamic-plugin-jars P10 | 12m | 3 tasks | 4 files |
 | Phase 08-controlled-dynamic-plugin-jars P11 | 4m 45s | 2 tasks | 3 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P01 | 6m | 2 tasks | 13 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P02 | 6m 08s | 2 tasks | 9 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Phase 9 context gathered
+- **Stopped At:** Completed 09-02-PLAN.md
 
 ## Next Action
 
