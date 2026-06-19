@@ -111,7 +111,7 @@ public final class McpToolRegistry implements ToolRegistry {
         public ToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
             ToolExecutorBinding binding = delegate.create(server, toolName);
             return new TelemetryMcpToolExecutorBinding(binding, server.id(), toolName,
-                    server.transportKind().name(), telemetry);
+                    server.transport().name(), telemetry);
         }
     }
 }
