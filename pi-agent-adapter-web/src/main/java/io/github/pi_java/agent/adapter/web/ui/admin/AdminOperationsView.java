@@ -75,6 +75,14 @@ public class AdminOperationsView extends Div {
         Span empty = new Span("Operations summary has not been loaded.");
         empty.getElement().setAttribute("data-state", "empty-operations-summary");
         add(empty);
+        addMetricSection("Runs", List.of());
+        addMetricSection("Models", List.of());
+        addMetricSection("Tools", List.of());
+        addMetricSection("Policies", List.of());
+        addMetricSection("MCP", List.of());
+        addMetricSection("Plugins", List.of());
+        addMetricSection("Errors", List.of());
+        addWarningSection("Warnings", List.of());
     }
 
     private void addHeader(OperationsSummaryResponse response) {
