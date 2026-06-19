@@ -30,9 +30,12 @@ import io.github.pi_java.agent.infrastructure.jdbc.JdbcAuditRepository;
 import io.github.pi_java.agent.infrastructure.jdbc.JdbcRunEventStore;
 import io.github.pi_java.agent.infrastructure.jdbc.JdbcRunProjectionRepository;
 import io.github.pi_java.agent.infrastructure.jdbc.JdbcSessionRepository;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryRunDispatcher;
 import io.github.pi_java.agent.infrastructure.queue.PostgresRunQueue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -155,10 +158,13 @@ public class CloudRuntimeBeanConfiguration {
             AuditRepository auditRepository,
             AgentRuntime agentRuntime,
             Clock clock,
+            ObjectProvider<PiTelemetry> piTelemetry,
             @Value("${pi.runtime.run-timeout-ms:30000}") long runTimeoutMs,
             @Value("${pi.runtime.default-model-ref:openai-compatible:${pi.providers.openai-compatible.default-model-id:gpt-4.1-mini}}") String defaultModelRef) {
-        return new DefaultRunDispatcher(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher,
+        RunDispatcher defaultDispatcher = new DefaultRunDispatcher(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher,
                 cancellationRegistry, auditRepository, agentRuntime, clock, Duration.ofMillis(runTimeoutMs), defaultModelRef);
+        PiTelemetry telemetry = piTelemetry.getIfAvailable();
+        return telemetry == null ? defaultDispatcher : new TelemetryRunDispatcher(defaultDispatcher, telemetry);
     }
 
     @Bean
