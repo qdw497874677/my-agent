@@ -158,6 +158,7 @@ class GovernanceQueryServiceMcpTest {
                 mcpCatalog,
                 new EmptyPluginGovernanceCatalog(),
                 Optional.empty(),
+                Optional.empty(),
                 Clock.fixed(Instant.parse("2026-06-15T12:00:00Z"), ZoneOffset.UTC));
     }
 

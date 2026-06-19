@@ -9,6 +9,7 @@ import io.github.pi_java.agent.app.port.mcp.McpRefreshStatus;
 import io.github.pi_java.agent.app.port.mcp.McpServerStatus;
 import io.github.pi_java.agent.app.port.mcp.McpToolStatus;
 import io.github.pi_java.agent.app.port.model.ModelProviderRegistry;
+import io.github.pi_java.agent.app.port.observability.OperationsMetricsReader;
 import io.github.pi_java.agent.app.port.plugin.PluginCapabilityStatus;
 import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.plugin.PluginMutationStatus;
@@ -24,6 +25,7 @@ import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
 import io.github.pi_java.agent.client.admin.McpServerDto;
 import io.github.pi_java.agent.client.admin.McpToolDto;
+import io.github.pi_java.agent.client.admin.OperationsSummaryResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.admin.PluginCapabilityDto;
 import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
@@ -43,6 +45,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
     private final ExtensionGovernanceCatalog extensionGovernanceCatalog;
     private final McpGovernanceCatalog mcpGovernanceCatalog;
     private final PluginGovernanceCatalog pluginGovernanceCatalog;
+    private final Optional<OperationsMetricsReader> operationsMetricsReader;
     private final Optional<AgentRuntime> agentRuntime;
     private final Clock clock;
 
@@ -52,6 +55,7 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
             ExtensionGovernanceCatalog extensionGovernanceCatalog,
             McpGovernanceCatalog mcpGovernanceCatalog,
             PluginGovernanceCatalog pluginGovernanceCatalog,
+            Optional<OperationsMetricsReader> operationsMetricsReader,
             Optional<AgentRuntime> agentRuntime,
             Clock clock) {
         this.modelProviderRegistry = Objects.requireNonNull(modelProviderRegistry, "modelProviderRegistry must not be null");
@@ -62,6 +66,8 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 "mcpGovernanceCatalog must not be null");
         this.pluginGovernanceCatalog = Objects.requireNonNull(pluginGovernanceCatalog,
                 "pluginGovernanceCatalog must not be null");
+        this.operationsMetricsReader = Objects.requireNonNull(operationsMetricsReader,
+                "operationsMetricsReader must not be null");
         this.agentRuntime = Objects.requireNonNull(agentRuntime, "agentRuntime must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
@@ -140,6 +146,14 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
     }
 
     @Override
+    public OperationsSummaryResponse operations(RequestContext context) {
+        Objects.requireNonNull(context, "context must not be null");
+        return operationsMetricsReader
+                .map(reader -> reader.summarize(context))
+                .orElseGet(this::emptyOperationsSummary);
+    }
+
+    @Override
     public List<PolicyDecisionSummaryDto> policyDecisions(RequestContext context) {
         Objects.requireNonNull(context, "context must not be null");
         return List.of();
@@ -159,6 +173,19 @@ public final class DefaultGovernanceQueryService implements GovernanceQueryServi
                 present ? "Runtime bean is available" : "Runtime bean is not configured",
                 present ? 1 : 0,
                 Map.of("surface", "read-only"));
+    }
+
+    private OperationsSummaryResponse emptyOperationsSummary() {
+        return new OperationsSummaryResponse(
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                clock.instant());
     }
 
     private GovernanceStatusDto providerStatus() {

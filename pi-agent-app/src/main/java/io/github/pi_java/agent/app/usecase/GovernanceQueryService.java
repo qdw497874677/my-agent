@@ -6,6 +6,7 @@ import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
+import io.github.pi_java.agent.client.admin.OperationsSummaryResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
 import io.github.pi_java.agent.client.admin.PluginMutationRequest;
@@ -29,6 +30,8 @@ public interface GovernanceQueryService {
     PluginMutationResponse disablePlugin(RequestContext context, String pluginId, PluginMutationRequest request);
 
     PluginMutationResponse quarantinePlugin(RequestContext context, String pluginId, PluginMutationRequest request);
+
+    OperationsSummaryResponse operations(RequestContext context);
 
     List<PolicyDecisionSummaryDto> policyDecisions(RequestContext context);
 
