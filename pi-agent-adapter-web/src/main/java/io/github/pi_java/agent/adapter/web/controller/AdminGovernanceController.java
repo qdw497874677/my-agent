@@ -6,6 +6,7 @@ import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
+import io.github.pi_java.agent.client.admin.OperationsSummaryResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
 import io.github.pi_java.agent.client.admin.PluginMutationRequest;
@@ -43,6 +44,11 @@ public class AdminGovernanceController {
     @GetMapping("/audits")
     public List<AuditSummaryDto> audits(Principal principal, HttpServletRequest servletRequest) {
         return governanceQueryService.audits(SessionController.toRequestContext(principal, servletRequest));
+    }
+
+    @GetMapping("/operations")
+    public OperationsSummaryResponse operations(Principal principal, HttpServletRequest servletRequest) {
+        return governanceQueryService.operations(SessionController.toRequestContext(principal, servletRequest));
     }
 
     @GetMapping("/extensions")
