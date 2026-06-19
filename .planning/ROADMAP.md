@@ -287,6 +287,19 @@ Plans:
 **Requirements:** OPS-01  
 **UI hint**: yes
 
+**Plans:** 9 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Normalize W3C trace IDs and migrate historical trace data.
+- [ ] 09-02-PLAN.md — Create isolated observability module and telemetry primitives.
+- [ ] 09-03-PLAN.md — Instrument run event and dispatcher lifecycle telemetry.
+- [ ] 09-04-PLAN.md — Instrument governed tool and policy decision telemetry.
+- [ ] 09-05-PLAN.md — Instrument model, MCP, and plugin lifecycle telemetry.
+- [ ] 09-06-PLAN.md — Configure Prometheus/OTLP hooks, structured logs, and actuator security.
+- [ ] 09-07-PLAN.md — Expose Admin operations metrics API read models.
+- [ ] 09-08-PLAN.md — Render Admin operations summary UI and no-key smoke coverage.
+- [ ] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
+
 **Success criteria:**
 1. Platform emits structured logs, metrics, and OpenTelemetry-compatible spans for run, model, tool, MCP, plugin, and policy lifecycles.
 2. Web Console/Admin Governance surfaces runtime health and key operational metrics for runs, providers, tools, MCP servers, and plugins.
