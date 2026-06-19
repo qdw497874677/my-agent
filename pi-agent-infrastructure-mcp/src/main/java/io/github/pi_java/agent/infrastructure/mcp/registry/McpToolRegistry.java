@@ -1,10 +1,13 @@
 package io.github.pi_java.agent.infrastructure.mcp.registry;
 
 import io.github.pi_java.agent.app.port.tool.ToolRegistry;
+import io.github.pi_java.agent.app.port.tool.ToolExecutorBinding;
 import io.github.pi_java.agent.domain.tool.ToolDescriptor;
 import io.github.pi_java.agent.infrastructure.mcp.client.McpClientFactory;
 import io.github.pi_java.agent.infrastructure.mcp.client.McpSecretHeaderResolver;
 import io.github.pi_java.agent.infrastructure.mcp.invocation.McpToolExecutorBinding;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryMcpToolExecutorBinding;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +19,12 @@ public final class McpToolRegistry implements ToolRegistry {
     private final ToolBindingFactory bindingFactory;
 
     public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpSecretHeaderResolver secretResolver) {
-        this(serverRegistry, mapper, new McpClientFactory(secretResolver));
+        this(serverRegistry, mapper, new McpClientFactory(secretResolver), Optional.empty());
+    }
+
+    public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpSecretHeaderResolver secretResolver,
+                           Optional<PiTelemetry> telemetry) {
+        this(serverRegistry, mapper, new McpClientFactory(secretResolver), telemetry);
     }
 
     McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper,
@@ -25,7 +33,14 @@ public final class McpToolRegistry implements ToolRegistry {
     }
 
     public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpClientFactory clientFactory) {
-        this(serverRegistry, mapper, new McpClientToolBindingFactory(clientFactory));
+        this(serverRegistry, mapper, clientFactory, Optional.empty());
+    }
+
+    public McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, McpClientFactory clientFactory,
+                           Optional<PiTelemetry> telemetry) {
+        this(serverRegistry, mapper, telemetry
+                .<ToolBindingFactory>map(piTelemetry -> new TelemetryToolBindingFactory(new McpClientToolBindingFactory(clientFactory), piTelemetry))
+                .orElseGet(() -> new McpClientToolBindingFactory(clientFactory)));
     }
 
     private McpToolRegistry(McpServerRegistry serverRegistry, McpToolDescriptorMapper mapper, ToolBindingFactory bindingFactory) {
@@ -60,7 +75,7 @@ public final class McpToolRegistry implements ToolRegistry {
     }
 
     private interface ToolBindingFactory {
-        McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName);
+        ToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName);
     }
 
     private record McpClientToolBindingFactory(McpClientFactory clientFactory) implements ToolBindingFactory {
@@ -69,7 +84,7 @@ public final class McpToolRegistry implements ToolRegistry {
         }
 
         @Override
-        public McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
+        public ToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
             return new McpToolExecutorBinding(server, toolName, clientFactory);
         }
     }
@@ -81,8 +96,22 @@ public final class McpToolRegistry implements ToolRegistry {
         }
 
         @Override
-        public McpToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
+        public ToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
             return new McpToolExecutorBinding(server, toolName, invocationClientFactory);
+        }
+    }
+
+    private record TelemetryToolBindingFactory(ToolBindingFactory delegate, PiTelemetry telemetry) implements ToolBindingFactory {
+        private TelemetryToolBindingFactory {
+            Objects.requireNonNull(delegate, "delegate must not be null");
+            Objects.requireNonNull(telemetry, "telemetry must not be null");
+        }
+
+        @Override
+        public ToolExecutorBinding create(io.github.pi_java.agent.infrastructure.mcp.config.McpServerProperties server, String toolName) {
+            ToolExecutorBinding binding = delegate.create(server, toolName);
+            return new TelemetryMcpToolExecutorBinding(binding, server.id(), toolName,
+                    server.transportKind().name(), telemetry);
         }
     }
 }

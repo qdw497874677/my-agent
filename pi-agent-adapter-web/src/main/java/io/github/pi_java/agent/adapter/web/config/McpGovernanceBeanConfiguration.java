@@ -10,6 +10,8 @@ import io.github.pi_java.agent.infrastructure.mcp.registry.McpGovernanceCatalogA
 import io.github.pi_java.agent.infrastructure.mcp.registry.McpServerRegistry;
 import io.github.pi_java.agent.infrastructure.mcp.registry.McpToolDescriptorMapper;
 import io.github.pi_java.agent.infrastructure.mcp.registry.McpToolRegistry;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryMcpGovernanceCatalog;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
@@ -43,10 +45,11 @@ public class McpGovernanceBeanConfiguration {
 
     @Bean
     McpToolRegistry mcpToolRegistry(McpServerRegistry serverRegistry,
-                                    McpToolDescriptorMapper mapper,
-                                    McpSecretHeaderResolver secretResolver,
-                                    McpServersProperties properties) {
-        McpToolRegistry registry = new McpToolRegistry(serverRegistry, mapper, secretResolver);
+                                     McpToolDescriptorMapper mapper,
+                                     McpSecretHeaderResolver secretResolver,
+                                     McpServersProperties properties,
+                                     Optional<PiTelemetry> telemetry) {
+        McpToolRegistry registry = new McpToolRegistry(serverRegistry, mapper, secretResolver, telemetry);
         if (properties.discovery().startup()) {
             serverRegistry.refresh();
         }
@@ -55,8 +58,11 @@ public class McpGovernanceBeanConfiguration {
 
     @Bean
     McpGovernanceCatalog mcpGovernanceCatalog(McpServerRegistry serverRegistry,
-                                              McpToolDescriptorMapper mapper) {
-        return new McpGovernanceCatalogAdapter(serverRegistry, mapper);
+                                               McpToolDescriptorMapper mapper,
+                                               Optional<PiTelemetry> telemetry) {
+        McpGovernanceCatalog catalog = new McpGovernanceCatalogAdapter(serverRegistry, mapper);
+        return telemetry.<McpGovernanceCatalog>map(piTelemetry -> new TelemetryMcpGovernanceCatalog(catalog, piTelemetry))
+                .orElse(catalog);
     }
 
     @ConfigurationProperties(prefix = "pi.mcp")
