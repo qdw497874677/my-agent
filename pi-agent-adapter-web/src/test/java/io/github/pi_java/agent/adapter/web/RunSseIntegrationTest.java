@@ -190,7 +190,7 @@ class RunSseIntegrationTest {
                 sequence,
                 Instant.parse("2026-06-14T00:00:00Z"),
                 type,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("corr-1"),
                 new CausationId("cause-1"),
                 new ExtensionPayload("model.delta.schema", "1", Map.of("text", "hello")),

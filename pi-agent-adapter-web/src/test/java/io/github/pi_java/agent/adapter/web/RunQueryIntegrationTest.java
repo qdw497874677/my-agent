@@ -140,7 +140,7 @@ class RunQueryIntegrationTest {
                 42L,
                 Instant.parse("2026-06-14T00:00:00Z"),
                 RunEventType.MODEL_DELTA,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("corr-1"),
                 new CausationId("cause-1"),
                 new ExtensionPayload("model.delta.schema", "2", Map.of("text", "hello")),

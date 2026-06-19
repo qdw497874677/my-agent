@@ -44,7 +44,7 @@ class RunEventContractTest {
                 1,
                 Instant.parse("2026-06-13T00:00:00Z"),
                 RunEventType.RUN_CREATED,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("correlation-1"),
                 new CausationId("causation-1"),
                 new RunEventPayload.RunLifecyclePayload(RunStatus.QUEUED, null),
@@ -66,7 +66,7 @@ class RunEventContractTest {
         assertThatNullPointerException().isThrownBy(() -> new RunEvent(
                 "event-2", null, new UserId("user-1"), new SessionId("session-1"), new RunId("run-1"),
                 new StepId("step-1"), new WorkspaceId("workspace-1"), 0, Instant.now(), RunEventType.RUN_CREATED,
-                new TraceId("trace-1"), new CorrelationId("correlation-1"), new CausationId("causation-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"), new CorrelationId("correlation-1"), new CausationId("causation-1"),
                 new RunEventPayload.ExtensionPayload("x", "1", Map.of()), EventVisibility.INTERNAL, redaction));
     }
 
@@ -162,7 +162,7 @@ class RunEventContractTest {
                 2,
                 Instant.parse("2026-06-13T00:00:01Z"),
                 RunEventType.MESSAGE_APPENDED,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("correlation-1"),
                 new CausationId("causation-1"),
                 new RunEventPayload.MessageAppendedPayload("message-1", "assistant"),

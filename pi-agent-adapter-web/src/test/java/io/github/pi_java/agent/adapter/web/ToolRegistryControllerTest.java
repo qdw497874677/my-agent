@@ -147,7 +147,7 @@ class ToolRegistryControllerTest {
                 7L,
                 Instant.parse("2026-06-14T00:00:00Z"),
                 RunEventType.TOOL_PREVIEW_GENERATED,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("corr-1"),
                 new CausationId("cause-1"),
                 new ToolLifecyclePayload(

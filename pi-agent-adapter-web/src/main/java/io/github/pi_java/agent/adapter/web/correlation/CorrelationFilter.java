@@ -1,6 +1,7 @@
 package io.github.pi_java.agent.adapter.web.correlation;
 
 import io.github.pi_java.agent.adapter.web.security.PiPrincipal;
+import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String correlationId = firstText(request.getHeader(CORRELATION_HEADER), request.getHeader(REQUEST_HEADER), UUID.randomUUID().toString());
-        String traceId = UUID.randomUUID().toString();
+        String traceId = TraceId.newRandom().value();
         String causationId = firstText(request.getHeader("X-Causation-ID"), correlationId);
 
         request.setAttribute(TRACE_ATTRIBUTE, traceId);

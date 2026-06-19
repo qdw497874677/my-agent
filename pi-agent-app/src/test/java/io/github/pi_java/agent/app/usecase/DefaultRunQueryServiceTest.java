@@ -66,7 +66,7 @@ class DefaultRunQueryServiceTest {
         return new RunEvent("event-" + sequence, new TenantId("tenant-1"), new UserId("user-1"),
                 new SessionId("session-1"), new RunId("run-1"), new StepId("step-none"),
                 new WorkspaceId("workspace-1"), sequence, Instant.parse("2026-06-14T05:00:00Z"), type,
-                new TraceId("trace-1"), new CorrelationId("correlation-1"), new CausationId("causation-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"), new CorrelationId("correlation-1"), new CausationId("causation-1"),
                 new RunEventPayload.RunLifecyclePayload(status, null), EventVisibility.USER,
                 new RedactionMetadata(false, false, Set.of(), "default"));
     }

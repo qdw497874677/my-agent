@@ -113,7 +113,7 @@ class ApprovalControllerTest {
         mockMvc.perform(get("/api/sessions/session-1/runs/run-1/approvals")
                         .header("X-Pi-Dev-Tenant", "tenant-1")
                         .header("X-Pi-Dev-User", "user-1")
-                        .requestAttr("pi.traceId", "trace-1")
+                        .requestAttr("pi.traceId", "0123456789abcdef0123456789abcdef")
                         .requestAttr("pi.correlationId", "corr-1")
                         .requestAttr("pi.causationId", "cause-1"))
                 .andExpect(status().isOk())
@@ -141,7 +141,7 @@ class ApprovalControllerTest {
         mockMvc.perform(post("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision")
                         .header("X-Pi-Dev-Tenant", "tenant-1")
                         .header("X-Pi-Dev-User", "user-1")
-                        .requestAttr("pi.traceId", "trace-1")
+                        .requestAttr("pi.traceId", "0123456789abcdef0123456789abcdef")
                         .requestAttr("pi.correlationId", "corr-1")
                         .requestAttr("pi.causationId", "cause-1")
                         .contentType("application/json")
@@ -168,14 +168,14 @@ class ApprovalControllerTest {
 
     private static RequestContext context(String authority) {
         return new RequestContext(new SecurityPrincipalContext("tenant-1", "user-1", Set.of(authority)),
-                new CorrelationContext("trace-1", "corr-1", "cause-1"));
+                new CorrelationContext("0123456789abcdef0123456789abcdef", "corr-1", "cause-1"));
     }
 
     private static RunEvent approvalRequiredEvent() {
         return new RunEvent("event-approval-1", new TenantId("tenant-1"), new UserId("user-1"),
                 new SessionId("session-1"), new RunId("run-1"), new StepId("step-1"), new WorkspaceId("workspace-1"),
                 4, Instant.parse("2026-06-15T00:00:00Z"), RunEventType.TOOL_APPROVAL_REQUIRED,
-                new TraceId("trace-1"), new CorrelationId("corr-1"), new CausationId("cause-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"), new CorrelationId("corr-1"), new CausationId("cause-1"),
                 new RunEventPayload.ToolLifecyclePayload("tool-call-1", "builtin.workspace.write", "1",
                         new ToolProvenance(ToolProvenance.SourceKind.BUILT_IN, "builtin", "binding", Map.of()),
                         Map.of("path", "notes/approval.txt", "content", "[REDACTED]"), Map.of(),

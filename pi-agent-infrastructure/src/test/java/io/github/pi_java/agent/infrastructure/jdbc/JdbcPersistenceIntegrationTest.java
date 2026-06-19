@@ -177,7 +177,7 @@ class JdbcPersistenceIntegrationTest {
                 sequence,
                 Instant.parse("2026-06-14T00:00:00Z").plusSeconds(sequence),
                 type,
-                new TraceId("trace-1"),
+                new TraceId("0123456789abcdef0123456789abcdef"),
                 new CorrelationId("correlation-1"),
                 new CausationId("causation-1"),
                 new RunEventPayload.ExtensionPayload("test.event", "1", Map.of("sequence", sequence)),

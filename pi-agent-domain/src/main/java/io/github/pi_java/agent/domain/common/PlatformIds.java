@@ -1,9 +1,17 @@
 package io.github.pi_java.agent.domain.common;
 
+import java.util.UUID;
+import java.util.regex.Pattern;
+
 /**
  * Platform-wide typed identifiers for tenant, user, runtime, workspace, and tracing context.
  */
 public final class PlatformIds {
+
+    private static final Pattern W3C_TRACE_ID_PATTERN = Pattern.compile("[0-9a-f]{32}");
+    private static final Pattern LEGACY_UUID_PATTERN = Pattern.compile(
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    private static final String ZERO_TRACE_ID = "00000000000000000000000000000000";
 
     private PlatformIds() {
     }
@@ -60,6 +68,25 @@ public final class PlatformIds {
     public record TraceId(String value) {
         public TraceId {
             value = requireNonBlank(value, "traceId");
+            if (!W3C_TRACE_ID_PATTERN.matcher(value).matches()) {
+                throw new IllegalArgumentException("traceId must be a W3C-compatible 32-character lowercase hex value");
+            }
+            if (ZERO_TRACE_ID.equals(value)) {
+                throw new IllegalArgumentException("traceId must not be the all-zero W3C trace id");
+            }
+        }
+
+        public static TraceId newRandom() {
+            UUID uuid = UUID.randomUUID();
+            return new TraceId("%016x%016x".formatted(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()));
+        }
+
+        public static TraceId fromLegacyUuid(String legacy) {
+            String value = requireNonBlank(legacy, "traceId").trim();
+            if (LEGACY_UUID_PATTERN.matcher(value).matches()) {
+                value = value.replace("-", "").toLowerCase();
+            }
+            return new TraceId(value);
         }
     }
 
