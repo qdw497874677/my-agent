@@ -5,7 +5,7 @@ milestone_name: milestone
 current_phase: 09
 status: executing
 stopped_at: Completed 09-04-PLAN.md
-last_updated: "2026-06-19T22:57:04.989Z"
+last_updated: "2026-06-19T22:57:17.466Z"
 progress:
   total_phases: 9
   completed_phases: 8
@@ -308,6 +308,7 @@ Key findings:
 - [Phase 09]: Plan 03 composes TelemetryRunDispatcher opportunistically from Adapter Web using ObjectProvider<PiTelemetry>, preserving default dispatcher behavior if telemetry is absent.
 - [Phase 09]: Plan 04 instruments governed tool execution and policy decisions at App-port chokepoints with low-cardinality redacted tags.
 - [Phase 09]: Plan 04 keeps Adapter Web telemetry wrapping optional on PiTelemetry so minimal/test contexts retain default fallback behavior.
+- [Phase 09]: Plan 05 implements model MCP and plugin observability as outer Infrastructure/Adapter decorators so Domain/App contracts remain telemetry-implementation-free.
 
 ## Performance Metrics
 
