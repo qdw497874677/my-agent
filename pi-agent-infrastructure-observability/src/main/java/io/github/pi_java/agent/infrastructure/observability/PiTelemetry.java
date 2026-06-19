@@ -27,6 +27,15 @@ public final class PiTelemetry {
         return Timer.start(meterRegistry);
     }
 
+    public void stopTimer(Timer.Sample sample, String name, Iterable<Tag> tags) {
+        Objects.requireNonNull(sample, "sample must not be null");
+        sample.stop(Timer.builder(requireName(name)).tags(tags == null ? java.util.List.of() : tags).register(meterRegistry));
+    }
+
+    public MeterRegistry meterRegistry() {
+        return meterRegistry;
+    }
+
     public Span span(String spanName) {
         if (tracer == null) {
             return Span.getInvalid();

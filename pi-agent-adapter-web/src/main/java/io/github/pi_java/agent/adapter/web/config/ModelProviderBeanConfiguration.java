@@ -33,6 +33,8 @@ import io.github.pi_java.agent.infrastructure.model.openai.InMemoryModelProvider
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiCompatibleStreamingModelClient;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiProviderProperties;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiSpringAiModelFactory;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryStreamingModelClient;
 import io.github.pi_java.agent.infrastructure.extension.DefaultExtensionContributionRegistry;
 import io.github.pi_java.agent.infrastructure.extension.ExtensionModelProviderRegistry;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,8 +102,11 @@ public class ModelProviderBeanConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "pi.providers.openai-compatible", name = "enabled", havingValue = "true")
     StreamingModelClient openAiCompatibleStreamingModelClient(OpenAiProviderProperties properties, SecretResolver secretResolver,
-                                                             OpenAiSpringAiModelFactory openAiSpringAiModelFactory) {
-        return new OpenAiCompatibleStreamingModelClient(properties, secretResolver, openAiSpringAiModelFactory);
+                                                              OpenAiSpringAiModelFactory openAiSpringAiModelFactory,
+                                                              Optional<PiTelemetry> telemetry) {
+        StreamingModelClient client = new OpenAiCompatibleStreamingModelClient(properties, secretResolver, openAiSpringAiModelFactory);
+        return telemetry.<StreamingModelClient>map(piTelemetry -> new TelemetryStreamingModelClient(client, piTelemetry))
+                .orElse(client);
     }
 
     @Bean

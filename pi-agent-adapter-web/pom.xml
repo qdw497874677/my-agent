@@ -46,6 +46,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.pi_java</groupId>
+            <artifactId>pi-agent-infrastructure-observability</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.pi_java</groupId>
             <artifactId>pi-agent-spring-boot-starter</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -60,6 +65,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
