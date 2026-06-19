@@ -39,6 +39,7 @@
         <resilience4j.version>2.2.0</resilience4j.version>
         <json-schema-validator.version>2.0.0</json-schema-validator.version>
         <pf4j.version>3.12.0</pf4j.version>
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <testcontainers.version>2.0.3</testcontainers.version>
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <assertj.version>3.26.3</assertj.version>
@@ -93,6 +94,11 @@
                 <groupId>org.pf4j</groupId>
                 <artifactId>pf4j</artifactId>
                 <version>${pf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
