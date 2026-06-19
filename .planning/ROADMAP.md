@@ -287,7 +287,7 @@ Plans:
 **Requirements:** OPS-01  
 **UI hint**: yes
 
-**Plans:** 9 plans
+**Plans:** 10 plans
 
 Plans:
 - [x] 09-01-PLAN.md — Normalize W3C trace IDs and migrate historical trace data.
@@ -299,6 +299,7 @@ Plans:
 - [x] 09-07-PLAN.md — Expose Admin operations metrics API read models.
 - [x] 09-08-PLAN.md — Render Admin operations summary UI and no-key smoke coverage.
 - [x] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
+- [ ] 09-10-PLAN.md — Wire production run-event telemetry sink and close Admin operations run-metrics gap.
 
 **Success criteria:**
 1. Platform emits structured logs, metrics, and OpenTelemetry-compatible spans for run, model, tool, MCP, plugin, and policy lifecycles.
