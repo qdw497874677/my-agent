@@ -293,10 +293,10 @@ Plans:
 - [x] 09-01-PLAN.md — Normalize W3C trace IDs and migrate historical trace data.
 - [x] 09-02-PLAN.md — Create isolated observability module and telemetry primitives.
 - [x] 09-03-PLAN.md — Instrument run event and dispatcher lifecycle telemetry.
-- [ ] 09-04-PLAN.md — Instrument governed tool and policy decision telemetry.
-- [ ] 09-05-PLAN.md — Instrument model, MCP, and plugin lifecycle telemetry.
+- [x] 09-04-PLAN.md — Instrument governed tool and policy decision telemetry.
+- [x] 09-05-PLAN.md — Instrument model, MCP, and plugin lifecycle telemetry.
 - [x] 09-06-PLAN.md — Configure Prometheus/OTLP hooks, structured logs, and actuator security.
-- [ ] 09-07-PLAN.md — Expose Admin operations metrics API read models.
+- [x] 09-07-PLAN.md — Expose Admin operations metrics API read models.
 - [ ] 09-08-PLAN.md — Render Admin operations summary UI and no-key smoke coverage.
 - [ ] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
 

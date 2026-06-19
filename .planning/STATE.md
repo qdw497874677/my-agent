@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 09
 status: executing
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-06-19T22:57:17.466Z"
+stopped_at: Completed 09-07-PLAN.md
+last_updated: "2026-06-19T23:08:45.358Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 79
-  completed_plans: 74
+  completed_plans: 77
 ---
 
 # Project State: Pi Java Agent Platform
@@ -309,6 +309,9 @@ Key findings:
 - [Phase 09]: Plan 04 instruments governed tool execution and policy decisions at App-port chokepoints with low-cardinality redacted tags.
 - [Phase 09]: Plan 04 keeps Adapter Web telemetry wrapping optional on PiTelemetry so minimal/test contexts retain default fallback behavior.
 - [Phase 09]: Plan 05 implements model MCP and plugin observability as outer Infrastructure/Adapter decorators so Domain/App contracts remain telemetry-implementation-free.
+- [Phase 09]: Plan 07 exposes Admin operations as Pi-specific public DTOs instead of a generic metrics explorer or raw Micrometer surface.
+- [Phase 09]: Plan 07 keeps OperationsMetricsReader optional in DefaultGovernanceQueryService with a clock-based empty fallback for minimal/test contexts.
+- [Phase 09]: Plan 07 maps non-zero error/status meters into generic operational warnings while redacting all meter tag keys and values.
 
 ## Performance Metrics
 
@@ -387,11 +390,12 @@ Key findings:
 | Phase 09-observability-policy-tenancy-and-production-hardening P06 | 8m 00s | 2 tasks | 11 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P03 | 10m 26s | 2 tasks | 6 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P04 | 10m40s | 2 tasks | 7 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P07 | 7m 48s | 2 tasks | 16 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 09-03-PLAN.md
+- **Stopped At:** Completed 09-07-PLAN.md
 
 ## Next Action
 
