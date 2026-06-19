@@ -9,6 +9,8 @@ import io.github.pi_java.agent.infrastructure.plugin.PluginGovernanceCatalogAdap
 import io.github.pi_java.agent.infrastructure.plugin.PluginRegistryProperties;
 import io.github.pi_java.agent.infrastructure.plugin.PluginStateStore;
 import io.github.pi_java.agent.infrastructure.plugin.Pf4jControlledPluginDiscoveryService;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryPluginGovernanceCatalog;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.List;
@@ -51,8 +53,8 @@ public class PluginGovernanceBeanConfiguration {
     }
 
     @Bean
-    PluginGovernanceCatalog pluginGovernanceCatalog(PluginGovernanceCatalogAdapter adapter) {
-        return new PluginGovernanceCatalog() {
+    PluginGovernanceCatalog pluginGovernanceCatalog(PluginGovernanceCatalogAdapter adapter, Optional<PiTelemetry> telemetry) {
+        PluginGovernanceCatalog catalog = new PluginGovernanceCatalog() {
             @Override
             public List<io.github.pi_java.agent.app.port.plugin.PluginSourceStatus> plugins() {
                 return adapter.plugins();
@@ -75,6 +77,8 @@ public class PluginGovernanceBeanConfiguration {
                 return adapter.quarantine(pluginId, actor, reason);
             }
         };
+        return telemetry.<PluginGovernanceCatalog>map(piTelemetry -> new TelemetryPluginGovernanceCatalog(catalog, piTelemetry))
+                .orElse(catalog);
     }
 
     @Bean
