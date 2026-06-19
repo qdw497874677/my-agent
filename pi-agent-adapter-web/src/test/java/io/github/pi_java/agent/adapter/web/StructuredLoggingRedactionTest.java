@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.core.encoder.Encoder;
 import io.github.pi_java.agent.adapter.web.logging.RedactingMdcJsonProvider;
 import io.github.pi_java.agent.adapter.web.logging.RedactingMessageJsonProvider;
 import java.nio.charset.StandardCharsets;
@@ -61,7 +60,7 @@ class StructuredLoggingRedactionTest {
         encoder.setProviders(providers);
         encoder.start();
         try {
-            return new String(((Encoder<LoggingEvent>) encoder).encode(event), StandardCharsets.UTF_8);
+            return new String(encoder.encode(event), StandardCharsets.UTF_8);
         } finally {
             encoder.stop();
         }

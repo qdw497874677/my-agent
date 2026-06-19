@@ -7,6 +7,7 @@ import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.McpGovernanceResponse;
 import io.github.pi_java.agent.client.admin.McpRefreshResponse;
+import io.github.pi_java.agent.client.admin.OperationsSummaryResponse;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
 import io.github.pi_java.agent.client.admin.PluginMutationRequest;
@@ -147,6 +148,14 @@ public class ConsoleHttpClient {
 
     public Class<GovernanceOverviewResponse> adminGovernanceOverviewResponseType() {
         return GovernanceOverviewResponse.class;
+    }
+
+    public String adminGovernanceOperationsPath() {
+        return "/api/admin/governance/operations";
+    }
+
+    public Class<OperationsSummaryResponse> adminGovernanceOperationsResponseType() {
+        return OperationsSummaryResponse.class;
     }
 
     public String adminExtensionGovernancePath() {

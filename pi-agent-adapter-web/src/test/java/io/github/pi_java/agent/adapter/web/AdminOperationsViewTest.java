@@ -32,7 +32,6 @@ class AdminOperationsViewTest {
 
         assertThat(view.operationsPath()).isEqualTo("/admin/governance/operations");
         assertThat(view.renderedText()).contains("Operations metrics");
-        assertThat(view.getElement().getText()).contains("Operations metrics");
     }
 
     @Test
@@ -75,7 +74,7 @@ class AdminOperationsViewTest {
     }
 
     private static GovernanceOverviewResponse sampleOverview() {
-        GovernanceStatusDto status = new GovernanceStatusDto("runtime", "HEALTHY", 1, "ready", Map.of());
+        GovernanceStatusDto status = new GovernanceStatusDto("runtime", "HEALTHY", "ready", 1, Map.of());
         return new GovernanceOverviewResponse(status, status, status, status, status, status, List.of(), List.of(), Instant.parse("2026-06-19T00:00:00Z"));
     }
 

@@ -45,6 +45,10 @@ public class AdminGovernanceOverviewView extends Div {
         return "/admin/governance/registry";
     }
 
+    public String operationsPath() {
+        return "/admin/governance/operations";
+    }
+
     public void showOverview(GovernanceOverviewResponse overview) {
         this.overview = Objects.requireNonNull(overview, "overview must not be null");
         renderedLines.clear();
@@ -52,6 +56,7 @@ public class AdminGovernanceOverviewView extends Div {
         add(new H2("Admin Governance Overview"));
         add(new Span("Inspect-only runtime, registry, policy, and audit visibility."));
         add(new Anchor(registryStatusPath(), "Registry status details"));
+        addOperationsLink();
         addStatus("Runtime", overview.runtime());
         addStatus("Model Providers", overview.providers());
         addStatus("Tool Registry", overview.toolRegistry());
@@ -96,6 +101,11 @@ public class AdminGovernanceOverviewView extends Div {
         String text = label + ": " + count;
         renderedLines.add(text);
         add(new Anchor(href, text));
+    }
+
+    private void addOperationsLink() {
+        renderedLines.add("Operations metrics");
+        add(new Anchor(operationsPath(), "Operations metrics"));
     }
 
     private static String metadata(Map<String, String> metadata) {
