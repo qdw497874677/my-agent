@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(vaadinPublicMatchers()).permitAll()
+                        .requestMatchers("/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus").authenticated()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .addFilterBefore(new DevAuthenticationFilter(environment), UsernamePasswordAuthenticationFilter.class)
@@ -38,6 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(vaadinPublicMatchers()).permitAll()
+                        .requestMatchers("/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus").authenticated()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));

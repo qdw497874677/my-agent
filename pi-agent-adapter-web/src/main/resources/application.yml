@@ -13,8 +13,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+  otlp:
+    metrics:
+      export:
+        url: ${PI_OTLP_METRICS_URL:}
+    logging:
+      endpoint: ${PI_OTLP_LOGS_URL:}
