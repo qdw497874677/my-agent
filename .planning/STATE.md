@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 09
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-06-19T22:42:21.779Z"
+stopped_at: Completed 09-06-PLAN.md
+last_updated: "2026-06-19T22:54:04.289Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 79
-  completed_plans: 72
+  completed_plans: 73
 ---
 
 # Project State: Pi Java Agent Platform
@@ -300,6 +300,9 @@ Key findings:
 - [Phase 09]: Plan 02 keeps Micrometer, OpenTelemetry, SLF4J, and test Logback dependencies isolated inside pi-agent-infrastructure-observability so Domain/App/client/extension/starter modules remain telemetry-implementation-free.
 - [Phase 09]: Plan 02 uses explicit AutoCloseable PiTelemetryContext scopes to save, write, and restore MDC values for RequestContext and RunEvent instead of relying on inherited MDC.
 - [Phase 09]: Plan 02 redacts suspicious telemetry tag/span values containing secret, password, authorization, bearer, api_key, apikey, or token markers.
+- [Phase 09]: Plan 06 keeps Prometheus behind authenticated actuator policy while health/info remain public.
+- [Phase 09]: Plan 06 uses disabled-by-default OTLP endpoint placeholders so no external backend is required in tests or local startup.
+- [Phase 09]: Plan 06 implements structured Logback JSON redaction through explicit providers for safe MDC correlation fields.
 
 ## Performance Metrics
 
@@ -375,11 +378,12 @@ Key findings:
 | Phase 08-controlled-dynamic-plugin-jars P11 | 4m 45s | 2 tasks | 3 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P01 | 6m | 2 tasks | 13 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P02 | 6m 08s | 2 tasks | 9 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P06 | 8m 00s | 2 tasks | 11 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 09-02-PLAN.md
+- **Stopped At:** Completed 09-06-PLAN.md
 
 ## Next Action
 

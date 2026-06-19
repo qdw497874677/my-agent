@@ -295,7 +295,7 @@ Plans:
 - [ ] 09-03-PLAN.md — Instrument run event and dispatcher lifecycle telemetry.
 - [ ] 09-04-PLAN.md — Instrument governed tool and policy decision telemetry.
 - [ ] 09-05-PLAN.md — Instrument model, MCP, and plugin lifecycle telemetry.
-- [ ] 09-06-PLAN.md — Configure Prometheus/OTLP hooks, structured logs, and actuator security.
+- [x] 09-06-PLAN.md — Configure Prometheus/OTLP hooks, structured logs, and actuator security.
 - [ ] 09-07-PLAN.md — Expose Admin operations metrics API read models.
 - [ ] 09-08-PLAN.md — Render Admin operations summary UI and no-key smoke coverage.
 - [ ] 09-09-PLAN.md — Add production hardening docs, regression gates, and traceability.
