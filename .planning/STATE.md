@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 09
-status: executing
-stopped_at: Completed 09-08-PLAN.md
-last_updated: "2026-06-19T23:29:01.401Z"
+status: complete
+stopped_at: Completed 09-09-PLAN.md
+last_updated: "2026-06-19T23:40:09.250Z"
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 79
-  completed_plans: 78
+  completed_plans: 79
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Executing Phase 09
+**Status:** Complete
 **Current Phase:** 09
 
 ## Project Reference
@@ -48,7 +48,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-13)
 | 6 | Java Extension Surface: SPI and Spring | Pending |
 | 7 | MCP Client Bridge and Governed Remote Tools | Pending |
 | 8 | Controlled Dynamic Plugin JARs | Pending |
-| 9 | Observability, Policy, Tenancy, and Production Hardening | Pending |
+| 9 | Observability, Policy, Tenancy, and Production Hardening | Complete |
 
 ## Phase 1 Summary
 
@@ -315,6 +315,9 @@ Key findings:
 - [Phase 09]: Plan 08 keeps AdminOperationsView as a deterministic Vaadin summary component over public OperationsSummaryResponse rather than a metrics explorer.
 - [Phase 09]: Plan 08 exposes operations navigation through the existing Admin Governance overview route instead of creating a new mutable Admin surface.
 - [Phase 09]: Plan 08 uses the existing no-key Playwright harness for operations governance smoke and avoids Prometheus, OTLP Collector, Docker, or model-key dependencies.
+- [Phase 09]: Close OPS-01 with concrete evidence from pi-agent-infrastructure-observability, telemetry wrappers, Admin operations API/UI, Phase 09 regression gates, and production hardening documentation.
+- [Phase 09]: Document v1 policy, tenancy/RBAC, secrets/KMS, and sandbox as hooks and safe defaults without claiming full SaaS RBAC/billing, KMS/vault management, or untrusted-code sandbox delivery.
+- [Phase 09]: Keep final Phase 09 verification no-key/no-external-backend; Prometheus, OTLP Collector, Docker, and real provider credentials remain optional operational smoke paths.
 
 ## Performance Metrics
 
@@ -395,11 +398,12 @@ Key findings:
 | Phase 09-observability-policy-tenancy-and-production-hardening P04 | 10m40s | 2 tasks | 7 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P07 | 7m 48s | 2 tasks | 16 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P08 | 16m 25s | 2 tasks | 6 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P09 | 8m 31s | 3 tasks | 10 files |
 
 ## Last Session
 
-- **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 09-08-PLAN.md
+- **Updated:** 2026-06-19T23:40:09Z
+- **Stopped At:** Completed 09-09-PLAN.md
 
 ## Next Action
 
