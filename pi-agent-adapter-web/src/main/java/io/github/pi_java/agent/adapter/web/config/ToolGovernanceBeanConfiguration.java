@@ -32,6 +32,9 @@ import io.github.pi_java.agent.infrastructure.workspace.LocalTempWorkspaceGatewa
 import io.github.pi_java.agent.infrastructure.extension.DefaultExtensionContributionRegistry;
 import io.github.pi_java.agent.infrastructure.extension.ExtensionToolRegistry;
 import io.github.pi_java.agent.infrastructure.mcp.registry.McpToolRegistry;
+import io.github.pi_java.agent.infrastructure.observability.PiTelemetry;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryToolExecutionGateway;
+import io.github.pi_java.agent.infrastructure.observability.TelemetryToolPolicyEvaluator;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -114,8 +117,8 @@ public class ToolGovernanceBeanConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    ToolPolicyEvaluator toolPolicyEvaluator() {
-        return new DefaultToolPolicyEvaluator(new AgentDefinition(
+    ToolPolicyEvaluator toolPolicyEvaluator(Optional<PiTelemetry> telemetry) {
+        ToolPolicyEvaluator evaluator = new DefaultToolPolicyEvaluator(new AgentDefinition(
                 new AgentId("cloud-general-agent"),
                 "Cloud General Agent",
                 "Default Cloud Server agent policy for governed built-in tools.",
@@ -126,6 +129,7 @@ public class ToolGovernanceBeanConfiguration {
                 Set.of(InteractionMode.CHAT, InteractionMode.TASK),
                 "default-workspace-policy",
                 "default-output-policy"));
+        return telemetry.<ToolPolicyEvaluator>map(value -> new TelemetryToolPolicyEvaluator(evaluator, value)).orElse(evaluator);
     }
 
     @Bean
@@ -157,9 +161,11 @@ public class ToolGovernanceBeanConfiguration {
             ToolPreviewGenerator previewGenerator,
             AuditRepository auditRepository,
             EventSink eventSink,
-            Clock clock) {
-        return new DefaultToolExecutionGateway(toolRegistry, argumentValidator, policyEvaluator, redactor, payloadLimiter,
+            Clock clock,
+            Optional<PiTelemetry> telemetry) {
+        ToolExecutionGateway gateway = new DefaultToolExecutionGateway(toolRegistry, argumentValidator, policyEvaluator, redactor, payloadLimiter,
                 previewGenerator, auditRepository, eventSink, clock);
+        return telemetry.<ToolExecutionGateway>map(value -> new TelemetryToolExecutionGateway(gateway, value)).orElse(gateway);
     }
 
     private static Set<String> parseAllowlist(String allowlist) {
