@@ -128,7 +128,7 @@ class JdbcPersistenceIntegrationTest {
         Map<String, Object> row = jdbcTemplate.queryForMap("select * from audit_records where run_id = ?", "run-4");
         assertThat(row).containsEntry("tenant_id", "tenant-1");
         assertThat(row).containsEntry("user_id", "user-1");
-        assertThat(row).containsEntry("trace_id", "trace-1");
+        assertThat(row).containsEntry("trace_id", "0123456789abcdef0123456789abcdef");
         assertThat(row).containsEntry("correlation_id", "correlation-1");
     }
 
@@ -162,7 +162,7 @@ class JdbcPersistenceIntegrationTest {
     private static RequestContext requestContext() {
         return new RequestContext(
                 new SecurityPrincipalContext("tenant-1", "user-1", Set.of()),
-                new CorrelationContext("trace-1", "correlation-1", "causation-1"));
+                new CorrelationContext("0123456789abcdef0123456789abcdef", "correlation-1", "causation-1"));
     }
 
     private static RunEvent event(String eventId, String runId, long sequence, RunEventType type) {
