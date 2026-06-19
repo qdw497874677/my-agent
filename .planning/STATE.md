@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 09
 status: executing
-stopped_at: Completed 09-06-PLAN.md
-last_updated: "2026-06-19T22:54:04.289Z"
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-06-19T22:57:04.989Z"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 79
-  completed_plans: 73
+  completed_plans: 76
 ---
 
 # Project State: Pi Java Agent Platform
@@ -303,6 +303,11 @@ Key findings:
 - [Phase 09]: Plan 06 keeps Prometheus behind authenticated actuator policy while health/info remain public.
 - [Phase 09]: Plan 06 uses disabled-by-default OTLP endpoint placeholders so no external backend is required in tests or local startup.
 - [Phase 09]: Plan 06 implements structured Logback JSON redaction through explicit providers for safe MDC correlation fields.
+- [Phase 09]: Plan 03 derives run event telemetry status tags from RunEventType only, avoiding inspection of raw payload maps for telemetry cardinality and secret-safety.
+- [Phase 09]: Plan 03 keeps dispatcher telemetry as an Infrastructure decorator around RunDispatcher so Domain/App contracts remain unchanged.
+- [Phase 09]: Plan 03 composes TelemetryRunDispatcher opportunistically from Adapter Web using ObjectProvider<PiTelemetry>, preserving default dispatcher behavior if telemetry is absent.
+- [Phase 09]: Plan 04 instruments governed tool execution and policy decisions at App-port chokepoints with low-cardinality redacted tags.
+- [Phase 09]: Plan 04 keeps Adapter Web telemetry wrapping optional on PiTelemetry so minimal/test contexts retain default fallback behavior.
 
 ## Performance Metrics
 
@@ -379,11 +384,13 @@ Key findings:
 | Phase 09-observability-policy-tenancy-and-production-hardening P01 | 6m | 2 tasks | 13 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P02 | 6m 08s | 2 tasks | 9 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P06 | 8m 00s | 2 tasks | 11 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P03 | 10m 26s | 2 tasks | 6 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P04 | 10m40s | 2 tasks | 7 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-14T19:04:29Z
-- **Stopped At:** Completed 09-06-PLAN.md
+- **Stopped At:** Completed 09-04-PLAN.md
 
 ## Next Action
 
