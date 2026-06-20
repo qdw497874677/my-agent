@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 09
-status: complete
-stopped_at: Completed 09-09-PLAN.md
-last_updated: "2026-06-19T23:40:09.250Z"
+status: completed
+stopped_at: Completed 09-10-PLAN.md
+last_updated: "2026-06-20T00:00:22.806Z"
 progress:
   total_phases: 9
   completed_phases: 9
-  total_plans: 79
-  completed_plans: 79
+  total_plans: 80
+  completed_plans: 80
 ---
 
 # Project State: Pi Java Agent Platform
@@ -318,6 +318,8 @@ Key findings:
 - [Phase 09]: Close OPS-01 with concrete evidence from pi-agent-infrastructure-observability, telemetry wrappers, Admin operations API/UI, Phase 09 regression gates, and production hardening documentation.
 - [Phase 09]: Document v1 policy, tenancy/RBAC, secrets/KMS, and sandbox as hooks and safe defaults without claiming full SaaS RBAC/billing, KMS/vault management, or untrusted-code sandbox delivery.
 - [Phase 09]: Keep final Phase 09 verification no-key/no-external-backend; Prometheus, OTLP Collector, Docker, and real provider credentials remain optional operational smoke paths.
+- [Phase 09-observability-policy-tenancy-and-production-hardening]: Wrap production PersistingEventSink with RunEventTelemetrySink only when PiTelemetry is present, preserving no-telemetry EventSink behavior.
+- [Phase 09-observability-policy-tenancy-and-production-hardening]: Verify Admin operations run metrics through the observable pi.run.events.total meter from Spring EventSink publication rather than production delegate accessors.
 
 ## Performance Metrics
 
@@ -399,11 +401,12 @@ Key findings:
 | Phase 09-observability-policy-tenancy-and-production-hardening P07 | 7m 48s | 2 tasks | 16 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P08 | 16m 25s | 2 tasks | 6 files |
 | Phase 09-observability-policy-tenancy-and-production-hardening P09 | 8m 31s | 3 tasks | 10 files |
+| Phase 09-observability-policy-tenancy-and-production-hardening P10 | 4m 04s | 2 tasks | 3 files |
 
 ## Last Session
 
 - **Updated:** 2026-06-19T23:40:09Z
-- **Stopped At:** Completed 09-09-PLAN.md
+- **Stopped At:** Completed 09-10-PLAN.md
 
 ## Next Action
 
