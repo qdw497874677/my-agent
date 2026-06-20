@@ -1,403 +1,266 @@
 # Project Research Summary
 
 **Project:** Pi Java Agent Platform  
-**Domain:** Java cloud Agent runtime/platform with Admin GUI, extensibility, MCP, policy, audit, and observability  
-**Researched:** 2026-06-13  
-**Confidence:** MEDIUM-HIGH
+**Domain:** v1.1 mobile-first H5 adaptation of the existing Java/Spring/Vaadin Agent Web Console and Admin Governance app  
+**Researched:** 2026-06-20  
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Pi Java should be built as a production-grade **Java cloud Agent runtime/platform**, not as a thin LLM wrapper, visual workflow builder, or local CLI/TUI port. Expert agent platforms converge on the same baseline: durable agent/session/run state, structured streaming events, governed tool execution, model-provider abstraction, extension mechanisms, auditability, observability, and operational controls. The product’s strongest v1 positioning is a **Java-native, Spring-friendly runtime kernel** that enterprises can embed, extend, inspect, and govern.
+v1.1 is a **mobile-first H5 adaptation milestone**, not a new mobile product, native app, React rewrite, backend expansion, or runtime architecture phase. The existing Pi Java Agent Platform already prioritizes a Java/Vaadin Web Console and Admin Governance surface over a TypeScript frontend. Expert implementation for this milestone is therefore to keep the same Vaadin Flow application and make every existing Console/Admin route usable on mainstream mobile browsers through responsive information architecture, shared mobile UI primitives, centralized theme CSS, and mobile browser E2E verification.
 
-The recommended approach is a **COLA layered modular monolith first, distributed-capable later**: a Java 21 + Spring Boot 3.5.x Cloud Server around a framework-independent Domain runtime core. Domain should own the runtime contracts and state machine (`AgentRuntime`, `Run`, `Step`, `Tool`, `Provider`, `Session`, `Policy`, `EventSink`, `Plugin`), App should orchestrate use cases, Adapter should expose REST/SSE/Web GUI, and Infrastructure should implement Spring AI, MCP, PF4J, PostgreSQL, Vaadin wiring, and observability adapters. Start with a reliable General Agent loop, REST/SSE API, persistence, event model, OpenAI-compatible provider, and a single governed Tool Invocation Pipeline before adding SPI/Spring extensions, MCP, and dynamic plugins.
+The recommended approach is an **adapter-web presentation refactor**. Keep COLA, REST/SSE DTOs, `ConsoleHttpClient`, `EventStreamClient`, runtime/domain/app/infrastructure modules, tool governance semantics, and public routes stable. Build mobile defaults in `pi-agent-adapter-web`: a responsive app shell, compact navigation, single-column Console task flow, card/detail patterns for dense run/admin data, safe sticky action/composer areas, and Playwright Java/mobile projects that assert route coverage, no horizontal overflow, visible key actions, touch context, and desktop regression.
 
-The main risk is the combination of **cloud execution + extensibility + tool authority**. SPI, Spring Beans, dynamic plugin JARs, and remote MCP are independently reasonable, but together they can create lifecycle ambiguity, policy bypasses, classloader leaks, confused-deputy auth flaws, and unsafe tool execution. Mitigate this by forcing every tool source through one normalized registry and deterministic gateway with schema validation, policy, approval/sandbox hooks, deadlines, cancellation, audit, telemetry, and tenant/user/session context.
+The key risk is mistaking mobile support for “desktop UI plus media queries.” That will leave the three-column Console, wide admin grids, hover-dependent actions, long IDs/JSON payloads, and SSE scroll behavior unusable on phones. Mitigate by making mobile the default IA, progressively enhancing for tablet/desktop, converting dense data to cards/details, keeping approvals/cancel/composer reachable during active runs, and adding objective mobile gates before broad page conversion. Scope must remain tight: no React/Next.js, Vaadin 25/Spring Boot 4 migration, native wrapper, mobile-only APIs, offline admin cache, or new agent runtime capabilities in this milestone.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Build on a conservative, enterprise-friendly Java stack: **Java 21 LTS**, **Maven**, **Spring Boot 3.5.x**, **Spring AI 1.1.x stable**, **Spring MVC + virtual threads**, **PostgreSQL**, **JDBC/Spring Data JDBC**, **Flyway**, **Micrometer/OpenTelemetry**, **Resilience4j**, **Spring Security**, **PF4J for controlled dynamic plugins**, and **Vaadin Flow** for the v1 Admin GUI. Prefer stable BOM-managed versions and validate patch versions at implementation time, especially Spring AI/MCP/PF4J/Vaadin artifacts.
-
-The key stack principle is adapter containment: **do not let Spring AI, MCP, PF4J, Vaadin, LangChain4j, or any provider SDK define the product’s core model**. Pi’s durable value is its runtime contract and governed extension fabric. Use Spring AI for provider/tool/MCP integration where it helps, but keep Pi’s provider/tool/event/policy abstractions narrower and framework-independent.
+The stack research is explicit: **do not add a separate frontend stack**. Use the existing **Vaadin Flow + Spring Boot + Java test harness** and add a mobile design-system/verification layer inside `pi-agent-adapter-web`. Stay on **Vaadin 24.x** while the platform stays on **Spring Boot 3.5.x**. The repo currently pins Vaadin **24.8.4**; latest compatible Vaadin 24 patch observed was **24.10.7**, but implementation should validate the exact Maven patch. Vaadin 25 is not a mobile prerequisite and would drag in Spring Boot 4 migration risk.
 
 **Core technologies:**
-- **Java 21 LTS** — runtime and SDK baseline; gives virtual threads and broad enterprise support without Java 25 adoption friction.
-- **Maven 3.9.x+** — multi-module enterprise Java build and BOM publishing workflow.
-- **Spring Boot 3.5.x** — Cloud Server, REST/SSE APIs, configuration, Actuator, and security baseline.
-- **Spring AI 1.1.x stable** — default model/provider/tool/MCP integration adapter; avoid Spring AI 2.0 milestones as v1 baseline.
-- **Spring MVC + virtual threads** — simpler fit for blocking model/tool calls than full reactive architecture; use WebFlux only at inherently reactive boundaries.
-- **Official MCP Java SDK / Spring AI MCP** — remote tool protocol adapter; MCP must normalize into Pi’s internal registry/policy model.
-- **Java SPI + Spring Bean discovery + PF4J** — staged extension model: start with SPI/Spring, add controlled dynamic plugin JARs after contracts stabilize.
-- **PostgreSQL 17/18 + JSONB** — durable system of record for sessions, runs, events, tool calls, audit, configuration, and flexible payloads.
-- **JDBC/Spring Data JDBC + Flyway** — explicit SQL and migrations for append-heavy event/audit data; avoid JPA for core run/event persistence.
-- **Micrometer + OpenTelemetry + Actuator** — first-class runtime telemetry for run/model/tool/plugin/MCP lifecycle.
-- **Resilience4j** — retry, rate limit, circuit breaker, bulkhead, and time limiter around models, MCP, and remote tools.
-- **Spring Security** — OAuth2 Resource Server/JWT-ready boundary for API/Admin security; avoid custom auth.
-- **Vaadin Flow 24.x** — all-Java operational Admin GUI; avoid React/Next.js for v1 unless UI becomes product-critical.
-- **Testcontainers, fake providers/tools, ArchUnit** — integration and boundary tests are essential for state, audit, and module isolation.
+- **Vaadin Flow 24.x** — existing Java UI framework; supports responsive layouts, AppLayout behavior, FormLayout responsive steps, Grid details, Dialog behavior, and Flow theme integration.
+- **Vaadin Lumo Theme + Lumo Utility Classes** — standard tokens/utilities for spacing, typography, visibility, responsive helpers, accessibility helpers, and touch sizing.
+- **App-level Vaadin theme/CSS resources** — central place for mobile-first primitives: responsive shell, card lists, timeline cards, approval bars, drawers, no-overflow defaults, long-token wrapping.
+- **CSS media queries and container queries** — phone layout as default; enhance at 640px, 768px, 1024px+ and adapt cards/panels based on container width.
+- **`@media (pointer: coarse)` touch sizing** — increase Lumo size variables and spacing for touchscreen contexts.
+- **Playwright Java 1.60.0+ candidate** — explicit test dependency for mobile browser contexts with `viewport`, `screenSize`, `deviceScaleFactor`, `isMobile(true)`, and `hasTouch(true)`.
+- **JUnit Jupiter + Spring Boot Test** — keep E2E/test lifecycle inside Java/Maven; do not add Node Playwright Test as a second orchestration stack unless existing repo tooling already requires it.
 
-### Table Stakes
+**Avoid adding:** React/Next.js/Vite/Hilla React, Tailwind CSS, native iOS/Android wrappers, Capacitor/Cordova/Flutter/React Native, Vaadin 25 migration, mobile-specific REST/SSE DTOs by default, horizontal-scroll tables as the mobile admin strategy, and CSS-only patching without IA changes.
 
-Pi v1 must be credible as a **cloud General Agent runtime**. Missing any of these will make the platform feel incomplete, unsafe, or hard to operate.
+### Expected Features
+
+The milestone should launch when the **same full site** is usable on phone/tablet widths, not when only Chat works. Every existing Console and Admin Governance route must load, navigate, render primary information, expose critical actions, and pass no-horizontal-overflow gates.
 
 **Must have (table stakes):**
-- **Agent definition/configuration** — model, instructions, tool allowlist, policies, and runtime options.
-- **Run/session lifecycle API** — create, stream, cancel, inspect, and query history.
-- **Structured streaming event protocol** — provider-neutral SSE events for model deltas, steps, tools, policy, errors, and terminal states.
-- **Explicit state model** — `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `RunEvent`, not just chat transcripts.
-- **OpenAI-compatible model provider abstraction** — first real provider while preserving provider-swappable capability model.
-- **Function/tool-calling loop** — one reliable General Agent loop before graph/multi-agent features.
-- **Unified tool registry** — one metadata model for built-in Java tools, SPI tools, Spring Bean tools, plugin tools, and MCP tools.
-- **Tool execution engine/gateway** — schema validation, timeout, cancellation, error handling, result normalization.
-- **Tool policy and approval hooks** — deterministic allow/deny/approval decisions before tool execution.
-- **Tool audit trail** — who/what/why/when/with-which-authority records for every tool call.
-- **Persistence abstraction and PostgreSQL-backed default** — durable run history and event/audit records from day one.
-- **REST/SSE API-first backend** — Admin GUI and future CLI/TUI consume the same protocol.
-- **Admin GUI runtime cockpit** — run timeline, event stream, tool-call audit, provider/plugin/MCP health, operational controls.
-- **Java SPI and Spring Bean extension paths** — lowest-risk Java-native extension surfaces.
-- **Remote MCP client integration** — discover and invoke MCP tools through the same policy/audit path.
-- **Controlled dynamic plugin loading** — plugin directory, metadata, compatibility, lifecycle, health, disable/quarantine; true hot unload can wait.
-- **Secrets/config boundary** — `SecretRef` abstraction; no raw secrets in prompts, logs, or Admin GUI.
-- **Authentication, cancellation, timeouts, retries, observability, token/cost accounting, and workspace/sandbox abstraction** — required production safety surfaces.
+- **Full-site mobile route coverage** — every Console/Admin route opens at phone viewport without blank screens, route errors, or desktop-only blockers.
+- **Shared responsive shell/navigation** — compact header, mobile drawer/section nav, route title, back/close affordances, touch-friendly links.
+- **No page-level horizontal overflow** — validate representative widths: 360, 390/393, 412/430, 768, and landscape.
+- **Touch/readability/accessibility baseline** — 44px-preferred primary targets, WCAG 2.2 AA minimum target/spacing, visible focus, no hover-only controls, readable spacing and wrapping.
+- **Console mobile IA refactor** — Chat/Run first; sessions/catalog/context moved to drawer/tabs/collapsible details instead of fixed desktop three-column workbench.
+- **Agent Catalog mobile cards** — stacked cards with clear selection/start affordance.
+- **Chat/Run mobile composer and SSE feed** — multi-line prompt, submit/running states, readable live event feed, scrollable history, and composer/control access under mobile browser chrome.
+- **Run timeline/tool/approval mobile cards** — vertical event cards, expandable details, redacted tool payload summaries, clear status/risk/provenance, thumb-safe approve/reject.
+- **Session continuation and cancel affordances** — session history/active state and visible cancel/terminal-state feedback on mobile.
+- **Admin Governance mobile cards/details** — overview, registry, operations, MCP, plugin, extension, policy, approval queue, and audit readable without desktop table dependence.
+- **Automated mobile verification gate** — Playwright mobile Chrome, mobile Safari/WebKit proxy, tablet, route/action smoke, no-overflow assertions, and desktop regression preserved.
 
-### Differentiators
+**Should have (differentiators / v1.1.x follow-up if baseline is stable):**
+- **Run focus mode** — active mobile run prioritizes stream, latest tool activity, approvals, and cancel.
+- **Mobile incident triage mode** — Admin overview shortcuts to unhealthy provider/tool/MCP/plugin/audit evidence.
+- **Risk-first approval UX** — approval cards emphasize side-effect level, policy decision, source/tool, and redacted input before action.
+- **Shared mobile card schema across governance surfaces** — consistent status badge/title/metadata/details/actions for registry/MCP/plugin/extension/policy/audit.
+- **Deep-linkable expanded details** — links to run/session/audit/policy/MCP/plugin open directly to useful mobile detail state.
+- **Mobile event filters/summarization** — client-side filtering by errors/tools/approvals/model output.
+- **Poor-network/reconnect messaging** — clear stale/reconnecting/retry states for SSE/admin refresh.
+- **Copy/share of redacted IDs/summaries** — incident handoff without exposing sensitive payloads.
 
-Pi should compete by being the **Java-native governed agent runtime**, not by copying Python/TypeScript agent frameworks or Dify-style builders.
-
-**Should have (competitive):**
-- **Framework-independent Java Agent Runtime Kernel** — strongest differentiator for enterprise JVM teams.
-- **Unified extension fabric** — SPI, Spring Beans, dynamic plugin JARs, and MCP normalized into one registry/policy/audit model.
-- **Governed tool fabric** — policy and audit across local, plugin, and remote MCP tools.
-- **Admin GUI as runtime cockpit** — operational debugging and controls instead of no-code workflow editing.
-- **Dynamic plugin lifecycle for trusted enterprise extensions** — install/load/disable/quarantine custom tools/providers/policies without core rebuilds.
-- **MCP client/gateway governance** — remote MCP tools brokered through Java policy, audit, tenancy, and schema normalization.
-- **Side-effect classification for tools** — read/write/external-impact/file/network/shell risk metadata visible to policy and UI.
-- **Pluggable policy engine** — custom approval/RBAC/ABAC/quota/compliance checks via Java interfaces first.
-- **Durable replay/debug-ready event log** — design now; full replay/evals can come later.
-- **Extension SDK with compatibility tests** — better v1 ecosystem investment than a marketplace.
-- **Provider/tool simulation mode** — fake providers and tool stubs for deterministic Java CI.
-
-### Anti-Features
-
-Explicitly avoid v1 scope creep that changes the product category or compromises safety.
-
-**Defer / avoid for v1:**
-- **Full Dify-style visual workflow builder** — different product surface and high UI complexity; build runtime cockpit instead.
-- **Full plugin marketplace** — distribution, trust, review, billing, and moderation are out of scope; support private/local plugins first.
-- **Unrestricted shell/file/code execution** — too risky for cloud v1; require workspace/sandbox/policy and keep disabled by default.
-- **Every model provider** — ship OpenAI-compatible first; add Anthropic/Gemini/Bedrock later through capability-based adapters.
-- **Recreating the TypeScript CLI/TUI** — future clients should use REST/SSE, not shape the core.
-- **Multi-agent orchestration as centerpiece** — single-agent runtime, state, policy, and observability must stabilize first.
-- **Autonomous plugin installation by agents** — severe supply-chain risk; plugin lifecycle is admin-only and audited.
-- **Global mutable singleton registries** — incompatible with tenancy, tests, plugin reload, and scoped policies.
-- **Vendor-specific provider leakage in core** — use normalized messages/tool calls/capabilities.
-- **Storing full sensitive tool payloads by default** — use redaction, summaries, and configurable secure retention.
-- **Guaranteed hot unload in v1** — use load/disable/restart-required unload semantics first.
-- **Heavy RAG/knowledge-base product** — define Memory/Retrieval extension points; defer full ingestion/vector features.
-- **Full consumer chat app as the only UI** — v1 now includes Agent Web Console as the Agent entry and Chat surface, but should not become a standalone consumer chat product detached from runtime governance.
+**Defer (v2+ / out of milestone):**
+- Native mobile app, app-store delivery, or native wrappers.
+- Push notifications/background run monitoring.
+- Full PWA/offline admin mode or service-worker caching of sensitive governance/audit data.
+- Mobile-specific new Agent runtime capabilities.
+- Mobile-only reduced product that excludes governance.
+- React/Next.js mobile rewrite or separate mobile UI routes unless an isolated component proves impossible responsively.
 
 ### Architecture Approach
 
-Use a **COLA layered modular monolith** with explicit Adapter/App/Domain/Infrastructure boundaries so v1 can ship as one Spring Boot Cloud Server while remaining ready to split control plane, execution plane, event fanout, plugin execution, or MCP gateway later. The Domain runtime core must be Spring-free and own state transitions, event emission, model/tool gateways, and cancellation. App services coordinate use cases. Infrastructure modules implement persistence, provider adapters, MCP, plugins, observability, and security. Web Console/Admin Governance consumes the same REST/SSE/read-model APIs as external clients.
+Architecturally, this is an **adapter-only mobile refactor**. All mobile work belongs in `pi-agent-adapter-web` plus root/browser E2E assets. The presentation structure changes; the runtime data flow does not. Existing public REST/SSE/read-model contracts and app/domain/infrastructure layers stay stable unless a measured performance issue requires a general read-model improvement usable by desktop/API/future CLI too.
 
 **Major components:**
-1. **Agent Runtime Kernel** — framework-agnostic single-agent loop, run state machine, event emission, cancellation checks.
-2. **REST/SSE API Layer** — authenticated create/run/status/cancel/history endpoints and stable event stream.
-3. **Application Services** — transactional orchestration for runs, sessions, tools, providers, plugins, and policies.
-4. **Model Provider Registry** — resolve provider/model config and normalize requests, streams, tool-call intents, usage, and errors.
-5. **Governed Tool Invocation Pipeline** — single path for schema validation, policy, approval/sandbox, timeout, execution, audit, persistence, and events.
-6. **Tool Registry** — normalized `ToolDescriptor + ToolExecutorBinding` entries with provenance, version, scopes, risk, and health.
-7. **Policy / Approval / Sandbox Ports** — deterministic extension point for authorization, gated actions, resource constraints, and future human approval.
-8. **Extension / Plugin Manager** — discovers SPI, Spring Bean, dynamic JAR/PF4J, and MCP capabilities and registers them through application services.
-9. **MCP Bridge** — MCP host/client manager that discovers remote tools/resources/prompts and maps tool calls into the internal pipeline.
-10. **Persistence / Event Store** — PostgreSQL-backed sessions, runs, steps, messages, tool calls, events, audit, plugin metadata, and read models.
-11. **Observability + Audit** — structured logs, metrics, OpenTelemetry spans, audit sinks, and shared IDs across events/traces.
-12. **Admin GUI** — API-driven runtime cockpit for debugging, health, cancellation, approvals, and disabling risky capabilities.
+1. **Responsive Shell / Navigation** — shared app/admin shell with compact header, drawer/section navigation, route titles, safe content container, and desktop enhancement.
+2. **Vaadin Routes / Views** — existing Console, Agent Catalog, Chat/Run, timeline, approval, and Admin Governance pages converted from desktop-first composition to mobile-first composition.
+3. **Shared Mobile UI Primitives** — `PageScaffold`, `ResponsiveSection`, `ResponsiveCard`, `StatusBadge`, `MobileActionBar`, touch-safe buttons, collapsible details, and stable hooks.
+4. **Theme and CSS Assets** — centralized `styles.css`, `tokens.css`, `responsive.css`, `console.css`, `admin.css`, `components.css` or equivalent existing Vaadin theme convention.
+5. **Console Panels/Cards** — `ConsoleView`, `SessionListPanel`, `AgentCatalogPanel`, `ChatEventStreamPanel`, `RunContextPanel`, `ToolCallCard`, `ApprovalCard` made independently narrow-container safe.
+6. **Admin Governance Views** — overview/operations/registry/MCP/plugin/extension/policy/audit/approval queue rendered as card/detail layouts on mobile, grids only as tablet/desktop enhancements.
+7. **Playwright Mobile Projects/Specs** — mobile/tablet browser contexts, no-overflow assertions, route smoke, key Console/Admin interactions, screenshots/traces on failure.
+8. **Stable UI Test Hooks** — `data-route`, `data-layout`, `data-action-*`, semantic `pi-*` classes become the contract between Java components, CSS, and Playwright.
 
 **Key patterns to follow:**
-- Runtime kernel behind ports; core depends only on API/contracts and small utilities.
-- Append-only run events plus query-friendly read models.
-- Unified tool descriptor and executor binding for every tool source.
-- MCP as adapter, not the internal tool model.
-- Dynamic plugin lifecycle behind Pi’s own plugin runtime port.
-- Observability as first-class runtime output, not post-hoc logs.
-- Namespace-qualified tool names (`pluginId.toolName`, `mcpServer.toolName`, `builtin.toolName`).
-- Tenant/user/session/workspace IDs modeled from the start even if v1 runs single-tenant.
+- Mobile-first CSS with desktop `min-width` enhancements; Java exposes structure, CSS adapts it.
+- Progressive disclosure for dense data: summary + status/severity/provenance + primary action + collapsed details.
+- Adapter-only boundary: no viewport flags in App/Domain; no `/mobile/*` APIs by default.
+- One route set and one public DTO/SSE contract; mobile state lives in Vaadin UI state.
+- Desktop regression remains in the test matrix; mobile-first must not mean desktop-broken.
+- Tool governance/redaction remains visible and preserved; mobile cards must not reveal hidden payloads.
 
-### Key Risks
+### Critical Pitfalls
 
-1. **Extension mechanisms drive core abstractions** — define Spring-free descriptors, lifecycle states, executor bindings, and conformance tests before SPI/Spring/MCP/PF4J adapters.
-2. **Tools bypass deterministic policy/audit** — all tool execution must go through one `ToolExecutionGateway`; model providers only surface tool-call intents.
-3. **Dynamic plugins treated as safe sandboxing** — classloader isolation solves dependency/lifecycle issues, not malicious-code security; untrusted code requires out-of-process/container isolation.
-4. **MCP auth is simplified into static tokens** — follow MCP authorization requirements, avoid token passthrough, validate resource/audience, handle `WWW-Authenticate`, use HTTPS/PKCE where applicable, and add SSRF controls.
-5. **Agent inherits full user/admin authority** — effective authority must be intersection of tenant, user, agent, tool, session/workspace, and approval constraints.
-6. **Prompt injection handled only by prompts** — track trust labels and enforce deterministic policy when untrusted tool/output content precedes sensitive actions.
-7. **Run/session state stored as UI history** — persist structured execution events with stable IDs and separate event log, read models, and model context state.
-8. **Streaming treated as token transport only** — define provider-neutral event envelopes, sequence IDs, terminal states, heartbeat/reconnect behavior.
-9. **Provider abstraction hides capability differences** — use explicit provider capability descriptors, normalized event/error taxonomy, and provider contract tests.
-10. **Admin GUI is read-only** — include operational controls: cancel, approve/reject, inspect policy, disable tool/plugin, quarantine bad capabilities.
+1. **CSS-only adaptation without IA change** — avoid by defining mobile task order first: Chat/Run and approvals/cancel first; sessions/catalog/context as drawers/details; admin data as cards.
+2. **Horizontal overflow leaks** — avoid by adding Playwright `scrollWidth <= clientWidth + 1` assertions early, setting `min-width: 0`, wrapping long IDs/URLs/JSON, and avoiding wide tables on phones.
+3. **Hover/tiny pointer assumptions** — avoid by using visible labels, explicit menus/details, touch-safe spacing, 44px-preferred primary targets, and tests for visible/enabled critical actions.
+4. **SSE/chat mobile usability breaks** — avoid uncontrolled nested scroll traps; keep composer, cancel, approval, and terminal-state feedback reachable while events stream.
+5. **Admin Governance treated as optional** — avoid by enumerating every Admin route in requirements/tests and converting registry/operations/MCP/plugin/extension/policy/audit to card/detail mobile layouts.
+6. **Scope creep into new stack/native/PWA/API redesign** — avoid by constraining implementation to Vaadin adapter/theme/tests and preserving public REST/SSE/read-model boundaries.
+7. **Browser matrix claimed but not verified** — avoid by testing real mobile contexts (`isMobile`, `hasTouch`) for Chromium/WebKit/tablet and documenting real iOS Safari UAT gaps.
+8. **Desktop regressions from global CSS** — avoid with scoped `pi-*` classes, mobile defaults plus desktop enhancements, and existing desktop E2E retained.
 
 ## Implications for Roadmap
 
-Based on all research, the roadmap should be dependency-driven: **contracts and event model first, cloud API/persistence second, real model/tool execution third, extension integrations after the governed pipeline exists, dynamic plugins and hardening last**. Do not start with MCP or PF4J; they are adapters over foundations.
+Based on research, the v1.1 roadmap should be dependency-driven: **verification/theme baseline → shell/navigation → Console flow → reusable run/tool/approval cards → Admin full-site conversion → cross-browser hardening**. This order creates objective gates before broad refactoring and converts the highest-value/riskiest user path before the broader governance surface.
 
-### Phase 1: Runtime Spine and Domain Contracts
+### Phase 1: Responsive Baseline and Mobile Test Harness
 
-**Rationale:** Every later capability depends on stable runtime state, events, provider/tool ports, cancellation, and extension boundaries. This phase prevents Spring AI, MCP, PF4J, or the Admin GUI from owning the core abstractions.
-
-**Delivers:**
-- `pi-agent-api` / `pi-agent-core` modules.
-- `AgentDefinition`, `Session`, `Run`, `Step`, `Message`, `ToolCall`, `ToolResult`, `RunEvent` model.
-- Framework-independent `AgentRuntime`, `ModelClient`, `ToolInvoker`, `EventSink`, `Policy` ports.
-- Ordered event envelope with IDs, sequence, timestamp, tenant/user/session/run/step, trace ID, payload, redaction metadata.
-- Fake model/fake tool testkit.
-- Cancellation/status state machine and max-step/deadline budget hooks.
-
-**Addresses:** Agent definition, run/session lifecycle, event model, state model, provider abstraction, future API/GUI/CLI compatibility.
-
-**Avoids:** UI-driven runtime, chat-history-only state, token-only streaming, provider SDK leakage, extension mechanisms driving core.
-
-**Research flag:** Standard patterns; skip broad research. Validate exact event schema, state machine statuses, and durable checkpoint expectations.
-
-### Phase 2: Cloud Server API, Persistence, SSE, and Baseline Security
-
-**Rationale:** Pi is a Cloud Server first. Exposing the runtime through REST/SSE and PostgreSQL early prevents a local-only architecture and proves the API contract for Admin GUI and future CLI/TUI.
+**Rationale:** Establish the acceptance gate before touching many views. Mobile regressions are mostly visual/layout/action regressions, so Playwright mobile contexts and no-overflow assertions must exist first.
 
 **Delivers:**
-- Spring Boot 3.5.x server with REST endpoints: create run, get run, list events, cancel run, session history.
-- SSE stream using the same persisted `RunEvent` envelope.
-- PostgreSQL schema and Flyway migrations for sessions/runs/steps/messages/tool calls/events/audit basics.
-- Minimal auth/security context and tenant placeholder fields.
-- Actuator health/metrics baseline and structured logs with run/session/trace IDs.
+- Vaadin theme entrypoint/import structure or documented use of existing theme convention.
+- Design tokens, mobile-first no-overflow defaults, long-token wrapping, touch sizing variables.
+- Explicit Playwright Java dependency if missing; mobile Chrome, mobile Safari/WebKit proxy, tablet, and desktop projects/profiles.
+- `mobile-h5` route smoke with no-horizontal-overflow checks and screenshots/traces on failure.
+- Stable `data-route`/`data-layout` hooks on representative pages.
 
-**Addresses:** REST/SSE API-first backend, persistence abstraction, run history, cancellation, authentication boundary, observability hooks.
+**Addresses:** MOBILE-H5-REQ-001, 003, 030, 031, 034; stack additions around Lumo/theme/Playwright.
 
-**Avoids:** Admin GUI private endpoints, missing tenant IDs, SSE reconnect gaps, logs-only debugging, raw secrets in config.
+**Avoids:** Horizontal overflow slipping through, unverified browser matrix, desktop regressions, visual-only/manual-only testing.
 
-**Research flag:** Standard Spring/PostgreSQL patterns; research only if v1 requires crash-resumable durable execution rather than persisted history.
+**Research flag:** Standard patterns; skip broad research. Confirm existing Vaadin theme bootstrap (`@Theme`/`AppShellConfigurator`/theme folder) and exact Playwright dependency/config style in the repo.
 
-### Phase 3: Model Provider Registry and OpenAI-Compatible Adapter
+### Phase 2: Shared Responsive Shell and Navigation
 
-**Rationale:** A real General Agent runtime needs model streaming and tool-call intent normalization before external tool complexity. OpenAI-compatible support gives broad provider coverage while preserving adapter boundaries.
-
-**Delivers:**
-- Provider registry and `ModelConfig` / `CredentialRef` model.
-- OpenAI-compatible chat/streaming adapter through Spring AI where useful.
-- Normalized model events, tool-call intents, usage/tokens, provider error taxonomy.
-- Resilience4j retry/rate-limit/time-limit around provider calls.
-- Provider contract tests and fake provider cases.
-
-**Addresses:** Model provider abstraction, streaming, token/cost accounting foundation, capability-based provider design.
-
-**Avoids:** OpenAI semantics becoming core, direct provider SDK types in public API, blind retries, wrong cost accounting.
-
-**Research flag:** Needs targeted implementation research for exact Spring AI artifact names, OpenAI-compatible streaming/tool-call behavior, and Spring AI 1.1.x vs 2.x migration watch.
-
-### Phase 4: Governed Tool Registry and Tool Invocation Pipeline
-
-**Rationale:** Tool governance is the safety choke point and must exist before SPI/Spring extensions, MCP, or dynamic plugins expose more authority.
+**Rationale:** Every route depends on shell/navigation. Doing per-page conversions first will create duplicate mobile nav and rework.
 
 **Delivers:**
-- Canonical `ToolDescriptor` with JSON Schema, provenance, version, scopes, risk/side-effect metadata, timeout defaults.
-- `ToolExecutorBinding` and one `ToolExecutionGateway`.
-- Validation, policy stub, approval/suspend hook, timeout/deadline, cancellation, result normalization.
-- Audit records and runtime events for proposed/started/completed/failed/denied tool calls.
-- Built-in safe example tools.
-- Redaction and summaries for sensitive inputs/outputs.
+- Responsive `MainConsoleLayout` and `AdminGovernanceLayout` with compact header, drawer/section navigation, route title, safe content container.
+- Shared primitives: `PageScaffold`, `ResponsiveSection`, `MobileActionBar`, `ResponsiveCard`, `StatusBadge` or equivalent.
+- Touch-friendly navigation across Console, Agent Catalog/session areas, and Admin overview/registry/operations/MCP/plugin/extension/policy/audit.
 
-**Addresses:** Tool registry, tool execution engine, policy/approval hooks, audit trail, workspace/sandbox abstraction hooks.
+**Addresses:** MOBILE-H5-REQ-002, 004, 005 plus shared shell prerequisites for all route coverage.
 
-**Avoids:** Model/provider/plugin/MCP direct tool execution, prompt-based authorization, missing audit context, inconsistent failures, unsafe side effects.
+**Avoids:** Unreachable navigation, inconsistent mobile layout per route, hover-only nav/actions, desktop shell squeezed onto phones.
 
-**Research flag:** Standard patterns plus security-sensitive design. Research policy decision schema and JSON Schema validation/versioning during phase planning.
+**Research flag:** Standard Vaadin patterns. During implementation choose exact widgets (`AppLayout`, drawer, `Tabs`, `Details`, plain layouts) based on current component inventory.
 
-### Phase 5: Agent Web Console and Runtime Cockpit
+### Phase 3: Console Workbench Mobile-First Flow
 
-**Rationale:** The Web GUI should provide the primary Agent entry and Chat experience while preserving operability and governance. It becomes valuable once runs, events, models, and tool calls exist.
+**Rationale:** Console is the primary user-facing flow and exercises catalog/session/chat/run/SSE/cancel state. It also has the highest IA risk because the current desktop mental model is a three-column workbench.
 
 **Delivers:**
-- Vaadin Flow operational UI consuming REST/SSE/read models.
-- Run list/detail, event timeline, tool-call inspector, provider config/status.
-- Cancel run, inspect policy decisions, view redacted payloads.
-- Initial tool/provider health views and audit browsing.
-- Token/latency/cost summaries where provider data is available.
+- `ConsoleView` refactored to mobile task order: chat/run feed first; active status/actions visible; sessions/catalog/context in drawer/tabs/collapsible sections.
+- Agent Catalog stacked cards with start/select affordance.
+- Mobile composer with multi-line input, submit/running state, keyboard/browser-chrome-aware placement.
+- SSE feed as readable vertical stream with scroll behavior that does not trap the user away from controls.
+- Session history/continuation and active run cancel available on phone.
 
-**Addresses:** Admin run inspector, tool-call audit, operational visibility, basic cost/token accounting, API-first UI.
+**Addresses:** MOBILE-H5-REQ-010, 011, 012, 016, 017; supports full Console route coverage.
 
-**Avoids:** Read-only dashboard without controls, direct DB/runtime access, future CLI/TUI protocol divergence.
+**Avoids:** CSS-only three-column shrink, chat composer disappearing, active controls hidden, nested scroll traps, session context inaccessible.
 
-**Research flag:** Needs targeted Vaadin/Spring Security/SSE UI research if the team has limited Vaadin experience; otherwise standard patterns.
+**Research flag:** Needs targeted implementation spike if current `ConsoleView` has fixed sizing or server-side state assumptions. No external research needed unless mobile keyboard/Safari viewport behavior becomes blocking.
 
-### Phase 6: Java Extension Surface — SPI and Spring Bean Registration
+### Phase 4: Runtime Cards, Timeline, Tool, and Approval UX
 
-**Rationale:** SPI and Spring Beans are the lowest-risk Java-native extension mechanisms and should stabilize the public extension API before classloader-based dynamic plugins.
-
-**Delivers:**
-- `pi-agent-api` / `pi-agent-spi` public extension JARs.
-- Java `ServiceLoader` discovery for tools, providers, policies, event sinks, memory/workspace providers.
-- Spring Boot starter/autoconfiguration and bean/annotation-based registration.
-- Extension metadata, lifecycle states, health contributors, compatibility/version checks.
-- Conformance tests for discovery, validation, enable/disable, policy deny, timeout, cancellation, audit, metrics.
-- Sample extensions and test harness.
-
-**Addresses:** Java SPI extension points, Spring-native registration, extension SDK, annotation-based tool registration.
-
-**Avoids:** Spring dependency in core, lifecycle mismatches, plugin API versioning too late, ApplicationContext leakage, global registries.
-
-**Research flag:** Standard Java/Spring patterns, but validate ServiceLoader behavior in Spring Boot executable JARs and binary compatibility policy.
-
-### Phase 7: MCP Client Bridge and Governed Remote Tools
-
-**Rationale:** MCP is high-value but must plug into the already governed registry and pipeline. Implementing it earlier risks bypassing policy/audit and mishandling auth.
+**Rationale:** Tool execution, approvals, policy/redaction, and event timelines are both differentiating and safety-sensitive. They should be reusable before Admin approval/governance conversion.
 
 **Delivers:**
-- MCP connection manager and configured server lifecycle.
-- Capability negotiation, `tools/list`, schema normalization, and health states.
-- MCP tool descriptors and executor bindings through the ToolExecutionGateway.
-- MCP events/metrics/audit including auth failures and server health.
-- Initial transport scope decision (remote Streamable HTTP likely highest value; stdio may be useful for local/trusted setups).
-- Manual trusted-server configuration first; protected-resource OAuth hardening before multi-tenant/protected use.
+- Mobile event/timeline card schema with status, timestamp/type, summary, expandable details.
+- `ToolCallCard` mobile summary/detail layout with tool/source/status/policy/approval/duration/error/redacted input-output.
+- `ApprovalCard` / approval panel with risk-first context, large approve/reject actions, confirmation where needed, and terminal feedback.
+- Long payload handling: wrapping, truncation, internal scroll only for code/JSON blocks, redaction markers always visible.
 
-**Addresses:** Remote MCP client integration, MCP governance/audit, external tool fabric.
+**Addresses:** MOBILE-H5-REQ-013, 014, 015; differentiators risk-first approval UX and run focus foundations.
 
-**Avoids:** Raw MCP as internal model, token passthrough, confused deputy auth, untrusted metadata poisoning, SSRF on metadata discovery.
+**Avoids:** Secret exposure through raw payloads, tiny destructive actions, hover-only risk context, unreadable logs/IDs, unsafe approvals on mobile.
 
-**Research flag:** Needs deeper research. Validate current MCP Java SDK/Spring AI MCP maturity, auth spec implementation details, transport scope, and protected-resource/OAuth flows.
+**Research flag:** Mostly standard Vaadin component work. Phase-specific validation should check current redaction metadata availability; add generic read-model fields only if risk/tool summaries cannot be produced from existing DTOs.
 
-### Phase 8: Controlled Dynamic Plugin JARs
+### Phase 5: Admin Governance Full-Site Mobile Coverage
 
-**Rationale:** Dynamic plugins are differentiating and risky. Build them only after extension contracts, registries, tool gateway, and conformance tests are stable.
+**Rationale:** Full-site mobile means Admin is not optional. Admin has broad surface area and dense data, so it should happen after shell and shared card/detail primitives exist.
 
 **Delivers:**
-- Plugin manifest format with API compatibility, permissions, metadata, provenance, and integrity hooks.
-- PF4J or wrapped plugin manager integration behind Pi’s `PluginRuntime` port.
-- One classloader per plugin, parent API loading, lifecycle states, health checks.
-- Install/load/start/stop/disable/quarantine operations via audited Admin/API.
-- Registry cleanup and active invocation safeguards on disable/uninstall.
-- Packaging tests against Spring Boot executable JAR and conflict/unload tests.
+- Admin overview as stacked health/status cards with counts, severity, messages, links.
+- Registry/operations/MCP/plugin/extension pages as mobile cards/details with status, capabilities, metadata, disabled/quarantined/load-error states.
+- Policy decisions and audit pages as filterable/searchable stacked cards with expandable redacted context and wrapped identifiers.
+- Approval queue using the same mobile approval cards.
+- Playwright mobile coverage for each Admin route category and key inspect/refresh/disable/quarantine/approval action visibility where already supported.
 
-**Addresses:** Controlled dynamic plugin loading, enterprise extensions, plugin listing/health, disable/quarantine.
+**Addresses:** MOBILE-H5-REQ-020 through 026 and MOBILE-H5-REQ-033.
 
-**Avoids:** Classpath scanning, duplicate API classes, classloader leaks, false sandbox claims, direct plugin access to host internals.
+**Avoids:** “Chat-only mobile,” wide-table admin dependency, hidden governance context, excluding policy/audit from mobile acceptance.
 
-**Research flag:** Needs deeper research. Compare PF4J/PF4J-Spring/custom classloader/JPMS layers/OSGi against current maintenance, Boot packaging, unload behavior, and security model.
+**Research flag:** Potential phase research if lists are large enough to require Vaadin lazy data providers/virtualization or generic backend pagination/projection. Otherwise standard card/detail conversion.
 
-### Phase 9: Policy, Security, Tenancy, Sandbox, and Observability Hardening
+### Phase 6: Cross-Browser, Orientation, Accessibility, and Release Hardening
 
-**Rationale:** Hooks should exist earlier, but production-grade enforcement needs real run/tool/provider/plugin/MCP flows to harden against. This is the gate before broader enterprise or multi-user deployment.
+**Rationale:** Browser/viewport quirks and desktop regressions are easiest to finish after all surfaces are converted. This phase validates the milestone as a release, not just a layout refactor.
 
 **Delivers:**
-- Effective authority intersection: tenant ∩ user ∩ agent ∩ tool ∩ session/workspace ∩ approval.
-- Deterministic policy engine with auditable decisions.
-- Human approval pending state and approve/reject workflow.
-- Secret storage/encryption/redaction improvements.
-- Tenant isolation enforcement on queries, events, tools, providers, plugin visibility.
-- Workspace/artifact constraints and sandbox boundary for risky tools.
-- OTel trace export, metrics dashboards, structured logs, audit exports/event sinks.
-- Prompt-injection/trust-label tests and gates for sensitive actions after untrusted content.
+- Final mobile Chrome, WebKit/iPhone proxy, tablet, landscape, and desktop regression gates.
+- Manual/device-farm UAT note for real iOS Safari and Android Chrome if CI cannot run them reliably.
+- Orientation/short-height tuning for sticky composer, bottom approval actions, dialogs/drawers, and virtual keyboard scenarios.
+- Accessibility pass for focus order, visible focus, icon labels, screen-reader helper labels, and no hover-only interactions.
+- Release checklist documenting supported mobile browsers, known gaps, and screenshots/traces retention.
 
-**Addresses:** Policy/security, human approval, tenant-aware execution, secrets, workspace/sandbox, observability, audit export, quotas/budgets.
+**Addresses:** MOBILE-H5-REQ-005, 030, 031, 032, 034, 035 plus desktop preservation.
 
-**Avoids:** Full user/admin authority, destructive tools without approval, prompt-only guardrails, logs-only incident reconstruction, cross-tenant leaks.
+**Avoids:** Safari/WebKit surprises, landscape failures, keyboard/viewport chrome bugs, claimed support without evidence, desktop regressions.
 
-**Research flag:** Needs deeper research for policy engine choice, secret manager/KMS integration, sandbox strategy, and tenancy/RBAC depth.
-
-### Later Phases: Multi-Agent, Memory/RAG, Replay/Evals, MCP Server Export, CLI/TUI
-
-**Rationale:** These are valuable extensions but should not shape v1 runtime boundaries. The v1 event/state/API design should make them possible without forcing them early.
-
-**Delivers later:**
-- Multi-agent handoffs/orchestration.
-- Durable checkpoint replay/time-travel/debug and evaluation datasets.
-- Memory/RAG/vector search with provenance, retention, sensitivity, deletion, and tenant controls.
-- MCP server exporter exposing selected governed Pi tools/resources.
-- CLI/TUI consuming the same REST/SSE APIs.
-- Private plugin distribution and eventually marketplace-like features if strategy changes.
-
-**Research flag:** Research when these become roadmap candidates; current guidance is to defer.
+**Research flag:** Needs targeted validation/UAT for real iOS Safari behavior and possibly accessibility tooling if current Playwright suite lacks a11y checks.
 
 ### Phase Ordering Rationale
 
-- **Contracts before integrations:** runtime/event/tool/provider/extension contracts must be stable before MCP/PF4J/Vaadin-specific work.
-- **Governance before external tools:** no MCP or plugin tools until the ToolExecutionGateway enforces policy, timeout, cancellation, audit, and observability.
-- **Cloud API before GUI depth:** REST/SSE/read models should serve Admin GUI and future CLI/TUI equally.
-- **SPI/Spring before dynamic plugins:** lower-risk extension paths validate the public API before classloader isolation and plugin lifecycle complexity.
-- **MCP before/parallel with plugins only after tool governance:** both are external capability sources; both must normalize through registry/pipeline.
-- **Hardening after flows exist but before broad production:** security/tenancy/sandbox/approval require real usage paths to test, but domain fields/hooks must exist from phase 1.
+- **Gates before refactors:** mobile browser projects, no-overflow assertions, and stable hooks must exist before widespread layout changes.
+- **Shell before pages:** route navigation and content container rules are shared dependencies; page conversion before shell creates duplicate work.
+- **Console before Admin:** Console validates the hardest live flow: catalog/session/chat/run/SSE/tool/approval/cancel.
+- **Cards before broad governance:** tool/timeline/approval cards become the pattern Admin reuses for policy/audit/MCP/plugin/extension data.
+- **Hardening last but not optional:** WebKit/iOS, orientation, touch targets, focus, and desktop regression need final full-surface validation.
+- **No backend expansion by default:** any API/read-model changes should be justified by measured payload/performance needs and must be general, not mobile-only.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 3: Model Provider Registry** — validate exact Spring AI 1.1.x artifacts, OpenAI-compatible streaming/tool-call semantics, provider usage accounting, and 2.x migration risk.
-- **Phase 4: Governed Tool Pipeline** — validate JSON Schema library/versioning and policy decision record structure.
-- **Phase 5: Admin GUI** — validate Vaadin Flow + Spring Security + SSE patterns if not already familiar.
-- **Phase 7: MCP Client Bridge** — validate MCP Java SDK/Spring AI MCP maturity, transport scope, OAuth/protected-resource handling, and SSRF controls.
-- **Phase 8: Dynamic Plugins** — compare PF4J/PF4J-Spring/custom classloader/JPMS/OSGi; test Spring Boot executable JAR packaging and unload behavior.
-- **Phase 9: Policy/Security/Sandbox** — decide policy engine, secrets/KMS, tenancy/RBAC, sandbox/out-of-process strategy, and observability backend.
+Phases likely needing deeper or targeted research during planning:
+- **Phase 1:** Confirm exact Vaadin theme/bootstrap convention and whether Playwright is Java/JUnit-based or existing root config is TypeScript-based; align without adding a second stack.
+- **Phase 3:** Investigate current `ConsoleView` fixed-width/scroll/composer implementation before estimating refactor effort.
+- **Phase 5:** Research Vaadin virtualization/lazy data providers only if admin audit/registry/events lists are large or mobile performance fails.
+- **Phase 6:** Validate real iOS Safari/Android Chrome UAT path and optional accessibility automation depth.
 
-Phases with standard patterns (skip broad research-phase):
-- **Phase 1: Runtime Spine** — standard ports/adapters and state-machine design; focus on internal schema decisions.
-- **Phase 2: Cloud Server API/Persistence/SSE** — Spring Boot/PostgreSQL/SSE patterns are well documented; research only durability depth.
-- **Phase 6: SPI/Spring Extension Surface** — standard ServiceLoader/Spring Boot starter patterns; validate packaging edge cases.
+Phases with standard patterns (skip broad `/gsd-research-phase`):
+- **Phase 2:** Vaadin responsive shell/navigation and shared primitives are well-documented; implementation inventory is enough.
+- **Phase 4:** Progressive disclosure cards, Lumo utilities, Vaadin details/dialog/buttons, and CSS wrapping are standard.
+- **Most of Phase 1:** Playwright mobile context/device setup is documented; only repo-specific integration needs inspection.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | MEDIUM-HIGH | Java 21, Spring Boot 3.5, Spring AI, MCP, PF4J, PostgreSQL, Micrometer/OTel, Resilience4j, Vaadin, and Testcontainers recommendations are backed by official/Context7 docs. Exact patch versions and some artifact names need validation at implementation time. |
-| Features | HIGH | Runtime/session/tool/event/policy/observability table stakes are confirmed across LangGraph, Claude Managed Agents, Google Agent Runtime, OpenAI Agents SDK, Dify, Spring AI MCP, and MCP Runtime governance patterns. |
-| Architecture | MEDIUM-HIGH | Ports-and-adapters modular monolith, framework-free runtime core, append-only events, governed tool pipeline, and MCP-as-adapter are strongly supported by dependency analysis and official MCP/Spring/OTel/PF4J docs. |
-| Pitfalls | HIGH | SPI/Spring Boot/MCP auth pitfalls are official-doc backed; classloader/plugin and agent security practices are strong but some implementation details require project-specific validation. |
+| Stack | HIGH | Vaadin 24 responsive APIs, Lumo utilities, theme CSS, and Playwright mobile emulation are backed by official/Context7 docs. Exact patch versions should still be checked at implementation time. |
+| Features | HIGH | Table stakes align with milestone constraints, WCAG/reflow/touch guidance, responsive H5 expectations, and existing Console/Admin surfaces. Differentiators are product-specific and medium confidence. |
+| Architecture | HIGH | Boundary recommendation is strongly supported by existing COLA/project constraints and current adapter-web/API separation: mobile is presentation-layer work. Exact class/file names need final code inventory. |
+| Pitfalls | HIGH | Critical pitfalls are consistent across responsive design, Vaadin component behavior, mobile browser testing, accessibility, and project-specific Console/Admin density risks. |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Durability depth:** Decide whether v1 requires crash-resumable long-running runs or persisted history + safe cancellation only; this affects event store/checkpoint design.
-- **Exact Spring AI/MCP versions:** Use Spring AI 1.1.x stable as baseline, but validate Maven artifacts, MCP module names, and 2.x migration path before coding.
-- **MCP transport/auth scope:** Decide v1 mandatory transports and whether protected-resource OAuth is launch-blocking or gated to multi-tenant/protected tools.
-- **Dynamic plugin framework:** Validate PF4J/PF4J-Spring/custom classloader options with Spring Boot executable JAR packaging, lifecycle, unload, and dependency-conflict tests.
-- **Plugin security model:** Decide and document trusted in-process plugins vs untrusted out-of-process/containerized extensions; classloaders are not security sandboxes.
-- **Policy engine choice:** Start with typed Java interface/default implementation; research OPA/Cedar/custom rules if authorization complexity grows.
-- **Secret management:** Define `SecretRef` now; choose env/config-backed implementation first and Vault/KMS integration later.
-- **Tenant/RBAC depth:** Include tenant IDs from day one even if single-tenant; decide how much RBAC is required for v1 Admin actions.
-- **Sandbox/workspace implementation:** Define `Workspace` abstraction early; defer hardened code/shell execution unless it becomes a dedicated security phase.
-- **Admin GUI stack details:** Vaadin is recommended for all-Java v1, but exact UI architecture and event streaming integration need implementation validation.
-- **Observability backend:** Emit OTel/Micrometer from day one; choose collector/dashboard/log aggregation stack during deployment planning.
+- **Exact Vaadin patch target:** Current repo uses 24.8.4; latest Vaadin 24 patch observed was 24.10.7. Validate Maven compatibility before upgrading; shipping on 24.8.4 is acceptable if responsive APIs suffice.
+- **Theme bootstrap convention:** Confirm whether the app uses a Vaadin theme folder, `@Theme`, `AppShellConfigurator`, `@StyleSheet`, or another established pattern; do not churn just to match docs.
+- **Playwright integration shape:** Research says Playwright Java should be explicit if absent, but architecture examples mention `playwright.config.ts`. Inventory actual repo test harness and avoid duplicate browser-test orchestration.
+- **Component inventory and fixed-width leaks:** Inspect all Console/Admin Vaadin classes for hard-coded widths, Grid usage, nested scroll regions, and hover-only controls before final estimates.
+- **Large-list performance:** If audit/events/registry lists are heavy, add generic pagination/virtualization/projections; do not create mobile-only DTOs.
+- **Real mobile browser parity:** Playwright WebKit/mobile emulation is strong but not a full replacement for real iOS Safari/Android Chrome UAT; document any release gap.
+- **Accessibility depth:** Touch target and focus requirements are clear, but decide whether to add automated a11y checks or keep manual/Playwright assertions for this milestone.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Spring AI reference via Context7 — model providers, ChatClient, structured output, tool/function calling, observability, MCP integration.
-- Spring AI official release post, 2026-04-27 — Spring AI `1.0.6`, `1.1.5`, `2.0.0-M5`, Boot `3.5.14` upgrade, OpenAI SDK changes, MCP server improvements: https://spring.io/blog/2026/04/27/spring-ai-1-0-6-1-1-5-2-0-0-M5-available-now
-- Spring Boot 3.5 Context7 docs — virtual threads, Actuator, observability, nested JAR/classloader behavior.
-- MCP Java SDK / Spring AI MCP docs — sync/async clients, server capabilities, tools/resources/prompts, sampling, elicitation, progress, structured logging, stdio/SSE/Streamable HTTP transports: https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html
-- Model Context Protocol official architecture docs — host/client/server architecture, JSON-RPC lifecycle, tools/resources/prompts, transports: https://modelcontextprotocol.io/docs/concepts/architecture
-- MCP Authorization specification 2025-06-18 — OAuth/protected-resource metadata, bearer token handling, audience/resource validation, resource indicators, HTTPS/PKCE, token passthrough prohibition: https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization
-- PostgreSQL current docs via Context7 — JSONB, full-text search, row-level security.
-- Micrometer and OpenTelemetry docs — Observation API, traces/spans/OTLP exporters, Spring Boot observability integration.
-- PF4J official docs via Context7 — plugin lifecycle, extension points, PluginManager, PluginClassLoader, runtime load/start/stop.
-- Oracle Java `ServiceLoader` API docs — lazy/cached provider loading, classloader-specific discovery, reload behavior, provider errors: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ServiceLoader.html
-- Claude Managed Agents official docs — agents/environments/sessions/events, SSE streaming, persistent event history, tools, MCP servers, sandbox options: https://platform.claude.com/docs/en/managed-agents/overview
-- Google Cloud Gemini Enterprise Agent Platform Agent Runtime docs — sessions, memory, sandbox, observability, governance, identity, gateway, enterprise security: https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/runtime
-- OpenAI Agents SDK docs — runtime loop/state, models/providers, tools/MCP, guardrails, human review, observability/evals: https://platform.openai.com/docs/guides/agents
-- Dify docs — app/workflow concepts, API/MCP publishing, tools, plugin/custom/workflow/MCP tools, knowledge grounding: https://docs.dify.ai/en/use-dify/getting-started/key-concepts
-- OWASP Top 10 for LLMs and Gen AI Apps 2025 — risk taxonomy for prompt injection, excessive agency, sensitive information, and tool misuse: https://genai.owasp.org/llm-top-10/
+- `.planning/research/STACK.md` — Vaadin 24.x/Lumo/theme/Playwright Java stack recommendations and version posture.
+- `.planning/research/FEATURES.md` — mobile H5 table stakes, candidate MOBILE-H5 requirement IDs, MVP/defer lists, feature dependency map.
+- `.planning/research/ARCHITECTURE.md` — adapter-web-only architecture, component responsibilities, build order, data-flow preservation, boundaries.
+- `.planning/research/PITFALLS.md` — critical mobile-first pitfalls and prevention strategies.
+- Project constraints from `.planning/PROJECT.md` / `CLAUDE.md` — Java/Vaadin-first, COLA boundaries, public REST/SSE, Cloud Server + Web Console/Admin priority.
+- Vaadin official docs and Context7 `/vaadin/flow`, `/websites/vaadin` — responsiveness, AppLayout, FormLayout, Grid details, dialogs, theme/CSS resources, Lumo utility classes.
+- Playwright Java official docs and Context7 `/microsoft/playwright-java` — mobile context emulation, devices, viewport/screen/touch/user agent/color scheme.
+- W3C WCAG 2.2 / WAI guidance — reflow, focus visibility, target size minimum/enhanced target size.
 
 ### Secondary (MEDIUM confidence)
-- LangChain4j Context7 docs — Java model/tool/memory/streaming/MCP examples and comparative ecosystem evidence.
-- LangGraph documentation via Context7 — durable execution, persistence checkpoints, streaming, memory, human-in-loop, visibility.
-- MCP Runtime docs — Kubernetes-native MCP deployment/governance, registry, gateway, per-tool policy, grants/sessions, audit/observability: https://docs.mcpruntime.org/
-- AWS Bedrock AgentCore multi-tenant agent guidance — tenant context headers, scoped tools, quotas, gateway and ABAC patterns.
-- WorkOS 2026 AI agent auth checklist — scoped/intersected authority, stop-on-auth-failure, full-context audit.
-- Adevinta “Java plugins with isolating class loaders” — classloader isolation benefits and limits, trusted plugin warning.
-- Nicolas Fränkel “Rediscovering Java ServiceLoader” — ServiceLoader strengths/limitations and Spring bridging cautions.
-- Microsoft Agent Framework FIDES announcement — emerging information-flow label and deterministic policy pattern.
-
-### Tertiary (LOW/MEDIUM confidence)
-- Ecosystem search results for JamJet Runtime Java, AgentScope Java, and Spring AI Alibaba architecture posts — directional evidence only, not used for critical claims without stronger sources.
+- Vaadin roadmap/search evidence — Vaadin 24.10.7 as observed latest 24 line; Vaadin 25 requiring Spring Boot 4.0.4+ evidence should be revalidated before any platform upgrade decision.
+- Maven Central search evidence — `com.microsoft.playwright:playwright` 1.60.0 observed on 2026-05-19; verify latest before final pin.
+- Product-specific differentiator inference — mobile incident triage, run focus mode, risk-first approvals, and copy/share evidence are strong fit for Agent/Admin workflows but should be validated with users/operators.
 
 ---
-*Research completed: 2026-06-13*  
+*Research completed: 2026-06-20*  
 *Ready for roadmap: yes*

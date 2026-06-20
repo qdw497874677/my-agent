@@ -1,205 +1,269 @@
-# Feature Landscape
+# Feature Research: Mobile-First H5 Adaptation
 
-**Domain:** Java cloud Agent runtime/platform product  
+**Domain:** Mobile-first H5 support for Java/Vaadin Agent Web Console and Admin Governance  
 **Project:** Pi Java Agent Platform  
-**Researched:** 2026-06-13  
-**Research focus:** Features dimension only — table stakes vs differentiators vs anti-features for a Cloud Server first, General Agent first, All-Java platform with Admin GUI v1 and broad extension via Java SPI, Spring, dynamic plugins, and MCP.
+**Researched:** 2026-06-20  
+**Confidence:** HIGH for responsive/mobile/accessibility/testing expectations; MEDIUM-HIGH for Vaadin-specific implementation patterns; MEDIUM for product differentiators because they are inferred from this product's Agent Console/Governance domain rather than broad public competitor evidence.
 
-## Executive Takeaway
+## Research Scope
 
-Modern cloud Agent platforms are no longer just “LLM wrapper + tools.” The common product shape is a production runtime that manages **agents, runs/sessions, tools, model providers, streaming events, state, observability, safety controls, and extension integration**. Evidence from LangGraph, Claude Managed Agents, Google Gemini Enterprise Agent Platform, Dify, OpenAI Agents SDK docs, Spring AI MCP, and MCP Runtime converges on the same baseline: if a platform cannot create a stateful run, stream events, call governed tools, inspect execution history, and integrate external tools/providers, it will feel incomplete.
+This research covers **only the new mobile-first H5 milestone** for an already-built Java/Vaadin Agent Web Console and Admin Governance app. Existing product capabilities are assumed to exist: Agent Catalog, Chat/Run Console, Run timeline/events, tool cards, approval cards, session history/continuation/cancel, Admin Governance overview/registry/operations/MCP/plugin/extension/policy/audit views, REST/SSE API boundary, and Playwright E2E.
 
-For Pi Java, the v1 product should be opinionated: build a **runtime + API + admin observability + extension control plane**, not a visual workflow builder or marketplace. The table stakes are the execution substrate and governance surfaces. The differentiators should lean into the project’s chosen territory: **Java-native embeddability, Spring/SPI integration, dynamic plugin lifecycle, MCP as first-class remote tool fabric, and enterprise audit/policy around every tool call**.
+The goal is not to add a separate mobile product. The goal is to make the **same full site** usable and testable on mainstream mobile browsers, while keeping Java/Vaadin/public REST/SSE boundaries and avoiding React/Next.js or native mobile apps.
 
-## Table Stakes
+## Feature Landscape
 
-Features users of a cloud Agent runtime/platform expect. Missing = the product feels incomplete or unsafe for production use.
+### Table Stakes (Users Expect These)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Agent definition / configuration | Platforms define an agent as model + instructions + tools + runtime configuration; Claude Managed Agents explicitly uses Agent = model, system prompt, tools, MCP servers, skills. | Medium | v1 needs at least a `GeneralAgentDefinition` with prompt, model config, tool allowlist, policies, and runtime options. |
-| Run / session lifecycle API | Production platforms expose concepts like sessions, threads, runs, workflow runs, or events; users need create, run, cancel, resume/query. | High | Core API should support create run, append input, stream events, cancel, get status, get history. This is the backbone for Admin GUI and future CLI/TUI. |
-| Streaming event protocol | Streaming via SSE or equivalent is baseline for long-running agents; Claude Managed Agents streams SSE and OpenAI docs emphasize streaming/background modes. | Medium | Prefer stable server-side event taxonomy: model delta, step started, tool requested, tool result, policy decision, run completed, run failed. |
-| Tool registry | Agents need discoverable tools with names, descriptions, schemas, side-effect metadata, and availability. Dify, Spring AI, OpenAI, and MCP all center tool interfaces. | Medium | Registry must unify local Java tools, Spring beans, plugin tools, and MCP-discovered tools behind one metadata model. |
-| Tool execution engine | A platform must execute tool calls reliably with timeout, retries where safe, error capture, and structured outputs. | High | Treat tool execution as a separate subsystem from model calling. Never let model loop call arbitrary code directly. |
-| Tool policy and approval hooks | Cloud tools are risky; OpenAI docs include guardrails/human review, MCP Runtime enforces per-tool grants/sessions, and project constraints require policy/audit. | High | v1 must have allow/deny, timeout, side-effect classification, approval extension point, and audit record even if UI approval is basic. |
-| Tool audit trail | Enterprise users expect evidence of who/what called which tool, with inputs/outputs/status. MCP Runtime highlights per-call audit and compliance evidence. | Medium | Store run ID, step ID, tenant/user if available, agent ID, tool ID, decision, input summary/redacted payload, output summary, duration, error. |
-| Model provider abstraction | Platforms support multiple model providers or at least provider-swappable model clients; project explicitly targets OpenAI-compatible first. | Medium | v1 should ship OpenAI-compatible provider and extension boundary for Anthropic/Gemini/Bedrock/etc. Do not hardwire model semantics into runtime. |
-| Function/tool-calling loop | General agents require iterative model → tool call → result → model loop. Dify distinguishes native function calling vs ReAct; OpenAI Agents SDK discusses runtime loop/state. | High | Implement one reliable general loop first. ReAct-style fallback can be deferred unless required for non-tool-call models. |
-| Session/run/step state model | LangGraph persistence stores checkpoints organized into threads; Dify exposes workflow/chatflow run IDs; cloud products expose run history. | High | Use explicit Run, Step, Event, ToolCall, Message/Artifact records. This prevents later rewrite when adding GUI, replay, evaluation, or memory. |
-| Persistence abstraction | Stateful agents need durable history and recovery. LangGraph persistence enables resume, human-in-loop, time travel, and fault tolerance. | High | v1 can start with relational persistence and pluggable repository interfaces. Avoid in-memory-only except tests. |
-| Admin GUI: run inspector | Cloud Server v1 needs an Admin GUI to view runs, events, tool calls, plugin status, and model config per project context. | Medium | Must show live status and historical traces. It does not need no-code flow editing in v1. |
-| Plugin/extension listing and health | Because v1’s core value is extension integration, admins need to see which extensions/tools/providers/plugins are loaded and healthy. | Medium | Include source type: core, SPI, Spring bean, plugin JAR, MCP server. Show errors and disabled state. |
-| Java SPI extension points | Java platforms expect ServiceLoader/SPI for library-style extension. Project explicitly requires SPI. | Medium | SPI should cover providers, tools, policies, memory, workspaces, event sinks. Keep binary compatibility discipline. |
-| Spring Bean integration | Java cloud users expect Spring-native registration and dependency injection; Spring AI demonstrates Spring Boot first integration for AI/MCP. | Medium | Provide auto-configuration and annotations/adapters for registering tools/providers/policies from beans. |
-| Remote MCP client integration | MCP has become a standard external tool/resource protocol; Spring AI 2.0 supports MCP client/server transports and Dify imports MCP tools. | High | v1 should be MCP client first: connect to remote MCP servers, discover tools, normalize schemas, execute with policy/audit. MCP server exposure can be v1.5/phase-later. |
-| Basic dynamic plugin loading | Project explicitly requires dynamic plugin JARs. Platform users will expect install/load/unload or at least load/disable without core rebuild. | High | In v1, narrow scope to signed/approved plugin directory + isolated classloader + lifecycle + health. Hot unload is harder; defer if needed. |
-| Secrets/configuration management boundary | Tools and providers require API keys/OAuth/secrets; Dify separates environment variables for secrets and Google/AWS platforms integrate identity/IAM. | Medium | v1 should avoid building a full vault; provide secret reference abstraction and env/config-backed implementation. |
-| Authentication for Cloud Server APIs | Any cloud runtime must protect run creation, admin GUI, model configs, and tools. | Medium | Minimal v1: Spring Security with API key/OIDC-ready boundary. Multi-tenant RBAC can be phased. |
-| Cancellation and timeout | Long-running agents need cancellation/interruption; Claude Managed Agents supports interrupt/steer and mcp-agent cloud lists cancel/suspend/resume. | Medium | Cancellation must propagate to model stream and running tools where possible. Timeouts should be per-run, per-step, per-tool. |
-| Error handling and retry semantics | Agents fail due to model/tool/network/schema issues; users need status and recoverability. | Medium | Retries should be policy-bound and idempotency-aware. Do not blindly retry side-effectful tools. |
-| Observability hooks | Production platforms emphasize traces/logs/metrics; Google uses Cloud Trace/Logging/Monitoring; Dify supports observability integrations; OpenAI docs emphasize traces. | Medium | v1 should emit structured logs/metrics/events and support OpenTelemetry spans around model calls and tool calls. |
-| Basic cost/token accounting | Agent admins need visibility into model usage, latency, and token cost; mcp-agent cloud highlights token accounting. | Medium | Store prompt/completion tokens when provider returns them; expose per-run aggregate in Admin GUI. |
-| Workspace/sandbox abstraction | Managed agents often provide sandboxed files/commands; project constraints require Workspace/Policy/Sandbox boundaries for tool safety. | High | v1 for General Agent should define abstraction and restrict built-in workspace operations. Full code execution sandbox can be deferred. |
-| API-first backend | Dify publishes apps via API/MCP/web; OpenAI/Claude/Google products expose APIs. | Low | All GUI actions should use public-ish REST/SSE APIs so CLI/TUI can come later without new backend semantics. |
+Features users assume exist in a credible mobile H5 admin/console experience. Missing these means the product still feels “desktop site squeezed onto phone,” not mobile-first.
 
-## Differentiators
+| Feature | Why Expected | Complexity | Dependencies / Notes |
+|---------|--------------|------------|----------------------|
+| **Full-site mobile route coverage** | Users expect every route that exists on desktop to at least be usable on mobile, especially for operational incident triage. Partial mobile support creates dead ends. | MEDIUM | Depends on existing Vaadin routes: `/console`, Agent Catalog area, Chat/Run, Run context, Admin overview, registry, operations, MCP, plugin, extension, policy, approval, audit views. Acceptance must enumerate every route and verify no mobile-only 404/blank/blocked page. |
+| **Mobile-first information architecture** | Phone users cannot effectively operate a desktop three-column workbench. Primary task flow must be visible first, secondary context must become drawers/sheets/details. | HIGH | Depends on existing `ConsoleView` three-column layout (`sessions`, `chat-event-stream`, `run-context`). Convert to task-first order: chat/run primary, sessions/catalog as navigation drawer or top switcher, run context as collapsible/details panel. |
+| **Responsive app shell/navigation** | Admin and console users need predictable navigation between many pages on narrow screens. Vaadin `AppLayout` is documented as responsive and supports navbar/drawer regions. | MEDIUM | Introduce or standardize a shared mobile shell: compact header, drawer navigation, current route title, back/close affordances. Admin pages should not rely on wide horizontal nav. |
+| **No horizontal page overflow at common phone widths** | Horizontal scrolling is one of the clearest signs of failed responsive design. WCAG reflow guidance and responsive design basics emphasize adapting content to viewport width. | MEDIUM | Validate at widths such as 360, 390/393, 412, 430, 768, and landscape. Some inner code/log panels may scroll internally, but the document/body must not overflow horizontally. |
+| **Touch-friendly interactive controls** | Mobile users tap with fingers, not mouse pointers. WCAG 2.2 target-size guidance defines 24×24 CSS px minimum, while 44×44 is a safer enhanced target. | MEDIUM | Buttons, links, drawer toggles, tabs, cards, approval actions, cancel actions, grid detail toggles, refresh buttons, and filters should be at least 44px where practical and never below WCAG 2.2 AA minimum/spacing. |
+| **Readable typography and spacing on H5** | Dense admin tables and desktop cards become unreadable on phones unless text, wrapping, and spacing are mobile-tuned. | MEDIUM | Use shared mobile CSS/theme tokens. Avoid tiny status badges or dense inline metadata. Wrap long IDs and tool names. Use monospace blocks with internal scrolling only when necessary. |
+| **Agent Catalog mobile cards** | Catalog discovery is a core entry point. On mobile, cards should stack and show enough metadata to choose an agent without opening desktop grids. | LOW-MEDIUM | Depends on existing Agent Catalog API/cards. Acceptance: user can view catalog, identify default/general agent, and select/start chat from a phone viewport. |
+| **Chat/Run mobile composer** | Chat is the primary user entry point. Mobile users expect a bottom-safe, thumb-accessible composer that does not disappear behind browser UI or virtual keyboard. | HIGH | Depends on existing run/session APIs and SSE. Composer should remain usable after scrolling, support multi-line text, submit, disabled/running state, and safe-area/keyboard-friendly layout. |
+| **Live SSE event stream readable on mobile** | Agent runs are long-running and streaming. Users must understand model deltas, step transitions, tool calls, approvals, completion/failure on mobile. | HIGH | Depends on existing public SSE and event DTOs. Acceptance: mobile user starts a run, sees streamed output/events, can scroll history without losing composer/control access. |
+| **Run timeline/event mobile presentation** | Timeline is critical for observability. Desktop timeline/table layouts must become a vertical feed or accordion on mobile. | MEDIUM-HIGH | Depends on existing run timeline/events and tool cards. Use event cards with timestamp/status/type summary and expandable details. Avoid dense multi-column timeline tables. |
+| **Tool cards usable on mobile** | Tool execution details are a differentiating part of the console. Users must inspect tool name, status, policy, inputs/outputs summary, duration, errors. | MEDIUM | Depends on governed tool cards and audit/redaction boundaries. Use collapsed summaries by default; details expand into readable stacked sections. Preserve redaction; do not expose raw sensitive payloads because mobile is less private. |
+| **Approval cards optimized for thumb use** | Human approval can block a run; mobile users often approve/reject while away from desktop. Actions must be clear and safe. | HIGH | Depends on existing user/admin approval APIs/cards. Acceptance: approval card shows risk/side-effect summary, required context, approve/reject actions, confirmation for high-risk actions, and success/failure state at mobile width. |
+| **Session history/continuation mobile flow** | Existing sessions must be discoverable and resumable on mobile. Users should not need a desktop sidebar to continue work. | MEDIUM | Depends on session history/continuation/cancel. Provide drawer/list/search-ish compact navigation; selected session state remains obvious; continuation does not reset the selected agent/session accidentally. |
+| **Cancel/stop run mobile affordance** | Long-running or risky runs need an accessible cancel path on mobile. | MEDIUM | Depends on existing cancel API. The cancel action should be visible when a run is active, not buried in an off-screen context column. Include confirmation or reason where existing behavior requires it. |
+| **Admin Governance mobile overview cards** | Operators need at-a-glance health on phone. Overview should stack status cards with clear severity and links. | MEDIUM | Depends on existing Admin Governance overview DTOs. Acceptance: runtime/provider/tool/extension/MCP/plugin statuses are visible as cards with counts/messages and route links. |
+| **Registry/Operations/MCP/Plugin/Extension mobile details** | Governance pages often contain grids. On phone, users need inspectability via card lists and row details, not wide tables. | HIGH | Depends on existing admin DTOs. Vaadin Grid can use item details renderers, but hidden columns may still send data to client; use mobile-specific projections/cards for heavy data where needed. |
+| **Policy and audit mobile inspection** | Policy/audit views are core safety surfaces. Mobile users must inspect decisions and audit summaries without horizontal table dependence. | HIGH | Depends on policy/audit APIs and redaction. Use filters stacked above list, compact decision/audit cards, expandable JSON/details, and strong wrapping for IDs. |
+| **Mobile-safe dialogs, drawers, overlays, notifications** | Vaadin overlays can feel broken if too wide/tall or unscrollable on phones. | MEDIUM | All approval confirmations, details dialogs, error notifications, and drawer panels must fit viewport, scroll internally if needed, and close by explicit controls/backdrop/escape-equivalent where applicable. |
+| **Orientation and tablet behavior** | Users rotate phones and use tablets. Mobile support should not be portrait-only. | MEDIUM | Acceptance across portrait/landscape and tablet widths. Landscape can use two-pane layout if enough width; portrait should remain single-column. Do not lock orientation. |
+| **Keyboard and focus accessibility retained** | Mobile-first must not regress desktop or accessibility. WCAG 2.2 focus guidance expects visible focus indicators. | MEDIUM | Preserve keyboard navigation and `:focus-visible`; ensure drawer/menu/modal focus order is sensible. This is also useful for external keyboards on tablets. |
+| **Mobile browser target matrix** | Project explicitly targets Android/iOS Chrome, Safari, Edge, Firefox. Users expect mainstream mobile browser compatibility. | MEDIUM | Automated local Playwright can cover Chromium/WebKit/Firefox device emulation where available; real iOS Safari should be human/UAT if CI cannot run it. Document browser support target. |
+| **Automated mobile verification gate** | The milestone explicitly requires mobile viewport/browser smoke. Without tests, mobile regressions will recur. | MEDIUM-HIGH | Depends on existing Playwright E2E. Add projects such as Mobile Chrome/Pixel, Mobile Safari/iPhone, tablet, and narrow custom viewport with `hasTouch`. Assertions: route loads, no horizontal overflow, key actions complete, touch targets visible/enabled. |
+| **Desktop behavior preserved** | This is an adaptation milestone, not a rewrite that breaks existing desktop E2E. | MEDIUM | Existing desktop Playwright and unit tests remain required. Mobile CSS/layout changes should be additive and responsive, not desktop-only regressions. |
 
-Features that can create competitive advantage for Pi Java if prioritized after the runtime baseline is reliable.
+### Differentiators (Competitive Advantage)
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Java-native Agent Runtime Kernel | Most prominent agent frameworks are Python/TypeScript-first. A clean Java kernel gives enterprise teams embeddable, inspectable runtime semantics in their existing Spring/JVM stack. | High | Make core independent of Spring and UI; Spring adapter is outer layer. This is the project’s strongest positioning. |
-| Unified extension fabric: SPI + Spring + dynamic plugin + MCP | Users can extend through the mechanism that matches their deployment model: library, app bean, plugin JAR, or remote MCP server. | Very High | This is differentiating but risky. Roadmap must phase it: common registry first, then SPI/Spring, then MCP, then dynamic JAR lifecycle. |
-| Governed tool fabric across local and remote tools | A single policy/audit layer for Java tools, plugin tools, and MCP tools is more valuable than merely “supports tools.” | High | Use MCP Runtime-style thinking: grants/sessions/allow-deny/side-effect metadata/audit on every call. |
-| Admin GUI as runtime cockpit, not no-code builder | Focused operators can debug runs, inspect traces, manage tools/plugins/providers, and review policy decisions without a full workflow studio. | Medium | This fits Cloud Server v1 and avoids competing head-on with Dify-style visual builders. |
-| Dynamic plugin lifecycle for enterprise extensions | Enterprises can add customer-specific tools/providers/policies without redeploying the core platform. | Very High | Treat as controlled runtime extension, not marketplace. Include health, compatibility, signature/trust hooks, disable/quarantine. |
-| MCP gateway/client governance | Most MCP clients simply connect to servers; Pi can broker remote MCP tools through Java policy, audit, tenancy, and schema normalization. | High | Start as MCP client manager; later expose Pi agents/tools as MCP server or gateway. |
-| Explicit side-effect classification for tools | Differentiates safety posture by making read/write/external-impact visible to policy and GUI. | Medium | Include metadata: read-only, writes internal data, external side effect, file-system, network, shell/code. |
-| Pluggable policy engine | Allows enterprises to bring custom approval, RBAC, ABAC, quota, or compliance checks. | High | v1 can use Java interface + default implementation; later integrate OPA/Cedar-like engines if needed. |
-| Durable replay/debug model | Persisted event log can enable step replay, time-travel-like debugging, regression evaluation, and incident analysis. | High | Start by storing enough immutable events. Actual replay can be later. |
-| Agent-to-tool schema normalization | Normalize JSON Schema/OpenAPI/MCP/Spring annotations into one canonical tool schema. | High | High leverage for extension ecosystem. Needs careful versioning and validation. |
-| Multi-provider capability model | Instead of only provider adapters, represent capabilities: streaming, tool calling, structured output, vision, token usage, caching. | Medium | Prevents hidden provider assumptions. OpenAI-compatible first, but capability flags prepare future providers. |
-| Extension SDK with compatibility tests | Makes plugin/tool authors successful and reduces support burden. | Medium | Ship test harnesses and sample extensions. This is more valuable than a marketplace in v1. |
-| Enterprise audit export/event sink | Security teams can forward tool/model/run events to SIEM, OpenTelemetry, Kafka, or webhooks. | Medium | Project already lists EventSink as extensible; implement one simple sink plus extension interface. |
-| Java annotation-based tool registration | Spring AI MCP uses annotation-style tool/resource/prompt registration; Pi can offer `@AgentTool` for Spring apps. | Medium | Developer experience differentiator. Should compile to same registry metadata as SPI/plugin/MCP. |
-| Tenant-aware execution context | Multi-tenant context, quotas, feature flags, and tenant-scoped tool visibility are important in SaaS agent platforms; AWS AgentCore multi-tenant guidance emphasizes tenant headers and scoped tools. | High | For v1, model context fields and interfaces; full tenant admin/RBAC can be later. |
-| Provider/tool simulation mode | Developers can test agent loops with fake providers and tool stubs before connecting real systems. | Medium | Very useful for Java enterprise CI. Differentiates on reliability. |
-| Built-in evaluation hooks | Google Agent Runtime includes quality/evaluation services; OpenAI docs include agent evals. Pi can expose run datasets and evaluator extension points. | High | Defer UI-heavy evaluation, but design run data so evals are possible. |
-| Human approval workflow | Risky actions can pause for review, similar to LangGraph human-in-loop and OpenAI guardrails/human review. | High | v1 can provide approval hook + pending state; full approval UI/work queues can be later. |
+These are not required for minimum mobile viability, but they match the Agent Console/Admin Governance domain and can make the product feel purpose-built rather than generically responsive.
 
-## Anti-Features
+| Feature | Value Proposition | Complexity | Dependencies / Notes |
+|---------|-------------------|------------|----------------------|
+| **Mobile incident triage mode** | Operators can diagnose a bad run or unhealthy extension from a phone quickly: status → latest failures → affected tool/provider/plugin → audit link. | MEDIUM-HIGH | Depends on Admin overview, operations, registry, audit. Implement as ordering/shortcuts on existing surfaces, not new backend semantics. |
+| **Run “focus mode” on mobile** | During an active run, the UI prioritizes stream, approvals, cancel, and latest tool activity while hiding secondary navigation. | MEDIUM | Depends on Chat/Run, SSE, approvals, cancel. Could be a responsive state in ConsoleView. Acceptance: active run has no distracting sidebars and all critical controls remain reachable. |
+| **Risk-first approval UX** | Approval card emphasizes side-effect level, tool/source, policy decision, and redacted input summary before approve/reject. | MEDIUM | Depends on existing policy/tool metadata. Especially valuable on mobile where users make faster decisions and need guardrails. |
+| **Mobile card schema shared across governance surfaces** | Registry, MCP, plugin, extension, policy, and audit pages feel consistent: status badge, primary title, metadata chips, expandable details, actions. | MEDIUM | Depends on common UI components/theme classes. Reduces per-page layout drift and testing burden. |
+| **Deep-linkable mobile details** | Links to a run, session, audit event, MCP server, plugin, or policy decision open directly to an expanded mobile-friendly detail state. | MEDIUM-HIGH | Depends on route/query state. Useful for alerts, chatops, and future CLI/TUI links. |
+| **Mobile event summarization controls** | Dense event streams can be filtered by errors/tools/approvals/model output on a phone. | MEDIUM | Depends on existing event taxonomy. Keep client-side initially; avoid adding backend query complexity unless data volume requires it. |
+| **Offline/poor-network resilience messaging** | Mobile networks are less reliable. Clear reconnect/loading/stale-state indicators improve trust for SSE/admin refresh. | MEDIUM | Depends on EventStreamClient and HTTP client behavior. Do not promise offline operation; show reconnecting/stale and allow retry. |
+| **Installable/PWA-like polish without offline claims** | Add viewport/theme-color/manifest-ish polish so the H5 app feels good when pinned to home screen, but avoid full PWA scope creep. | LOW-MEDIUM | Optional after core mobile passes. Should not introduce service-worker caching of sensitive admin data unless explicitly designed. |
+| **Mobile evidence capture for audits** | A mobile operator can copy/share a run ID, audit ID, policy decision ID, or redacted summary quickly. | LOW-MEDIUM | Depends on existing IDs and redacted summaries. Useful for incident workflows; avoid sharing raw payloads. |
 
-Features to explicitly NOT build for v1 because they distract from the project’s Cloud Server / Java Runtime / extension-integration goal or create unsafe complexity.
+### Anti-Features (Commonly Requested, Often Problematic)
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Full Dify-style visual workflow builder | High UI/UX complexity, different product category, and not required for General Agent runtime v1. | Build Admin GUI run/plugin/tool cockpit. Keep workflow graph DSL out of v1. |
-| Full plugin marketplace | Marketplace requires distribution, review, ratings, billing, trust, moderation, and ecosystem operations. Project already marks this out of scope. | Provide plugin protocol, SDK, local/private installation, metadata, and compatibility checks. |
-| Unrestricted shell/file/code execution | Cloud agents with shell/files can exfiltrate data or damage systems. Project explicitly excludes unlimited shell/file tools. | Define Workspace/Sandbox abstraction and require policy, timeout, audit, and allowlisted tools. |
-| Support every model provider in v1 | Broad provider support dilutes runtime work and multiplies edge cases. | Ship OpenAI-compatible provider and capability-based adapter SPI. Add Anthropic/Gemini/Bedrock later. |
-| Recreate pi TypeScript CLI/TUI in Java core | The reference project is local CLI/TUI-oriented; project target is cloud server and Admin GUI. | Preserve protocol/event compatibility for future clients; keep core UI-neutral. |
-| Multi-agent orchestration as v1 centerpiece | Multi-agent handoffs/workflows are valuable but require stable single-agent runtime, state, policy, and observability first. | Build General Agent loop first; design AgentDefinition/Run model to allow handoffs later. |
-| Autonomous self-modifying plugin installation | Letting agents install/enable arbitrary plugins is a severe supply-chain and security risk. | Admin-only plugin lifecycle with trust/signature/compatibility hooks and audit. |
-| Global mutable singleton registries | Incompatible with cloud multi-tenancy, tests, plugin reload, and per-agent policy. | Use scoped registries: platform, tenant/workspace, agent, run context. |
-| Vendor-specific provider leakage in core model | Hardcoding OpenAI/Anthropic semantics into runtime makes later providers difficult. | Use provider capability flags and normalized tool-call/message abstractions. |
-| Store full sensitive tool payloads by default | Audit is necessary, but raw secrets/PII in logs creates compliance risk. | Store redacted payloads and configurable secure retention. Keep full payload capture opt-in. |
-| Hot unload as a guaranteed v1 dynamic plugin feature | JVM classloader unloading and resource cleanup are subtle and failure-prone. | Support load/disable/restart-required unload semantics first; add true hot unload after lifecycle hardening. |
-| Build a proprietary MCP alternative | MCP is becoming the standard external tool/resource protocol. | Embrace MCP client support and normalize MCP tools into Pi’s registry/policy/audit model. |
-| Heavy RAG/knowledge-base product in v1 | RAG platforms require ingestion, chunking, vector DBs, permissions, re-ranking, and quality evaluation. | Define Memory/Retrieval extension points; ship minimal memory/session state first. |
-| End-user chat app as primary UI | Project targets Admin GUI v1, not consumer chat UX. | Provide REST/SSE API and simple run tester in Admin GUI if needed. |
-| Production claims without governance | Agent platforms without policy/audit/observability create enterprise distrust. | Make governance visible in the MVP, even if policy rules are initially simple. |
+Features that seem attractive but would distract from the current milestone or violate project constraints.
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| **Native iOS/Android app** | Better mobile feel, push notifications, app-store presence. | Out of scope; duplicates H5 surfaces; introduces new client stack and release process. | Make full-site H5 excellent first; keep REST/SSE boundaries suitable for future clients. |
+| **React/Next.js mobile frontend rewrite** | More frontend ecosystem patterns for responsive UI. | Violates Java/Vaadin-first constraint and creates parallel UI architecture. | Use Vaadin Flow with shared responsive CSS/components and targeted client-side enhancements only where necessary. |
+| **Mobile-only reduced product** | Faster to ship only Chat on phones. | Milestone requires full-site support; operators need Admin Governance on mobile for triage. | Prioritize task-specific mobile layouts for every existing route, even if some admin pages are inspect-only. |
+| **Just add CSS media queries to desktop layout** | Looks cheap and fast. | Existing console is a three-column desktop workbench; CSS alone can leave wrong IA, hidden actions, overflow, and unusable tables. | Refactor layout hierarchy: mobile shell, drawers, cards, details, responsive component composition. |
+| **Horizontal scroll tables as default** | Preserves all desktop columns with little work. | Poor mobile UX and fails “no horizontal overflow” expectation. Also makes touch actions hard. | Convert tables/grids to card lists or primary-column + expandable details; allow internal scroll only for unavoidable code/JSON blocks. |
+| **Hide governance fields to fit mobile** | Cleaner mobile screens. | Can remove safety/audit context needed for decisions. | Show summaries first and move full metadata into expandable details; preserve access to all critical inspect fields. |
+| **Gesture-heavy custom interactions** | Feels app-like. | Hard to discover, hard to test, and can conflict with browser scrolling/back gestures. | Prefer explicit buttons, drawers, accordions, and standard links. |
+| **Offline admin mode with cached sensitive data** | Helpful on unreliable mobile networks. | Risky for governance/audit/tool payload privacy; complex cache invalidation and auth. | Show stale/reconnect states; do not cache sensitive admin payloads offline in this milestone. |
+| **Push notifications / background run monitoring** | Mobile operators want alerts. | Requires notification permission, service worker, auth/session handling, and product policy decisions. | Defer; expose copyable/deep-linkable run/admin URLs and clear live/reconnect states. |
+| **Agent execution feature expansion during mobile milestone** | Tempting to add new mobile-specific agent actions. | Scope creep; milestone is adaptation of existing capabilities. | Keep backend/API semantics unchanged; only add UI affordances and tests unless a tiny API field is required for mobile display. |
+| **Device-specific layouts for every phone model** | Teams may try to perfect individual devices. | Unmaintainable and brittle. | Use mobile-first breakpoints and test representative viewport classes. |
+| **Viewport zoom disabling as a blanket fix** | Prevents layout shifts. | Hurts accessibility and is discouraged for responsive sites. | Build layouts that reflow and remain usable with browser zoom/text scaling where practical. |
+
+## Acceptance Behaviors and Candidate REQ-IDs
+
+These are written so they can be copied into phase requirements as user-centric, testable acceptance criteria.
+
+### Mobile Shell and Navigation
+
+| Candidate ID | Acceptance Behavior | Complexity | Depends On |
+|--------------|---------------------|------------|------------|
+| **MOBILE-H5-REQ-001** | As a mobile user, I can open every existing Console and Admin Governance route at a 390×844 phone viewport without blank screens, route errors, or desktop-only blocking messages. | MEDIUM | All existing Vaadin routes. |
+| **MOBILE-H5-REQ-002** | As a mobile user, I can navigate from Console to Agent Catalog/session areas and from Admin overview to registry/operations/MCP/plugin/extension/policy/audit pages through a touch-friendly drawer or compact navigation. | MEDIUM | Shared app shell/navigation. |
+| **MOBILE-H5-REQ-003** | As a mobile user, the page body has no horizontal overflow at 360, 390/393, 412/430, 768, and landscape representative viewports. | MEDIUM | Responsive CSS/theme and page layouts. |
+| **MOBILE-H5-REQ-004** | As a touch user, primary links/buttons/toggles on mobile are large enough to tap reliably and meet or exceed WCAG 2.2 AA target-size minimum/spacing, with 44px target preferred for primary controls. | MEDIUM | Shared button/link/card styles. |
+| **MOBILE-H5-REQ-005** | As a keyboard/tablet user, focus indicators remain visible and navigation/drawer/dialog focus order remains usable after mobile layout changes. | MEDIUM | Accessibility styles and Vaadin component configuration. |
+
+### Console, Catalog, Chat, Run, and Session Flow
+
+| Candidate ID | Acceptance Behavior | Complexity | Depends On |
+|--------------|---------------------|------------|------------|
+| **MOBILE-H5-REQ-010** | As a mobile user, I can browse the Agent Catalog as stacked cards and start/select the general agent without needing a desktop-width grid. | LOW-MEDIUM | Existing Agent Catalog API/cards. |
+| **MOBILE-H5-REQ-011** | As a mobile user, I can type a multi-line chat prompt, submit it, and see the composer state change while the run is active. | HIGH | Existing create session/run APIs. |
+| **MOBILE-H5-REQ-012** | As a mobile user, I can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls. | HIGH | Existing EventStreamClient/SSE DTOs. |
+| **MOBILE-H5-REQ-013** | As a mobile user, I can inspect run timeline events as compact cards/accordions with status, timestamp/type, summary, and expandable details. | MEDIUM-HIGH | Existing event/timeline model. |
+| **MOBILE-H5-REQ-014** | As a mobile user, I can inspect tool cards with tool name, source, status, policy/approval state, duration, error, redacted input/output summary, and expandable details. | MEDIUM | Existing governed tool cards/audit redaction. |
+| **MOBILE-H5-REQ-015** | As a mobile user, I can approve or reject a pending tool approval from a card that clearly shows risk/side-effect context and requires an intentional tap. | HIGH | Existing approval APIs/cards and policy metadata. |
+| **MOBILE-H5-REQ-016** | As a mobile user, I can open session history, select a past session, continue it, and see which session is active. | MEDIUM | Existing session history/continuation APIs. |
+| **MOBILE-H5-REQ-017** | As a mobile user, I can cancel an active run from a visible control and see cancelling/cancelled/failed/completed terminal state feedback. | MEDIUM | Existing cancel API and run status display. |
+
+### Admin Governance Full-Site Support
+
+| Candidate ID | Acceptance Behavior | Complexity | Depends On |
+|--------------|---------------------|------------|------------|
+| **MOBILE-H5-REQ-020** | As a mobile admin, I can read the Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links. | MEDIUM | Existing Governance Overview DTO. |
+| **MOBILE-H5-REQ-021** | As a mobile admin, I can inspect Registry and Operations data as cards or responsive row details without relying on horizontal table scrolling. | HIGH | Existing registry/operations views and DTOs. |
+| **MOBILE-H5-REQ-022** | As a mobile admin, I can inspect MCP server/tool status, refresh/status metadata where already supported, and identify unhealthy/disconnected states. | MEDIUM-HIGH | Existing MCP governance APIs/views. |
+| **MOBILE-H5-REQ-023** | As a mobile admin, I can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in a stacked card/detail layout. | MEDIUM-HIGH | Existing plugin governance APIs/views. |
+| **MOBILE-H5-REQ-024** | As a mobile admin, I can inspect Extension contributions/providers/tools/listeners with source/type/status and expandable metadata. | MEDIUM-HIGH | Existing extension governance APIs/views. |
+| **MOBILE-H5-REQ-025** | As a mobile admin, I can inspect Policy decisions with decision, reason, tool/run/session IDs, timestamp, and expandable redacted context. | HIGH | Existing policy decisions API/view. |
+| **MOBILE-H5-REQ-026** | As a mobile admin, I can inspect Audit summaries with actor/source/action/status/timestamp and expandable redacted details. | HIGH | Existing audit API/view. |
+
+### Browser, Orientation, and Verification
+
+| Candidate ID | Acceptance Behavior | Complexity | Depends On |
+|--------------|---------------------|------------|------------|
+| **MOBILE-H5-REQ-030** | As a QA gate, Playwright runs mobile projects for representative Mobile Chrome and Mobile Safari/WebKit device profiles, plus at least one tablet profile or custom tablet viewport. | MEDIUM | Existing `playwright.config.ts`; Playwright devices registry. |
+| **MOBILE-H5-REQ-031** | As a QA gate, mobile smoke tests verify route load, no body horizontal overflow, visible primary action, and at least one key interaction per route category. | MEDIUM-HIGH | E2E page objects/selectors/data attributes. |
+| **MOBILE-H5-REQ-032** | As a QA gate, the Console mobile E2E starts a fake/no-key run, observes streamed event UI, opens a tool/approval/session area, and cancels or reaches terminal status. | HIGH | Existing no-key Playwright product path and fake model/tool/MCP/plugin setup. |
+| **MOBILE-H5-REQ-033** | As a QA gate, Admin mobile E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies each has mobile card/detail content. | HIGH | Existing admin routes and stable selectors. |
+| **MOBILE-H5-REQ-034** | As a QA gate, representative portrait and landscape viewports pass no-horizontal-overflow and primary-navigation checks. | MEDIUM | Playwright viewport/device configs. |
+| **MOBILE-H5-REQ-035** | As a release note/UAT gate, real mobile browser coverage is documented for Android Chrome and iOS Safari; browser gaps are tracked explicitly if CI can only emulate. | LOW-MEDIUM | Human UAT or device farm. |
 
 ## Feature Dependencies
 
 ```text
-Agent definition → Run/session lifecycle → Streaming events → Admin run inspector
+Existing Vaadin routes + REST/SSE DTOs
+    └──requires──> Shared mobile shell/navigation
+                       └──requires──> Full-site route coverage tests
 
-Model provider abstraction → Function/tool-calling loop → Tool execution engine
+ConsoleView three-column workbench
+    └──requires──> Mobile IA refactor: primary chat/run feed + secondary drawers/details
+                       └──requires──> Chat composer + SSE feed + run controls mobile acceptance
 
-Tool registry → Tool policy → Tool execution engine → Tool audit trail → Admin tool-call inspector
+Existing Agent Catalog API/cards
+    └──requires──> Mobile stacked catalog cards
+                       └──enables──> Mobile start-chat path
 
-Canonical tool schema → SPI tools / Spring Bean tools / Dynamic plugin tools / MCP tools
+Existing Run events/tool cards/approval cards
+    └──requires──> Mobile event card schema + expandable details
+                       └──enables──> Run focus mode and risk-first approval UX
 
-Persistence abstraction → Run history → Cancellation/resume → Human approval → Replay/evaluation later
+Existing Admin Governance DTOs/views
+    └──requires──> Responsive card/detail layouts replacing wide-table dependence
+                       └──enables──> Mobile incident triage mode
 
-Event model → SSE API → Admin live view → Future CLI/TUI clients
+Shared responsive CSS/theme tokens
+    └──requires──> No body horizontal overflow + touch targets + readable typography
+                       └──enables──> Playwright mobile smoke gate
 
-Extension metadata model → Plugin listing/health → Dynamic plugin lifecycle → Private plugin distribution later
-
-MCP client integration → MCP tool discovery → MCP tool execution → MCP governance/audit → MCP gateway/server exposure later
-
-Security/auth → Admin GUI → Plugin management → Policy management → Multi-tenant controls
-
-Workspace abstraction → Safe file/shell/code tools → Sandboxed execution later
-
-Token/cost accounting → Run observability → Quotas/budgets later
+Existing Playwright desktop E2E
+    └──requires──> Mobile device projects + viewport assertions + touch-enabled checks
+                       └──must preserve──> Desktop regression coverage
 ```
 
-## MVP Recommendation
+### Dependency Notes
 
-Prioritize these capabilities for the first credible Cloud Server / General Agent milestone:
+- **Mobile IA must precede per-page polish:** The current console is explicitly a three-column workbench. If this remains the mental model on phones, individual CSS fixes will not make Chat/Run usable.
+- **Shared mobile card/detail patterns should precede Admin page-by-page conversion:** Registry, Operations, MCP, Plugin, Extension, Policy, and Audit pages all have the same problem: dense operational metadata. A shared pattern reduces duplicated layout and tests.
+- **No-horizontal-overflow gate should be implemented early:** It is objective, easy to regress, and catches most desktop-grid leakage.
+- **Playwright mobile projects depend on stable selectors:** Before writing many tests, ensure mobile elements have route/category data attributes and reliable labels.
+- **Public REST/SSE boundary should remain unchanged:** Most work should be Vaadin layout/component adaptation. Add API fields only if a mobile summary cannot be produced from existing DTOs.
 
-1. **AgentDefinition + Run/Session/Step/Event model** — without this, all APIs and GUI views become ad hoc.
-2. **OpenAI-compatible model provider + basic tool-calling loop** — proves the General Agent runtime works end-to-end.
-3. **Unified Tool Registry + Tool Executor + Tool Policy + Tool Audit** — central to cloud safety and v1 extension value.
-4. **REST/SSE Cloud Server API** — create, stream, cancel, query, and inspect runs.
-5. **Admin GUI v1 runtime cockpit** — run list/detail, event stream, tool calls, provider config, extension/tool/plugin health.
-6. **SPI + Spring Bean tool/provider registration** — lowest-risk Java-native extension path.
-7. **Remote MCP client integration** — discover and execute remote MCP tools through the same policy/audit path.
-8. **Controlled dynamic plugin loading** — plugin directory, metadata, isolated classloader, lifecycle, health, disable; defer true hot unload if needed.
+## MVP Definition
 
-Defer:
+### Launch With (v1.1 Mobile H5)
 
-- **Visual workflow builder:** different product surface; not needed for Cloud Server runtime MVP.
-- **Full RAG/knowledge-base product:** implement memory/retrieval extension boundaries first.
-- **Multi-agent orchestration:** build after single General Agent run semantics are stable.
-- **Full tenant/RBAC/marketplace:** design context/hooks now, productize after v1 runtime proves value.
-- **Code execution sandbox:** define Workspace/Sandbox contracts now; build hardened execution as a dedicated later phase.
+Minimum viable mobile-first adaptation for this milestone.
 
-## Suggested Requirements Buckets
+- [ ] **Full-site mobile route coverage** — every existing Console/Admin route loads and is usable at phone viewport.
+- [ ] **Shared responsive app shell/navigation** — mobile drawer/compact nav with route title and touch-friendly links.
+- [ ] **Console mobile IA refactor** — chat/run feed first; sessions/catalog/context move to drawers, tabs, or collapsible panels.
+- [ ] **Mobile Chat/Run path** — user can select/browse agent, submit chat, observe SSE events, inspect run/tool/approval cards, continue session, cancel active run.
+- [ ] **Admin Governance mobile cards/details** — overview, registry, operations, MCP, plugin, extension, policy, audit are readable without page-level horizontal overflow.
+- [ ] **Touch/readability/accessibility baseline** — touch targets, visible focus, readable typography, safe dialogs/drawers.
+- [ ] **Playwright mobile smoke gate** — representative phone/tablet projects and key route/action assertions; desktop E2E remains passing.
 
-### Phase 1 — Runtime Spine
+### Add After Validation (v1.1.x)
 
-- AgentDefinition model
-- Run, Session, Step, Event entities
-- OpenAI-compatible provider adapter
-- Agent loop with tool-call support
-- REST create/run/status/cancel APIs
-- SSE event stream
-- Persistence abstraction and default repository
+Useful once the full-site mobile baseline is stable.
 
-### Phase 2 — Governed Tools
+- [ ] **Run focus mode** — active run layout that prioritizes stream, approvals, cancel, and latest tool activity.
+- [ ] **Mobile incident triage shortcuts** — overview links to latest unhealthy provider/tool/MCP/plugin/audit items.
+- [ ] **Event filters/summarization on mobile** — filter run feed by errors/tools/approvals/model output.
+- [ ] **Deep-linkable expanded details** — direct links to run/audit/policy/plugin/MCP detail cards open expanded on mobile.
+- [ ] **Mobile evidence copy/share** — copy IDs/redacted summaries for incident handoff.
+- [ ] **Poor-network/reconnect polish** — explicit stale/reconnecting state for SSE and admin refresh.
 
-- Canonical tool schema
-- Tool registry and executor
-- Timeout/error handling
-- Policy checks and side-effect metadata
-- Audit events and redaction
-- Admin run/tool-call inspector
+### Future Consideration (v2+)
 
-### Phase 3 — Java Extension Surface
+Defer beyond the H5 adaptation milestone.
 
-- Java SPI for tools/providers/policies/event sinks
-- Spring Boot starter / auto-configuration
-- Annotation or bean-based tool registration
-- Extension SDK samples and tests
+- [ ] **Native mobile app** — only after H5 proves mobile workflows and API contract needs.
+- [ ] **Push notifications/background monitoring** — requires separate auth/session/notification/service-worker decisions.
+- [ ] **Full PWA/offline admin mode** — sensitive governance/audit data caching needs security design.
+- [ ] **Mobile-specific new Agent capabilities** — should be product-driven, not hidden inside responsive adaptation.
 
-### Phase 4 — MCP and Dynamic Plugins
+## Feature Prioritization Matrix
 
-- MCP client manager
-- MCP discovery and schema normalization
-- MCP execution through policy/audit
-- Dynamic plugin JAR loader with lifecycle/health
-- Plugin admin listing/disable/quarantine
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Full-site mobile route coverage | HIGH | MEDIUM | P1 |
+| Shared mobile shell/navigation | HIGH | MEDIUM | P1 |
+| No horizontal overflow gates | HIGH | MEDIUM | P1 |
+| Console mobile IA refactor | HIGH | HIGH | P1 |
+| Chat composer + SSE feed mobile support | HIGH | HIGH | P1 |
+| Tool/approval/session/cancel mobile support | HIGH | MEDIUM-HIGH | P1 |
+| Admin Governance mobile cards/details | HIGH | HIGH | P1 |
+| Touch target/readability/focus baseline | HIGH | MEDIUM | P1 |
+| Playwright mobile projects and smoke tests | HIGH | MEDIUM-HIGH | P1 |
+| Run focus mode | MEDIUM-HIGH | MEDIUM | P2 |
+| Mobile incident triage mode | MEDIUM-HIGH | MEDIUM-HIGH | P2 |
+| Event filters/summarization | MEDIUM | MEDIUM | P2 |
+| Deep-linkable mobile details | MEDIUM | MEDIUM-HIGH | P2 |
+| PWA-like polish without offline cache | LOW-MEDIUM | LOW-MEDIUM | P3 |
+| Push notifications | MEDIUM | HIGH | P3 / defer |
+| Native app | MEDIUM | VERY HIGH | P3 / anti-feature now |
 
-### Phase 5 — Hardening and Differentiators
+**Priority key:**
+- **P1:** Must have for mobile H5 milestone acceptance.
+- **P2:** Should have after baseline if time remains or as v1.1.x follow-up.
+- **P3:** Nice-to-have/future; avoid in initial milestone.
 
-- Human approval pending state
-- OpenTelemetry spans/metrics
-- Token/cost dashboard
-- Tenant-aware context and quotas
-- Evaluation/replay hooks
-- Workspace/sandbox implementation
+## Existing Surface Dependency Map
+
+| Existing Surface | Mobile Adaptation Expected | API Changes Expected? | Test Focus |
+|------------------|----------------------------|-----------------------|------------|
+| Agent Catalog | Stacked cards; clear agent selection/start affordance. | No. | Catalog route visible; select/start path. |
+| Chat/Run Console | Single-column run feed; bottom/visible composer; context in drawer/details. | No. | Submit prompt; observe run; no overflow. |
+| Run timeline/events | Vertical event feed/cards; expandable details. | No. | Event cards render model/tool/terminal states. |
+| Tool cards | Compact summary + expandable redacted payload/error/details. | No. | Tool card readable and expandable. |
+| Approval cards | Risk-first card; clear approve/reject actions; touch-safe. | No unless missing risk metadata. | Approve/reject visible and intentional. |
+| Session history/continuation/cancel | Drawer/list; active state; visible cancel during run. | No. | Select/continue/cancel at mobile viewport. |
+| Admin overview | Stacked health cards and links. | No. | Health cards and links visible. |
+| Admin registry/operations | Cards or grid row details instead of wide table dependence. | No, unless server-side projection needed for very heavy grids. | Route loads; row/card details readable. |
+| Admin MCP/plugin/extension | Status cards with metadata/details/actions already supported. | No. | Status/disabled/quarantine/error states visible. |
+| Admin policy/audit | Filter/search controls stacked; decision/audit cards; expandable redacted context. | No. | Decision/audit summary and details accessible. |
+| Playwright E2E | Add mobile projects and route/action smoke. | No. | Devices, touch, viewport, overflow assertions. |
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Runtime/session/tool/event table stakes | HIGH | Confirmed across LangGraph, Claude Managed Agents, Dify, OpenAI Agents SDK docs, Google Agent Runtime. |
-| MCP as first-class external tool integration | HIGH | Confirmed by Spring AI MCP 2.0 docs, Dify MCP tools, Claude Managed Agents MCP support, and MCP Runtime governance docs. |
-| Java-native extension differentiator | MEDIUM-HIGH | Strongly aligned with project constraints and Spring AI ecosystem; fewer direct Java cloud agent platform competitors verified. |
-| Dynamic plugin lifecycle complexity | MEDIUM | JVM/plugin lifecycle risk is based on platform engineering experience; specific implementation approach needs architecture research. |
-| Marketplace/no-code builder as anti-features | MEDIUM-HIGH | Supported by project scope and Dify comparison; depends on future product strategy but is correct for v1 focus. |
-| Multi-tenant feature depth | MEDIUM | AWS/Google sources indicate importance; v1 requirements should include context hooks, not full SaaS tenancy unless explicitly needed. |
+| Mobile responsive/table-stakes expectations | HIGH | Verified with MDN responsive design/viewport guidance, W3C WCAG 2.2 target/focus/reflow guidance, and product milestone constraints. |
+| Vaadin implementation direction | MEDIUM-HIGH | Context7 and official Vaadin docs confirm AppLayout responsiveness, full-height layout patterns, and Grid row details. Specific codebase refactor effort depends on current component implementation and CSS baseline. |
+| Playwright mobile verification | HIGH | Playwright docs confirm device profiles, mobile Safari/Chrome emulation, viewport and touch options. Real iOS Safari remains UAT/device-farm dependent. |
+| Admin governance mobile feature mapping | MEDIUM-HIGH | Directly derived from existing project surfaces and DTO boundaries; less dependent on external market evidence. |
+| Differentiators | MEDIUM | Product-specific recommendations inferred from Agent/Admin operational use cases; validate with user/operator feedback if available. |
 
 ## Sources
 
-- LangGraph documentation via Context7 — overview and persistence/human-in-loop: durable execution, persistence checkpoints by thread, streaming, memory, human-in-the-loop, visibility with LangSmith. Confidence: HIGH.
-- Claude Managed Agents official docs — agent/environment/session/events concepts, SSE streaming, persistent event history, secure tools, MCP servers, long-running stateful sessions, sandbox options. https://platform.claude.com/docs/en/managed-agents/overview Confidence: HIGH.
-- Google Cloud Gemini Enterprise Agent Platform Agent Runtime official docs — deploy/manage/scale agents, sessions, memory bank, code execution sandbox, observability, governance, agent identity, gateway, enterprise security. https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/runtime Confidence: HIGH.
-- OpenAI Agents SDK official docs — code-first agents, runtime loop/state, models/providers, tools/MCP, sandbox agents, orchestration/handoffs, guardrails/human review, observability/evals. https://platform.openai.com/docs/guides/agents Confidence: HIGH.
-- Dify official docs — apps/workflow/chatflow, API/MCP publishing, run/conversation variables, plugin/custom/workflow/MCP tools, knowledge grounding. https://docs.dify.ai/en/use-dify/getting-started/key-concepts and https://docs.dify.ai/en/use-dify/workspace/tools Confidence: HIGH.
-- Spring AI 2.0 MCP official docs — MCP Java SDK architecture, client/server/session/transport layers, tool discovery/execution, resources/prompts, stdio/SSE/Streamable HTTP transports, Spring Boot starters, annotations. https://docs.spring.io/spring-ai/reference/api/mcp/mcp-overview.html Confidence: HIGH.
-- MCP Runtime docs — Kubernetes-native MCP deployment/governance, registry, gateway, per-tool policy, grants/sessions, multi-team isolation, audit and observability. https://docs.mcpruntime.org/ Confidence: MEDIUM (project is alpha but useful for governance patterns).
-- AWS blog on multi-tenant agents with Bedrock AgentCore — session-isolated compute, tenant context headers, scoped tools, quotas/entitlements, gateway and ABAC patterns. https://aws.amazon.com/blogs/machine-learning/building-multi-tenant-agents-with-amazon-bedrock-agentcore/ Confidence: MEDIUM (blog guidance, current 2026).
+- Project context: `.planning/PROJECT.md`, current milestone v1.1 mobile H5 adaptation, existing validated surfaces and constraints. Confidence: HIGH.
+- Vaadin Flow docs via Context7 `/vaadin/flow` and `/websites/vaadin`: AppLayout is responsive for desktop/tablet/mobile; full-height app/grid examples; Grid item details renderers for row expansion. Confidence: HIGH for capability, MEDIUM-HIGH for exact implementation fit.
+- Vaadin official search results: App Layout docs and API state responsive drawer/navbar behavior; Grid docs and renderer/details guidance. Confidence: MEDIUM-HIGH.
+- W3C WCAG 2.2 docs via Context7 `/websites/w3_wai_wcag22`: target size examples, focus appearance, `:focus-visible`, responsive reflow techniques, responsive images. Confidence: HIGH.
+- W3C WAI target-size official pages: WCAG 2.5.8 target size minimum and 2.5.5 enhanced target size. Confidence: HIGH.
+- MDN/Web.dev official responsive design and viewport guidance found via web search: responsive design adapts to screen sizes/resolutions and mobile viewport behavior. Confidence: HIGH.
+- Playwright docs via Context7 `/microsoft/playwright`: devices registry, Mobile Safari/Chrome projects, mobile context, `hasTouch`, viewport/device emulation. Confidence: HIGH.
+
+---
+*Feature research for: mobile-first H5 adaptation of Pi Java Agent Web Console/Admin Governance*  
+*Researched: 2026-06-20*
