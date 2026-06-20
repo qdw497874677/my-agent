@@ -84,41 +84,42 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MH5-01 | TBD | Pending |
-| MH5-02 | TBD | Pending |
-| MH5-03 | TBD | Pending |
-| MH5-04 | TBD | Pending |
-| MH5-05 | TBD | Pending |
-| MCON-01 | TBD | Pending |
-| MCON-02 | TBD | Pending |
-| MCON-03 | TBD | Pending |
-| MCON-04 | TBD | Pending |
-| MCON-05 | TBD | Pending |
-| MCARD-01 | TBD | Pending |
-| MCARD-02 | TBD | Pending |
-| MCARD-03 | TBD | Pending |
-| MCARD-04 | TBD | Pending |
-| MCARD-05 | TBD | Pending |
-| MADM-01 | TBD | Pending |
-| MADM-02 | TBD | Pending |
-| MADM-03 | TBD | Pending |
-| MADM-04 | TBD | Pending |
-| MADM-05 | TBD | Pending |
-| MADM-06 | TBD | Pending |
-| MADM-07 | TBD | Pending |
-| MVER-01 | TBD | Pending |
-| MVER-02 | TBD | Pending |
-| MVER-03 | TBD | Pending |
-| MVER-04 | TBD | Pending |
-| MVER-05 | TBD | Pending |
-| MVER-06 | TBD | Pending |
-| MVER-07 | TBD | Pending |
+| MH5-01 | Phase 10 | Pending |
+| MH5-02 | Phase 11 | Pending |
+| MH5-03 | Phase 10 | Pending |
+| MH5-04 | Phase 11 | Pending |
+| MH5-05 | Phase 11 | Pending |
+| MCON-01 | Phase 12 | Pending |
+| MCON-02 | Phase 12 | Pending |
+| MCON-03 | Phase 12 | Pending |
+| MCON-04 | Phase 12 | Pending |
+| MCON-05 | Phase 12 | Pending |
+| MCARD-01 | Phase 13 | Pending |
+| MCARD-02 | Phase 13 | Pending |
+| MCARD-03 | Phase 13 | Pending |
+| MCARD-04 | Phase 13 | Pending |
+| MCARD-05 | Phase 13 | Pending |
+| MADM-01 | Phase 14 | Pending |
+| MADM-02 | Phase 14 | Pending |
+| MADM-03 | Phase 14 | Pending |
+| MADM-04 | Phase 14 | Pending |
+| MADM-05 | Phase 14 | Pending |
+| MADM-06 | Phase 14 | Pending |
+| MADM-07 | Phase 14 | Pending |
+| MVER-01 | Phase 10 | Pending |
+| MVER-02 | Phase 10 | Pending |
+| MVER-03 | Phase 12 | Pending |
+| MVER-04 | Phase 14 | Pending |
+| MVER-05 | Phase 15 | Pending |
+| MVER-06 | Phase 15 | Pending |
+| MVER-07 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29 ✓
+- Unmapped: 0 ✓
+- Duplicate mappings: 0 ✓
 
 ---
 *Requirements defined: 2026-06-20*
-*Last updated: 2026-06-20 after milestone v1.1 requirements definition*
+*Last updated: 2026-06-20 after milestone v1.1 roadmap creation*
