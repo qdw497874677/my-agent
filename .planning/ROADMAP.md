@@ -41,7 +41,11 @@ Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Gov
   2. Mobile user does not encounter page-level horizontal overflow on the baseline routed pages covered by the smoke harness.
   3. Maintainer can run automated mobile browser smoke tests for representative Chromium, WebKit/Safari proxy, Firefox or Firefox-sized mobile, and tablet contexts supported by CI.
   4. Maintainer can see route-level smoke results that verify route load, no page-level horizontal overflow, visible primary actions, and at least one key interaction per route category.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 10-responsive-baseline-and-mobile-test-harness-01-PLAN.md — Vaadin responsive theme baseline and stable root selectors
+- [ ] 10-responsive-baseline-and-mobile-test-harness-02-PLAN.md — Representative Playwright mobile/tablet project matrix and helper foundation
+- [ ] 10-responsive-baseline-and-mobile-test-harness-03-PLAN.md — Route-level mobile smoke gates and targeted overflow fixes
 **UI hint**: yes
 
 ### Phase 11: Shared Responsive Shell and Navigation
