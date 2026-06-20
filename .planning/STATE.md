@@ -1,30 +1,38 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-current_phase: 09
-status: completed
-stopped_at: Completed 09-10-PLAN.md
-last_updated: "2026-06-20T00:00:22.806Z"
+milestone: v1.1
+milestone_name: 适配移动端web
+current_phase: null
+status: defining_requirements
+stopped_at: Started milestone v1.1 适配移动端web
+last_updated: "2026-06-20T07:22:00.000Z"
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 80
-  completed_plans: 80
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Pi Java Agent Platform
 
 **Initialized:** 2026-06-13  
-**Status:** Complete
-**Current Phase:** 09
+**Status:** Defining requirements
+**Current Phase:** Not started
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-13)
+See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 09 — observability-policy-tenancy-and-production-hardening
+**Current focus:** Milestone v1.1 — 适配移动端web
+
+## Current Position
+
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-20 — Milestone v1.1 适配移动端web started
 
 ## Workflow Configuration
 
