@@ -1,0 +1,75 @@
+:root {
+  --pi-mobile-safe-area-top: env(safe-area-inset-top, 0px);
+  --pi-mobile-safe-area-right: env(safe-area-inset-right, 0px);
+  --pi-mobile-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --pi-mobile-safe-area-left: env(safe-area-inset-left, 0px);
+  --pi-mobile-space-xs: 0.25rem;
+  --pi-mobile-space-sm: 0.5rem;
+  --pi-mobile-space-md: 1rem;
+  --pi-mobile-content-max-width: 100%;
+}
+
+html,
+body,
+#outlet {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+svg,
+canvas,
+video,
+iframe,
+table,
+vaadin-grid,
+vaadin-vertical-layout,
+vaadin-horizontal-layout,
+vaadin-form-layout,
+vaadin-details,
+vaadin-tabs,
+vaadin-tab,
+vaadin-button,
+vaadin-text-field,
+vaadin-text-area,
+vaadin-combo-box {
+  max-width: var(--pi-mobile-content-max-width);
+}
+
+pre,
+code,
+kbd,
+samp {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+p,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+div {
+  overflow-wrap: anywhere;
+}
