@@ -43,6 +43,7 @@ public class ConsoleView extends Div {
         addClassName("pi-console-workbench");
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "three-column-workbench");
+        getElement().setAttribute("data-mobile-critical", "true");
         sessionListPanel.add(agentCatalogPanel);
         add(sessionListPanel, chatPanel, runContextPanel);
     }
