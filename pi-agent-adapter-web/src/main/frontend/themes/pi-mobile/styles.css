@@ -73,3 +73,72 @@ span,
 div {
   overflow-wrap: anywhere;
 }
+
+.pi-console-workbench,
+.pi-admin-governance-surface,
+.pi-admin-governance-overview,
+.pi-admin-registry-status,
+.pi-admin-operations-summary,
+.pi-admin-policy-decisions,
+.pi-admin-audit-summaries,
+.pi-admin-approval-queue {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+}
+
+.pi-admin-governance-surface,
+.pi-admin-governance-overview,
+.pi-admin-registry-status,
+.pi-admin-operations-summary,
+.pi-admin-policy-decisions,
+.pi-admin-audit-summaries,
+.pi-admin-approval-queue {
+  overflow-wrap: anywhere;
+}
+
+.pi-admin-governance-overview [data-governance-area],
+.pi-admin-registry-status [data-governance-area],
+.pi-admin-registry-status [data-extension-capability],
+.pi-admin-registry-status [data-mcp-tool],
+.pi-admin-registry-status [data-plugin-capability],
+.pi-admin-operations-summary [data-operations-section],
+.pi-admin-policy-decisions [data-policy-decision-id],
+.pi-admin-audit-summaries [data-audit-id],
+.pi-admin-approval-queue [data-approval-context] {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .pi-console-workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--pi-mobile-space-md);
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .pi-console-workbench > *,
+  .pi-admin-governance-overview > *,
+  .pi-admin-registry-status > *,
+  .pi-admin-operations-summary > *,
+  .pi-admin-policy-decisions > *,
+  .pi-admin-audit-summaries > *,
+  .pi-admin-approval-queue > * {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .pi-admin-governance-surface,
+  .pi-admin-governance-overview,
+  .pi-admin-registry-status,
+  .pi-admin-operations-summary,
+  .pi-admin-policy-decisions,
+  .pi-admin-audit-summaries,
+  .pi-admin-approval-queue {
+    display: block;
+    padding-inline: var(--pi-mobile-space-md);
+  }
+}
