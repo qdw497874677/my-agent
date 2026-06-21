@@ -23,7 +23,7 @@ Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Gov
 - Integer phases (10, 11, 12): Planned milestone work continuing from v1.0
 - Decimal phases (10.1, 10.2): Urgent insertions only if needed later
 
-- [ ] **Phase 10: Responsive Baseline and Mobile Test Harness** - Establish mobile-first theme defaults, stable UI hooks, route smoke, browser contexts, and no-overflow gates before broad refactoring.
+- [x] **Phase 10: Responsive Baseline and Mobile Test Harness** - Establish mobile-first theme defaults, stable UI hooks, route smoke, browser contexts, and no-overflow gates before broad refactoring. (completed 2026-06-21)
 - [ ] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives.
 - [ ] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow.
 - [ ] **Phase 13: Runtime Cards, Timeline, Tool, and Approval UX** - Make run events, tool cards, dense details, approvals, dialogs, and confirmations safe and readable on mobile.
@@ -118,7 +118,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Responsive Baseline and Mobile Test Harness | v1.1 | 2/3 | In Progress|  |
+| 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 0/TBD | Not started | - |
 | 12. Console Mobile-First Flow | v1.1 | 0/TBD | Not started | - |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
