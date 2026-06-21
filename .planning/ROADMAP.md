@@ -118,7 +118,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Responsive Baseline and Mobile Test Harness | v1.1 | 0/TBD | Not started | - |
+| 10. Responsive Baseline and Mobile Test Harness | v1.1 | 1/3 | In Progress|  |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 0/TBD | Not started | - |
 | 12. Console Mobile-First Flow | v1.1 | 0/TBD | Not started | - |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
