@@ -85,6 +85,18 @@ export async function expectPrimaryActionsVisible(
   await expectStableSelectorsVisible(page, route.primaryActions);
 }
 
+export async function expectPrimaryContentOrActionVisible(
+  page: Page,
+  route: Pick<MobileSmokeRoute, 'routeName' | 'primaryContent' | 'primaryActions'>,
+): Promise<void> {
+  const selectors = [...(route.primaryContent ?? []), ...(route.primaryActions ?? [])];
+  expect(
+    selectors.length,
+    `route ${route.routeName} should define at least one primary content or action selector`,
+  ).toBeGreaterThan(0);
+  await expectStableSelectorsVisible(page, selectors);
+}
+
 export async function expectMobileRouteBaseline(
   page: Page,
   route: MobileSmokeRoute,

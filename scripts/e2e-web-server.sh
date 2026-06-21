@@ -15,13 +15,16 @@ JAVA_HOME="${E2E_JAVA_HOME}" mvn -q -pl pi-agent-adapter-web dependency:build-cl
   -Dmdep.outputFile="${CP_FILE}" \
   -Dmdep.includeScope=test
 
+cd "${ROOT_DIR}/pi-agent-adapter-web"
+
 "${E2E_JAVA_HOME}/bin/java" \
-  -cp "pi-agent-adapter-web/target/test-classes:pi-agent-adapter-web/target/classes:$(cat "${CP_FILE}")" \
+  -cp "${ROOT_DIR}/pi-agent-adapter-web/target/test-classes:${ROOT_DIR}/pi-agent-adapter-web/target/classes:$(cat "${CP_FILE}")" \
   -Dserver.port="${PORT}" \
+  -Dproject.basedir="${ROOT_DIR}/pi-agent-adapter-web" \
   -Dspring.profiles.active="test,e2e" \
   -Dspring.main.allow-bean-definition-overriding=true \
   -Dspring.flyway.enabled=false \
-  -Dvaadin.productionMode=true \
+  -Dvaadin.productionMode=false \
   -Dspring.autoconfigure.exclude="org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration" \
   -Dpi.runtime.worker.poll-delay-ms=100 \
   -Dpi.e2e.ready-file="${READY_FILE}" \
