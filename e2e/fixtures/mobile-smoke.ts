@@ -54,6 +54,53 @@ export async function expectStableSelectorVisible(
   return locator;
 }
 
+export async function expectTapTargetAtLeast(
+  locator: Locator,
+  minimum = 44,
+  label = 'tap target',
+): Promise<void> {
+  const target = locator.first();
+  await expect(target, `${label} should be visible before geometry sampling`).toBeVisible();
+  const compactOptOut = await target.evaluate((element) => element.classList.contains('pi-compact-control'));
+  if (compactOptOut) {
+    return;
+  }
+  const box = await target.boundingBox();
+  expect(box, `${label} should expose a bounding box`).not.toBeNull();
+  expect(box!.width, `${label} width should be at least ${minimum}px: ${JSON.stringify(box)}`)
+    .toBeGreaterThanOrEqual(minimum);
+  expect(box!.height, `${label} height should be at least ${minimum}px: ${JSON.stringify(box)}`)
+    .toBeGreaterThanOrEqual(minimum);
+}
+
+export async function expectFocusVisible(
+  page: Page,
+  locator: Locator,
+  label = 'focused control',
+): Promise<void> {
+  const target = locator.first();
+  await expect(target, `${label} should be visible before focus sampling`).toBeVisible();
+  await target.focus();
+  await expect(target, `${label} should receive focus`).toBeFocused();
+  const focusSignal = await target.evaluate((element) => {
+    const style = window.getComputedStyle(element);
+    const outlineVisible = style.outlineStyle !== 'none'
+      && style.outlineWidth !== '0px'
+      && style.outlineColor !== 'rgba(0, 0, 0, 0)';
+    const boxShadowVisible = style.boxShadow !== 'none';
+    const borderVisible = style.borderStyle !== 'none'
+      && style.borderWidth !== '0px'
+      && style.borderColor !== 'rgba(0, 0, 0, 0)';
+    const tokenSignal = element.matches(':focus-visible') || element.classList.contains('focus-visible');
+    return { outlineVisible, boxShadowVisible, borderVisible, tokenSignal };
+  });
+  expect(
+    focusSignal.outlineVisible || focusSignal.boxShadowVisible || focusSignal.borderVisible || focusSignal.tokenSignal,
+    `${label} should expose a visible focus signal: ${JSON.stringify(focusSignal)}`,
+  ).toBeTruthy();
+  await page.keyboard.press('Escape').catch(() => undefined);
+}
+
 export async function expectStableSelectorsVisible(
   page: Page,
   selectors: MobileSmokeSelector[] = [],

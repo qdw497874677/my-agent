@@ -70,6 +70,10 @@ Phase 10 does not require real Android/iOS devices, Edge mobile, app-store brows
 
 The smoke spec intentionally avoids deep run-flow E2E, final Console mobile workflow conversion, final runtime cards, approval UX redesign, and Admin table/card migration. Those remain Phase 11-15 scope.
 
+## Phase 11 Handoff
+
+Phase 11 supersedes the route-only navigation baseline with a shared shell/navigation gate while preserving the same representative browser matrix and stable route markers. The Phase 11 gate adds drawer navigation, active nav state, page title, no-overflow, 44px tap-target samples, visible focus samples, and drawer close focus-return checks in `e2e/phase-11-shell-navigation.spec.ts`. Phase 10 route smoke remains useful as a lower-level route-discovery and overflow regression check.
+
 ## Phase 10 Verification Commands
 
 Install the configured browser engines before executing the route smoke gate:
