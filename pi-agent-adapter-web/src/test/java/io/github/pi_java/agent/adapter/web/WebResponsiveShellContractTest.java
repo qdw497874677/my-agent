@@ -6,6 +6,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.AdminGovernanceLandingView;
+import io.github.pi_java.agent.adapter.web.ui.PiPageHeader;
+import io.github.pi_java.agent.adapter.web.ui.PiPageSection;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.adapter.web.ui.PiRouteNavItem;
 import io.github.pi_java.agent.adapter.web.ui.PiRouteNavRegistry;
@@ -17,9 +19,14 @@ import io.github.pi_java.agent.adapter.web.ui.admin.AdminPolicyDecisionsView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminRegistryStatusView;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
 import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 class WebResponsiveShellContractTest {
+
+    private static final Path THEME_STYLES = Path.of("src/main/frontend/themes/pi-mobile/styles.css");
 
     @Test
     void routeRegistryContainsConsoleAndAdminNavigation() {
@@ -76,6 +83,62 @@ class WebResponsiveShellContractTest {
         assertRoute(AdminPolicyDecisionsView.class, "admin/governance/policy-decisions", "admin-policy-decisions");
         assertRoute(AdminAuditView.class, "admin/governance/audits", "admin-audit-summaries");
         assertRoute(AdminApprovalQueueView.class, "admin/governance/approvals", "admin-approval-queue");
+    }
+
+    @Test
+    void pagePrimitivesExposeTitleContainerAndActionHooks() {
+        PiPageHeader header = new PiPageHeader("Runtime Status").withSubtitle("Healthy").withPrimaryAction(new Div("Refresh"));
+        PiPageSection card = PiPageSection.card("runtime", new Div("Runtime details"));
+        PiPageSection detail = PiPageSection.detail("audit", new Div("Audit details"));
+        PiResponsiveShell shell = new PiResponsiveShell();
+        shell.showRouterLayoutContent(new Div(header, card, detail));
+
+        assertThat(header.getClassNames()).contains("pi-page-header");
+        assertThat(hasAttribute(header, "data-page-title")).isTrue();
+        assertThat(hasAttribute(header, "data-primary-action")).isTrue();
+        assertThat(card.getClassNames()).contains("pi-card");
+        assertThat(card.getElement().getAttribute("data-section")).isEqualTo("runtime");
+        assertThat(detail.getClassNames()).contains("pi-detail");
+        assertThat(hasAttribute(shell, "data-shell-content")).isTrue();
+    }
+
+    @Test
+    void themeDefinesTapTargetFocusAndPagePrimitiveRules() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+
+        assertThat(css).contains("--pi-mobile-tap-target: 44px");
+        assertThat(css).contains("--pi-mobile-focus-ring");
+        assertThat(css).contains(":focus-visible");
+        assertThat(css).contains(".pi-compact-control");
+        assertThat(css).contains("data-shell-drawer-trigger");
+        assertThat(css).contains("data-shell-drawer-close");
+        assertThat(css).contains("data-nav-item");
+        assertThat(css).contains("data-primary-action");
+        assertThat(css).contains("data-action");
+        assertThat(css).contains(".pi-page");
+        assertThat(css).contains(".pi-page-header");
+        assertThat(css).contains(".pi-card");
+        assertThat(css).contains(".pi-detail");
+        assertThat(css).contains(".pi-action-row");
+        assertThat(css).contains("overflow-x");
+        assertThat(css).contains("overflow-wrap");
+    }
+
+    @Test
+    void existingActionHooksInheritMobileInteractionContract() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+        PiResponsiveShell shell = new PiResponsiveShell();
+
+        assertThat(css).contains("data-action");
+        assertThat(css).contains("data-action-plan");
+        assertThat(css).contains("data-read-only-refresh");
+        assertThat(css).contains("data-plugin-action");
+        assertThat(css).contains("data-primary-action");
+        assertThat(css).contains("data-shell-drawer-trigger");
+        assertThat(css).contains("data-shell-drawer-close");
+        assertThat(css).contains("data-nav-item");
+        assertThat(hasAttribute(shell, "data-primary-action")).isTrue();
+        assertThat(countAttribute(shell, "data-nav-item")).isEqualTo(8);
     }
 
     private static void assertRoute(Class<? extends Component> routeClass, String route, String routeName) {

@@ -7,6 +7,12 @@
   --pi-mobile-space-sm: 0.5rem;
   --pi-mobile-space-md: 1rem;
   --pi-mobile-content-max-width: 100%;
+  --pi-mobile-tap-target: 44px;
+  --pi-mobile-focus-color: #2563eb;
+  --pi-mobile-focus-ring: 0 0 0 3px color-mix(in srgb, var(--pi-mobile-focus-color) 30%, transparent);
+  --pi-mobile-shell-border: #d8dee9;
+  --pi-mobile-shell-surface: #ffffff;
+  --pi-mobile-shell-muted: #f6f8fb;
 }
 
 html,
@@ -29,6 +35,154 @@ body {
   max-width: 100vw;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [data-action], [data-action-plan], [data-primary-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item], [data-read-only-refresh], [data-plugin-action]):not(.pi-compact-control) {
+  min-width: var(--pi-mobile-tap-target);
+  min-height: var(--pi-mobile-tap-target);
+}
+
+/* Deliberate compact opt-out: use only when a control is non-critical and covered by a larger adjacent target. */
+.pi-compact-control {
+  min-width: auto;
+  min-height: auto;
+}
+
+:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [tabindex], [data-action], [data-action-plan], [data-primary-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item]):focus-visible {
+  outline: 2px solid var(--pi-mobile-focus-color);
+  outline-offset: 2px;
+  box-shadow: var(--pi-mobile-focus-ring);
+}
+
+.pi-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  background: var(--pi-mobile-shell-muted);
+  overflow-x: hidden;
+}
+
+.pi-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--pi-mobile-space-sm);
+  padding: calc(var(--pi-mobile-safe-area-top) + var(--pi-mobile-space-sm)) var(--pi-mobile-space-md) var(--pi-mobile-space-sm);
+  border-bottom: 1px solid var(--pi-mobile-shell-border);
+  background: var(--pi-mobile-shell-surface);
+}
+
+.pi-shell-drawer-trigger,
+.pi-shell-drawer-close,
+.pi-shell-nav-item,
+.pi-tap-target {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--pi-mobile-tap-target);
+  min-height: var(--pi-mobile-tap-target);
+  padding-inline: var(--pi-mobile-space-sm);
+}
+
+.pi-page-title,
+.pi-page-header-title {
+  margin: 0;
+  min-width: 0;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.pi-shell-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  width: min(86vw, 22rem);
+  max-width: 100vw;
+  padding: calc(var(--pi-mobile-safe-area-top) + var(--pi-mobile-space-md)) var(--pi-mobile-space-md) var(--pi-mobile-space-md);
+  background: var(--pi-mobile-shell-surface);
+  border-right: 1px solid var(--pi-mobile-shell-border);
+  transform: translateX(-105%);
+  transition: transform 160ms ease-in-out;
+  overflow-y: auto;
+}
+
+.pi-shell[data-shell-drawer-open="true"] .pi-shell-drawer {
+  transform: translateX(0);
+}
+
+.pi-shell-nav,
+.pi-shell-nav-group {
+  display: grid;
+  gap: var(--pi-mobile-space-xs);
+}
+
+.pi-shell-nav-group {
+  margin-block: var(--pi-mobile-space-md);
+}
+
+.pi-shell-nav-group-label {
+  color: #536176;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pi-shell-nav-item {
+  justify-content: flex-start;
+  border-radius: 0.75rem;
+  color: #172033;
+  text-decoration: none;
+}
+
+.pi-shell-nav-item[data-nav-active="true"] {
+  background: #e8f0ff;
+  color: #123a7a;
+  font-weight: 700;
+}
+
+.pi-page,
+.pi-content {
+  width: 100%;
+  max-width: min(100%, 72rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding: var(--pi-mobile-space-md) calc(var(--pi-mobile-safe-area-right) + var(--pi-mobile-space-md)) calc(var(--pi-mobile-safe-area-bottom) + var(--pi-mobile-space-md)) calc(var(--pi-mobile-safe-area-left) + var(--pi-mobile-space-md));
+}
+
+.pi-page-header {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+  margin-block-end: var(--pi-mobile-space-md);
+}
+
+.pi-page-header-actions,
+.pi-page-actions,
+.pi-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pi-mobile-space-sm);
+  align-items: center;
+}
+
+.pi-card,
+.pi-detail {
+  width: 100%;
+  min-width: 0;
+  padding: var(--pi-mobile-space-md);
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 1rem;
+  background: var(--pi-mobile-shell-surface);
+  overflow-wrap: anywhere;
+}
+
+.pi-detail {
+  background: #fbfcfe;
 }
 
 img,
@@ -140,5 +294,30 @@ div {
   .pi-admin-approval-queue {
     display: block;
     padding-inline: var(--pi-mobile-space-md);
+  }
+}
+
+@media (min-width: 900px) {
+  .pi-shell {
+    grid-template-columns: 18rem minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .pi-shell-header {
+    grid-column: 2;
+  }
+
+  .pi-shell-drawer {
+    position: sticky;
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    width: 18rem;
+    height: 100vh;
+    transform: none;
+  }
+
+  .pi-shell-drawer-trigger,
+  .pi-shell-drawer-close {
+    display: none;
   }
 }
