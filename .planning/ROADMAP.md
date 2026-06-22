@@ -57,7 +57,11 @@ Plans:
   2. Touch user can reliably activate primary links, buttons, toggles, refresh controls, details expanders, approvals, and cancel controls with mobile-safe target sizes and spacing.
   3. Keyboard or tablet user retains visible focus indicators and a usable focus order across drawers, dialogs, navigation, and page content.
   4. User sees a consistent route title, content container, status/action placement, and card/detail styling across Console and Admin pages.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 11-shared-responsive-shell-and-navigation-01-PLAN.md — Shared route navigation registry and responsive shell wiring
+- [ ] 11-shared-responsive-shell-and-navigation-02-PLAN.md — Mobile tap/focus theme contract and shared page primitives
+- [ ] 11-shared-responsive-shell-and-navigation-03-PLAN.md — Playwright all-route shell navigation, touch, and focus gate
 **UI hint**: yes
 
 ### Phase 12: Console Mobile-First Flow
