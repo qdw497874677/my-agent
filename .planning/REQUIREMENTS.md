@@ -11,10 +11,10 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 ### Mobile Foundation
 
 - [x] **MH5-01**: Mobile user can open every existing Console and Admin Governance route at representative phone viewports without blank screens, route errors, or desktop-only blocking messages.
-- [ ] **MH5-02**: Mobile user can navigate all Console and Admin sections through a touch-friendly responsive shell, compact header, drawer/tabs, or equivalent mobile navigation.
+- [x] **MH5-02**: Mobile user can navigate all Console and Admin sections through a touch-friendly responsive shell, compact header, drawer/tabs, or equivalent mobile navigation.
 - [x] **MH5-03**: Mobile user does not encounter page-level horizontal overflow at representative phone, phone landscape, and tablet viewports.
-- [ ] **MH5-04**: Touch user can reliably tap primary links, buttons, toggles, approvals, cancel controls, refresh controls, and details expanders using mobile-safe target sizes and spacing.
-- [ ] **MH5-05**: Keyboard/tablet user retains visible focus indicators and usable drawer/dialog/navigation focus order after mobile layout changes.
+- [x] **MH5-04**: Touch user can reliably tap primary links, buttons, toggles, approvals, cancel controls, refresh controls, and details expanders using mobile-safe target sizes and spacing.
+- [x] **MH5-05**: Keyboard/tablet user retains visible focus indicators and usable drawer/dialog/navigation focus order after mobile layout changes.
 
 ### Console Mobile Experience
 
@@ -85,10 +85,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | MH5-01 | Phase 10 | Complete |
-| MH5-02 | Phase 11 | Pending |
+| MH5-02 | Phase 11 | Complete |
 | MH5-03 | Phase 10 | Complete |
-| MH5-04 | Phase 11 | Pending |
-| MH5-05 | Phase 11 | Pending |
+| MH5-04 | Phase 11 | Complete |
+| MH5-05 | Phase 11 | Complete |
 | MCON-01 | Phase 12 | Pending |
 | MCON-02 | Phase 12 | Pending |
 | MCON-03 | Phase 12 | Pending |

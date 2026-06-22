@@ -24,7 +24,7 @@ Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Gov
 - Decimal phases (10.1, 10.2): Urgent insertions only if needed later
 
 - [x] **Phase 10: Responsive Baseline and Mobile Test Harness** - Establish mobile-first theme defaults, stable UI hooks, route smoke, browser contexts, and no-overflow gates before broad refactoring. (completed 2026-06-21)
-- [ ] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives.
+- [x] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives. (completed 2026-06-22)
 - [ ] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow.
 - [ ] **Phase 13: Runtime Cards, Timeline, Tool, and Approval UX** - Make run events, tool cards, dense details, approvals, dialogs, and confirmations safe and readable on mobile.
 - [ ] **Phase 14: Admin Governance Full-Site Mobile Coverage** - Convert every existing Admin Governance surface to mobile card/detail layouts without relying on desktop tables.
@@ -59,9 +59,9 @@ Plans:
   4. User sees a consistent route title, content container, status/action placement, and card/detail styling across Console and Admin pages.
 **Plans**: 3 plans
 Plans:
-- [ ] 11-shared-responsive-shell-and-navigation-01-PLAN.md — Shared route navigation registry and responsive shell wiring
-- [ ] 11-shared-responsive-shell-and-navigation-02-PLAN.md — Mobile tap/focus theme contract and shared page primitives
-- [ ] 11-shared-responsive-shell-and-navigation-03-PLAN.md — Playwright all-route shell navigation, touch, and focus gate
+- [x] 11-shared-responsive-shell-and-navigation-01-PLAN.md — Shared route navigation registry and responsive shell wiring
+- [x] 11-shared-responsive-shell-and-navigation-02-PLAN.md — Mobile tap/focus theme contract and shared page primitives
+- [x] 11-shared-responsive-shell-and-navigation-03-PLAN.md — Playwright all-route shell navigation, touch, and focus gate
 **UI hint**: yes
 
 ### Phase 12: Console Mobile-First Flow
@@ -123,7 +123,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
-| 11. Shared Responsive Shell and Navigation | v1.1 | 0/TBD | Not started | - |
+| 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
 | 12. Console Mobile-First Flow | v1.1 | 0/TBD | Not started | - |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: verifying
-stopped_at: Phase 11 context gathered
-last_updated: "2026-06-21T12:29:26.508Z"
-last_activity: 2026-06-21
+stopped_at: Completed 11-shared-responsive-shell-and-navigation PLANs
+last_updated: "2026-06-22T03:55:35.592Z"
+last_activity: 2026-06-22
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 Phase: 10 (responsive-baseline-and-mobile-test-harness) — EXECUTING
 Plan: 3 of 3
 Status: Phase complete — ready for verification
-Last activity: 2026-06-21
+Last activity: 2026-06-22
 
 Progress: [██████████] 100%
 
@@ -59,6 +59,9 @@ Progress: [██████████] 100%
 | Phase 10-responsive-baseline-and-mobile-test-harness P02 | 5min | 3 tasks | 4 files |
 | Phase 10-responsive-baseline-and-mobile-test-harness P01 | 364 | 3 tasks | 5 files |
 | Phase 10-responsive-baseline-and-mobile-test-harness P03 | 37m09s | 3 tasks | 5 files |
+| Phase 11-shared-responsive-shell-and-navigation P01 | 6min | 3 tasks | 14 files |
+| Phase 11-shared-responsive-shell-and-navigation P02 | 4min | 3 tasks | 4 files |
+| Phase 11-shared-responsive-shell-and-navigation P03 | 6min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -77,6 +80,10 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 10-responsive-baseline-and-mobile-test-harness]: Keep Phase 10 route smoke focused on route load, stable selectors, primary content/actions, no page-level overflow, and one deterministic non-mutating interaction per route category.
 - [Phase 10-responsive-baseline-and-mobile-test-harness]: Run the Vaadin E2E server from the adapter-web module base in development mode so the project-owned pi-mobile theme is discoverable without requiring a production frontend bundle in this local harness.
 - [Phase 10-responsive-baseline-and-mobile-test-harness]: Limit CSS changes to targeted baseline overflow hotspots; final navigation, Console flow, runtime-card, approval UX, and Admin card/table migrations remain deferred.
+- [Phase 11-shared-responsive-shell-and-navigation]: Use PiResponsiveShell as the single RouterLayout for Console and Admin Governance visual chrome.
+- [Phase 11-shared-responsive-shell-and-navigation]: Keep route/navigation metadata in PiRouteNavRegistry so Java shell and browser tests share route truth.
+- [Phase 11-shared-responsive-shell-and-navigation]: Apply touch/focus behavior through additive pi-mobile CSS and stable data hooks, not per-view inline styles.
+- [Phase 11-shared-responsive-shell-and-navigation]: Keep Phase 11 browser gate deterministic/no-key and non-mutating.
 
 ### Pending Todos
 
@@ -90,9 +97,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-21T12:29:26.444Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-shared-responsive-shell-and-navigation/11-CONTEXT.md
+Last session: 2026-06-22T03:55:35.588Z
+Stopped at: Completed 11-shared-responsive-shell-and-navigation PLANs
+Resume file: None
 
 ---
 *State reset: 2026-06-20 after v1.1 roadmap creation*
