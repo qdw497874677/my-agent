@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.ExtensionSourceDto;
@@ -26,7 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Read-only provider/tool/extension/MCP/plugin registry status view for Admin Governance. */
-@Route("admin/governance/registry")
+@Route(value = "admin/governance/registry", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Registry Status")
 public class AdminRegistryStatusView extends Div {
 

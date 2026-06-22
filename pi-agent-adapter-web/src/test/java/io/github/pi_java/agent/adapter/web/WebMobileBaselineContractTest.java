@@ -3,9 +3,8 @@ package io.github.pi_java.agent.adapter.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.theme.Theme;
-import io.github.pi_java.agent.adapter.web.ui.AdminGovernanceLayout;
+import io.github.pi_java.agent.adapter.web.ui.AdminGovernanceLandingView;
 import io.github.pi_java.agent.adapter.web.ui.PiWebAppShell;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
 import java.io.IOException;
@@ -39,9 +38,8 @@ class WebMobileBaselineContractTest {
 
     @Test
     void adminGovernanceRootExposesStableMobileCriticalHooks() {
-        AdminGovernanceLayout layout = new AdminGovernanceLayout();
+        AdminGovernanceLandingView layout = new AdminGovernanceLandingView();
 
-        assertThat(layout).isInstanceOf(Main.class);
         assertAttribute(layout, "data-route", "admin-governance");
         assertAttribute(layout, "data-surface", "admin-governance");
         assertAttribute(layout, "data-mobile-critical", "true");

@@ -6,11 +6,12 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-@Route("admin/governance")
+/** Admin Governance landing page; visual shell/navigation is owned by {@link PiResponsiveShell}. */
+@Route(value = "admin/governance", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Governance")
-public class AdminGovernanceLayout extends Main {
+public class AdminGovernanceLandingView extends Main {
 
-    public AdminGovernanceLayout() {
+    public AdminGovernanceLandingView() {
         addClassName("pi-admin-governance-surface");
         getElement().setAttribute("data-route", "admin-governance");
         getElement().setAttribute("data-surface", "admin-governance");

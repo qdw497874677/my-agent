@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.OperationMetricDto;
 import io.github.pi_java.agent.client.admin.OperationalWarningDto;
 import io.github.pi_java.agent.client.admin.OperationsSummaryResponse;
@@ -17,7 +18,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Read-only operations summary backed by the public Admin Governance operations DTO. */
-@Route("admin/governance/operations")
+@Route(value = "admin/governance/operations", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Operations Metrics")
 public class AdminOperationsView extends Div {
 

@@ -5,13 +5,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import java.util.List;
 import java.util.Map;
 
 /** Chat-first user Console route backed by public REST/SSE helper boundaries. */
-@Route("console")
+@Route(value = "console", layout = PiResponsiveShell.class)
 @PageTitle("Pi Agent Console")
 public class ConsoleView extends Div {
 

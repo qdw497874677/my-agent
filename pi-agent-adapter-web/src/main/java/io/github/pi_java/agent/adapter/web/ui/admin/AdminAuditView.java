@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Recent redacted audit summaries for the inspect-only Admin Governance surface. */
-@Route("admin/governance/audits")
+@Route(value = "admin/governance/audits", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Audit Summaries")
 public class AdminAuditView extends Div {
 

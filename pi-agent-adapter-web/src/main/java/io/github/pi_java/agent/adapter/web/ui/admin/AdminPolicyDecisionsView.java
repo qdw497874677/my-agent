@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Recent inspect-only policy decision summaries for Admin Governance. */
-@Route("admin/governance/policy-decisions")
+@Route(value = "admin/governance/policy-decisions", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Policy Decisions")
 public class AdminPolicyDecisionsView extends Div {
 

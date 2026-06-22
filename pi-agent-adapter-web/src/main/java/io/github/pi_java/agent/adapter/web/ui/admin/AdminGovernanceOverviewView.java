@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
 import io.github.pi_java.agent.client.admin.GovernanceStatusDto;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Inspect-only Admin Governance landing page backed by public governance API DTOs. */
-@Route("admin/governance/overview")
+@Route(value = "admin/governance/overview", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Governance Overview")
 public class AdminGovernanceOverviewView extends Div {
 

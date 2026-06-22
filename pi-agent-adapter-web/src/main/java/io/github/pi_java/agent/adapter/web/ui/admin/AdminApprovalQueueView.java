@@ -6,6 +6,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.adapter.web.ui.console.ApprovalCard;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /** Admin Governance approval inspection and decision surface. */
-@Route("admin/governance/approvals")
+@Route(value = "admin/governance/approvals", layout = PiResponsiveShell.class)
 @PageTitle("Pi Admin Approval Queue")
 public class AdminApprovalQueueView extends Div {
 
