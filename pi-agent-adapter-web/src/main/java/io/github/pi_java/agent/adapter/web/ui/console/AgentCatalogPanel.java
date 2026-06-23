@@ -8,6 +8,7 @@ import io.github.pi_java.agent.client.agent.AgentCatalogItemDto;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /** Secondary Console panel for browsing and switching Agents from the public /api/agents catalog. */
 public class AgentCatalogPanel extends Div {
@@ -15,6 +16,7 @@ public class AgentCatalogPanel extends Div {
     private final ConsoleHttpClient httpClient;
     private final Div cards = new Div();
     private final List<AgentCard> renderedCards = new ArrayList<>();
+    private BiConsumer<String, String> agentActionHandler;
 
     public AgentCatalogPanel() {
         this(new ConsoleHttpClient());
@@ -41,10 +43,14 @@ public class AgentCatalogPanel extends Div {
             return;
         }
         for (AgentCatalogItemDto agent : agents) {
-            AgentCard card = new AgentCard(agent);
+            AgentCard card = new AgentCard(agent, agentActionHandler);
             renderedCards.add(card);
             cards.add(card);
         }
+    }
+
+    public void setAgentActionHandler(BiConsumer<String, String> agentActionHandler) {
+        this.agentActionHandler = agentActionHandler;
     }
 
     public String catalogPath() {

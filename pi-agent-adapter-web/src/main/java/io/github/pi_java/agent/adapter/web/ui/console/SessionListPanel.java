@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /** Left workbench column for recent sessions and continue-session selection. */
 public class SessionListPanel extends Div {
@@ -20,6 +21,7 @@ public class SessionListPanel extends Div {
     private final List<String> renderedSessionText = new ArrayList<>();
     private final List<Div> sessionCards = new ArrayList<>();
     private final Map<String, SessionMetadata> sessionMetadata = new LinkedHashMap<>();
+    private Consumer<String> sessionActivationHandler;
     private String selectedSessionId;
 
     public SessionListPanel() {
@@ -79,6 +81,22 @@ public class SessionListPanel extends Div {
         return List.copyOf(sessionCards);
     }
 
+    public void setSessionActivationHandler(Consumer<String> sessionActivationHandler) {
+        this.sessionActivationHandler = sessionActivationHandler;
+    }
+
+    public void activateSessionCardForTest(String sessionId, String activation) {
+        if (activation == null || activation.isEmpty()) {
+            throw new IllegalArgumentException("activation must not be empty");
+        }
+        String key = activation;
+        if ("click".equalsIgnoreCase(key) || "Enter".equals(key) || " ".equals(key) || "Space".equals(key)) {
+            activateSessionCard(sessionId);
+            return;
+        }
+        throw new IllegalArgumentException("Unsupported activation: " + activation);
+    }
+
     private void renderEmpty() {
         list.removeAll();
         sessionCards.clear();
@@ -113,9 +131,22 @@ public class SessionListPanel extends Div {
             card.getElement().setAttribute("data-session-active", Boolean.toString(Objects.equals(id, selectedSessionId)));
             card.getElement().setAttribute("role", "button");
             card.getElement().setAttribute("tabindex", "0");
+            card.addClickListener(event -> activateSessionCard(id));
+            card.getElement()
+                    .addEventListener("keydown", event -> activateSessionCard(id))
+                    .setFilter("event.key === 'Enter' || event.key === ' ' || event.code === 'Space'");
             sessionCards.add(card);
             list.add(card);
         }
+    }
+
+    private void activateSessionCard(String sessionId) {
+        String id = requireText(sessionId, "sessionId");
+        if (sessionActivationHandler != null) {
+            sessionActivationHandler.accept(id);
+            return;
+        }
+        selectSession(id);
     }
 
     private static Span field(String name, String value) {

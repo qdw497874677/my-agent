@@ -48,6 +48,7 @@ public class ConsoleView extends Div {
         this.agentCatalogPanel = new AgentCatalogPanel(httpClient);
         this.chatPanel = new ChatEventStreamPanel();
         this.runContextPanel = new RunContextPanel();
+        wireActionHandlers();
         Div switcher = createPanelSwitcher();
         Div agentsPanel = panelWrapper("agents", agentCatalogPanel);
         Div sessionsPanel = panelWrapper("sessions", sessionListPanel);
@@ -67,16 +68,31 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "three-column-workbench");
         getElement().setAttribute("data-mobile-critical", "true");
-        sessionListPanel.add(agentCatalogPanel);
         add(switcher, sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
         applyPanelState();
+    }
+
+    private void wireActionHandlers() {
+        agentCatalogPanel.setAgentActionHandler(this::handleAgentAction);
+        sessionListPanel.setSessionActivationHandler(this::selectSession);
+        chatPanel.setSubmitHandler(this::planChatSubmission);
+        Runnable cancel = () -> planCancelRunningRun("mobile user requested cancellation");
+        chatPanel.setCancelHandler(cancel);
+        runContextPanel.setCancelHandler(cancel);
+    }
+
+    private void handleAgentAction(String agentId, String actionId) {
+        selectedAgentId = requireText(agentId, "agentId");
+        showConsolePanel("chat");
     }
 
     public RunSubmissionPlan planChatSubmission(String text) {
         String message = requireText(text, "text");
         chatPanel.appendUserMessage(message);
-        String sessionId = selectedSessionId == null ? PENDING_SESSION_ID : selectedSessionId;
+        boolean needsSession = selectedSessionId == null;
+        String sessionId = needsSession ? PENDING_SESSION_ID : selectedSessionId;
         String runId = PENDING_RUN_ID;
+        selectedSessionId = sessionId;
         activeRunId = runId;
         CreateRunRequest request = new CreateRunRequest(
                 selectedAgentId,
@@ -88,7 +104,7 @@ public class ConsoleView extends Div {
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Running run " + runId + " in session " + sessionId, true);
         return new RunSubmissionPlan(
-                selectedSessionId == null ? httpClient.createSessionPath() : null,
+                needsSession ? httpClient.createSessionPath() : null,
                 sessionId,
                 httpClient.createRunPath(sessionId),
                 request,

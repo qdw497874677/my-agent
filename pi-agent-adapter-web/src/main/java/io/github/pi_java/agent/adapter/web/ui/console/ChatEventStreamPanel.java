@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Center workbench column that keeps chat messages and runtime events in one narrative. */
 public class ChatEventStreamPanel extends Div {
@@ -22,6 +23,8 @@ public class ChatEventStreamPanel extends Div {
     private final Button composerCancel = new Button("Cancel run");
     private final List<String> messages = new ArrayList<>();
     private final List<Component> eventComponents = new ArrayList<>();
+    private Consumer<String> submitHandler;
+    private Runnable cancelHandler;
 
     public ChatEventStreamPanel() {
         addClassName("pi-console-chat");
@@ -37,7 +40,13 @@ public class ChatEventStreamPanel extends Div {
         input.setMaxRows(6);
         input.getElement().setAttribute("data-role", "chat-input");
         send.getElement().setAttribute("data-action", "send-chat");
+        send.addClickListener(event -> submitCurrentInput());
         composerCancel.getElement().setAttribute("data-action", "cancel-run-primary");
+        composerCancel.addClickListener(event -> {
+            if (cancelHandler != null) {
+                cancelHandler.run();
+            }
+        });
         composerCancel.setVisible(false);
         composer.add(composerRunStatus, input, send, composerCancel);
         add(new H2("Chat"), feed, composer);
@@ -68,6 +77,14 @@ public class ChatEventStreamPanel extends Div {
         return eventComponents.size();
     }
 
+    public void setSubmitHandler(Consumer<String> submitHandler) {
+        this.submitHandler = submitHandler;
+    }
+
+    public void setCancelHandler(Runnable cancelHandler) {
+        this.cancelHandler = cancelHandler;
+    }
+
     public void showComposerRunStatus(String status, boolean cancellable) {
         composerRunStatus.setText(requireText(status, "status"));
         composerCancel.setVisible(cancellable);
@@ -92,6 +109,17 @@ public class ChatEventStreamPanel extends Div {
 
     public int inputMaxRows() {
         return input.getMaxRows();
+    }
+
+    private void submitCurrentInput() {
+        String value = input.getValue();
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        if (submitHandler != null) {
+            submitHandler.accept(value);
+            input.clear();
+        }
     }
 
     private void showEmptyState() {

@@ -10,6 +10,7 @@ public class RunContextPanel extends Div {
 
     private final Span status = new Span("No active run");
     private final Button cancel = new Button("Cancel run");
+    private Runnable cancelHandler;
 
     public RunContextPanel() {
         addClassName("pi-console-run-context");
@@ -17,6 +18,11 @@ public class RunContextPanel extends Div {
         status.getElement().setAttribute("data-role", "run-status");
         cancel.addClassName("pi-console-cancel-backup");
         cancel.getElement().setAttribute("data-action", "cancel-run");
+        cancel.addClickListener(event -> {
+            if (cancelHandler != null) {
+                cancelHandler.run();
+            }
+        });
         cancel.setVisible(false);
         add(new H2("Run context"), status, cancel);
     }
@@ -45,6 +51,10 @@ public class RunContextPanel extends Div {
 
     public boolean cancelProminent() {
         return cancel.isVisible() && Boolean.parseBoolean(cancel.getElement().getAttribute("data-prominent"));
+    }
+
+    public void setCancelHandler(Runnable cancelHandler) {
+        this.cancelHandler = cancelHandler;
     }
 
     private static boolean isCancellable(String runStatus) {

@@ -9,6 +9,7 @@ import io.github.pi_java.agent.client.agent.AgentCatalogItemDto;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /** Agent Catalog card that exposes run-decision metadata from the public Agent Catalog API. */
@@ -22,6 +23,10 @@ public class AgentCard extends Div {
     private String firstEntryAction;
 
     public AgentCard(AgentCatalogItemDto agent) {
+        this(agent, null);
+    }
+
+    public AgentCard(AgentCatalogItemDto agent, BiConsumer<String, String> actionHandler) {
         this.agent = Objects.requireNonNull(agent, "agent must not be null");
         this.summaryText = buildSummary(agent);
         addClassName("pi-agent-card");
@@ -54,6 +59,9 @@ public class AgentCard extends Div {
                 button.addClassName("pi-agent-card-primary-action");
                 button.getElement().setAttribute("data-primary-action", primaryActionMarker);
                 primaryAssigned = true;
+            }
+            if (actionHandler != null) {
+                button.addClickListener(event -> actionHandler.accept(agent.id(), actionId));
             }
             add(button);
         }
