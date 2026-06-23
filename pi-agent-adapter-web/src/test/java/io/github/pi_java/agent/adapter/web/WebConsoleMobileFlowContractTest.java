@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.dom.Element;
 import io.github.pi_java.agent.adapter.web.ui.console.AgentCatalogPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
@@ -181,6 +182,82 @@ class WebConsoleMobileFlowContractTest {
                 .isEqualTo("true");
     }
 
+    @Test
+    void mcon01CatalogPanelStaysInsideAgentsPanelAndOutsideSessionsPanel() {
+        ConsoleView view = new ConsoleView();
+
+        Div agentsPanel = onlyChildWithAttribute(view, "data-console-panel", "agents");
+        Div sessionsPanel = onlyChildWithAttribute(view, "data-console-panel", "sessions");
+
+        assertThat(descendantComponents(agentsPanel)).contains(view.agentCatalogPanel());
+        assertThat(descendantComponents(sessionsPanel)).doesNotContain(view.agentCatalogPanel());
+    }
+
+    @Test
+    void mcon01GeneralAgentPrimaryActionUsesRealClickHandlerAndReturnsToChat() {
+        ConsoleView view = new ConsoleView();
+        view.agentCatalogPanel().showCatalog(new AgentCatalogResponse(List.of(generalAgent("cloud-general-agent", "start-chat"))));
+        view.showConsolePanel("agents");
+
+        Button generalAgentCta = (Button) onlyDescendantWithAttribute(view.agentCatalogPanel(), "data-primary-action", "general-agent-start");
+        generalAgentCta.click();
+
+        assertThat(view.selectedAgentId()).isEqualTo("cloud-general-agent");
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
+    }
+
+    @Test
+    void mcon04SessionCardActivatesByClickEnterAndSpaceAndReturnsToChat() {
+        ConsoleView clickView = new ConsoleView();
+        clickView.sessionListPanel().showSession("session-click", "Click session", Instant.parse("2026-06-23T05:00:00Z"));
+        clickView.showConsolePanel("sessions");
+
+        clickView.sessionListPanel().activateSessionCardForTest("session-click", "click");
+
+        assertThat(clickView.sessionListPanel().selectedSessionId()).isEqualTo("session-click");
+        assertThat(clickView.activeConsolePanel()).isEqualTo("chat");
+        assertThat(clickView.sessionListPanel().sessionCards().getFirst().getElement().getAttribute("data-session-active"))
+                .isEqualTo("true");
+
+        ConsoleView enterView = new ConsoleView();
+        enterView.sessionListPanel().showSession("session-enter", "Enter session", Instant.parse("2026-06-23T05:00:00Z"));
+        enterView.showConsolePanel("sessions");
+        enterView.sessionListPanel().activateSessionCardForTest("session-enter", "Enter");
+        assertThat(enterView.sessionListPanel().selectedSessionId()).isEqualTo("session-enter");
+        assertThat(enterView.activeConsolePanel()).isEqualTo("chat");
+
+        ConsoleView spaceView = new ConsoleView();
+        spaceView.sessionListPanel().showSession("session-space", "Space session", Instant.parse("2026-06-23T05:00:00Z"));
+        spaceView.showConsolePanel("sessions");
+        spaceView.sessionListPanel().activateSessionCardForTest("session-space", " ");
+        assertThat(spaceView.sessionListPanel().selectedSessionId()).isEqualTo("session-space");
+        assertThat(spaceView.activeConsolePanel()).isEqualTo("chat");
+    }
+
+    @Test
+    void mcon02Mcon05SendAndCancelControlsUseListenerBackedVaadinClicks() {
+        ConsoleView view = new ConsoleView();
+        TextArea input = (TextArea) onlyDescendantWithAttribute(view.chatPanel(), "data-role", "chat-input");
+        Button send = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "send-chat");
+
+        input.setValue("Run from actual Send click");
+        send.click();
+
+        assertThat(view.chatPanel().messages()).contains("Run from actual Send click");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
+
+        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary");
+        primaryCancel.click();
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+
+        view.markRunRunning("session-backup", "run-backup");
+        Button backupCancel = (Button) onlyDescendantWithAttribute(view.runContextPanel(), "data-action", "cancel-run");
+        backupCancel.click();
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+    }
+
     private static void assertPanelState(ConsoleView view, String panel, String active) {
         Div wrapper = onlyChildWithAttribute(view, "data-console-panel", panel);
         assertThat(wrapper.getElement().getAttribute("data-console-panel-active")).isEqualTo(active);
@@ -217,6 +294,12 @@ class WebConsoleMobileFlowContractTest {
 
     private static java.util.stream.Stream<Element> descendants(Element root) {
         return root.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
+    }
+
+    private static List<Component> descendantComponents(Component root) {
+        return descendants(root.getElement())
+                .flatMap(element -> element.getComponent().stream())
+                .toList();
     }
 
     private static String fieldText(Div card, String field) {
