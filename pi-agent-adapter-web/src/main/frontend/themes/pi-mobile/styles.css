@@ -241,6 +241,30 @@ div {
   min-width: 0;
 }
 
+.pi-console-panel-switcher {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pi-mobile-space-xs);
+  width: 100%;
+}
+
+.pi-console-panel-switcher [data-action="show-console-panel"] {
+  width: 100%;
+  border-radius: 999px;
+}
+
+.pi-console-panel-switcher [data-action="show-console-panel"][aria-pressed="true"] {
+  border-color: var(--pi-mobile-focus-color);
+  background: #e8f0ff;
+  color: #123a7a;
+  font-weight: 700;
+}
+
+.pi-console-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .pi-admin-governance-surface,
 .pi-admin-governance-overview,
 .pi-admin-registry-status,
@@ -272,6 +296,14 @@ div {
     gap: var(--pi-mobile-space-md);
     width: 100%;
     max-width: 100vw;
+  }
+
+  .pi-console-workbench [data-console-panel-active="false"] {
+    display: none;
+  }
+
+  .pi-console-workbench [data-console-panel="chat"] {
+    display: block;
   }
 
   .pi-console-workbench > *,
@@ -319,5 +351,20 @@ div {
   .pi-shell-drawer-trigger,
   .pi-shell-drawer-close {
     display: none;
+  }
+
+  .pi-console-workbench {
+    display: grid;
+    grid-template-columns: minmax(14rem, 0.8fr) minmax(0, 1.5fr) minmax(16rem, 1fr);
+    gap: var(--pi-mobile-space-md);
+    align-items: start;
+  }
+
+  .pi-console-panel-switcher {
+    grid-column: 1 / -1;
+  }
+
+  .pi-console-workbench [data-console-panel] {
+    display: block;
   }
 }
