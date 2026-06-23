@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 12-console-mobile-first-flow-04-PLAN.md
-last_updated: "2026-06-23T09:22:53.747Z"
+stopped_at: Completed 12-console-mobile-first-flow-05-PLAN.md
+last_updated: "2026-06-23T09:43:34.508Z"
 last_activity: 2026-06-23
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 12 (console-mobile-first-flow) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-23
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100%
 | Phase 12-console-mobile-first-flow P02 | 5m42s | 2 tasks | 5 files |
 | Phase 12-console-mobile-first-flow P03 | 11m20s | 2 tasks | 5 files |
 | Phase 12-console-mobile-first-flow P04 | 12min | 3 tasks | 7 files |
+| Phase 12-console-mobile-first-flow P05 | 14min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 12-console-mobile-first-flow]: Use route-local Vaadin callbacks instead of new routes or mobile-only APIs for Agent, Session, Send, and Cancel actions.
 - [Phase 12-console-mobile-first-flow]: Initialize Console Agent Catalog from the existing AgentCatalogQueryService read model, keeping Vaadin concerns in adapter-web.
 - [Phase 12-console-mobile-first-flow]: Keep historical Session population limited to existing/current flow seams; preserve explicit empty state until a history/list read model supplies rows.
+- [Phase 12-console-mobile-first-flow]: Use an adapter-web ConsoleRunExecutionBridge so Vaadin UI code can call existing App-layer session/run/query use cases without introducing mobile-only APIs.
+- [Phase 12-console-mobile-first-flow]: Keep a safe direct-construction demo bridge for no-Spring component tests while Spring construction delegates to AppConsoleRunExecutionBridge.
+- [Phase 12-console-mobile-first-flow]: Treat terminal cancellation races as acceptable mobile feedback and harden double-click/no-active-run UI handlers to show status instead of throwing.
 
 ### Pending Todos
 
@@ -112,8 +116,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-23T09:22:53.743Z
-Stopped at: Completed 12-console-mobile-first-flow-04-PLAN.md
+Last session: 2026-06-23T09:43:34.504Z
+Stopped at: Completed 12-console-mobile-first-flow-05-PLAN.md
 Resume file: None
 
 ---
