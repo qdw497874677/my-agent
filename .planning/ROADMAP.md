@@ -74,7 +74,11 @@ Plans:
   3. Mobile user can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls.
   4. Mobile user can open session history, select a past session, continue it, and clearly identify the active session.
   5. Mobile user can cancel an active run from a visible touch-safe control and see cancelling or terminal feedback in the UI.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-console-mobile-first-flow-01-PLAN.md — Chat-first Console panel state, segmented switcher, stacked Agent/session cards
+- [ ] 12-console-mobile-first-flow-02-PLAN.md — Sticky bounded composer, vertical event feed, inline run state, dual Cancel controls
+- [ ] 12-console-mobile-first-flow-03-PLAN.md — Console mobile product-path E2E, desktop regression, and documentation
 **UI hint**: yes
 
 ### Phase 13: Runtime Cards, Timeline, Tool, and Approval UX
@@ -124,7 +128,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 |-------|-----------|----------------|--------|-----------|
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
-| 12. Console Mobile-First Flow | v1.1 | 0/TBD | Not started | - |
+| 12. Console Mobile-First Flow | v1.1 | 0/3 | Planned | - |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
