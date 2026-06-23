@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
-status: verifying
-stopped_at: Phase 12 context gathered
-last_updated: "2026-06-23T01:34:17.633Z"
-last_activity: 2026-06-22
+status: executing
+stopped_at: Completed 12-console-mobile-first-flow-01-PLAN.md
+last_updated: "2026-06-23T05:38:07.672Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 10 — responsive-baseline-and-mobile-test-harness
+**Current focus:** Phase 12 — console-mobile-first-flow
 
 ## Current Position
 
-Phase: 10 (responsive-baseline-and-mobile-test-harness) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-22
+Phase: 12 (console-mobile-first-flow) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-23
 
 Progress: [██████████] 100%
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100%
 | Phase 11-shared-responsive-shell-and-navigation P01 | 6min | 3 tasks | 14 files |
 | Phase 11-shared-responsive-shell-and-navigation P02 | 4min | 3 tasks | 4 files |
 | Phase 11-shared-responsive-shell-and-navigation P03 | 6min | 3 tasks | 4 files |
+| Phase 12-console-mobile-first-flow P01 | 8m32s | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 11-shared-responsive-shell-and-navigation]: Keep route/navigation metadata in PiRouteNavRegistry so Java shell and browser tests share route truth.
 - [Phase 11-shared-responsive-shell-and-navigation]: Apply touch/focus behavior through additive pi-mobile CSS and stable data hooks, not per-view inline styles.
 - [Phase 11-shared-responsive-shell-and-navigation]: Keep Phase 11 browser gate deterministic/no-key and non-mutating.
+- [Phase 12-console-mobile-first-flow]: Use route-local Vaadin panel state and segmented Buttons instead of new Console routes or mobile-only APIs.
+- [Phase 12-console-mobile-first-flow]: Keep desktop three-column selectors and columnOrder while using mobile-only active panel hiding at phone breakpoints.
+- [Phase 12-console-mobile-first-flow]: Expose mobile Agent/Session behavior through additive data attributes and CSS hooks rather than changing public REST/SSE DTOs.
 
 ### Pending Todos
 
@@ -97,9 +101,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-23T01:34:17.615Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-console-mobile-first-flow/12-CONTEXT.md
+Last session: 2026-06-23T05:38:07.667Z
+Stopped at: Completed 12-console-mobile-first-flow-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-20 after v1.1 roadmap creation*
