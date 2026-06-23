@@ -92,6 +92,48 @@ class WebConsoleMobileFlowContractTest {
     }
 
     @Test
+    void chatSubmissionSynchronizesRunStateAcrossComposerAndRunContext() {
+        ConsoleView view = new ConsoleView();
+
+        view.planChatSubmission("Run this mobile prompt");
+
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("running");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
+        assertThat(view.runContextPanel().cancelProminent()).isTrue();
+        assertThat(view.chatPanel().composerCancelVisible()).isTrue();
+    }
+
+    @Test
+    void cancellingAndTerminalStatusesUpdateBothVisibleRunSurfaces() {
+        ConsoleView view = new ConsoleView();
+        view.markRunRunning("session-1", "run-1");
+
+        view.planCancelRunningRun("mobile cancel");
+
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
+        assertThat(view.runContextPanel().cancelProminent()).isTrue();
+        assertThat(view.chatPanel().composerCancelVisible()).isTrue();
+
+        view.applyRunStatus("completed", true);
+
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("completed");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("completed");
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
+        assertThat(view.chatPanel().composerCancelVisible()).isFalse();
+    }
+
+    @Test
+    void backupAndPrimaryCancelControlsExposeStableHooks() {
+        ConsoleView view = new ConsoleView();
+
+        assertThat(onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary")).isNotNull();
+        assertThat(onlyDescendantWithAttribute(view.runContextPanel(), "data-action", "cancel-run").getClassNames())
+                .contains("pi-console-cancel-backup");
+        assertThat(onlyDescendantWithAttribute(view.runContextPanel(), "data-role", "run-status")).isNotNull();
+    }
+
+    @Test
     void agentCatalogCardsExposeGeneralAgentPrimaryActionContract() {
         AgentCatalogPanel panel = new AgentCatalogPanel();
 
