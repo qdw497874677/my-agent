@@ -330,6 +330,21 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.runContextPanel().cancelProminent()).isFalse();
     }
 
+    @Test
+    void mcon05DoubleClickOrNoActiveRunCancelShowsSafeTerminalFeedback() {
+        ConsoleView view = new ConsoleView();
+        view.planChatSubmission("Double cancel this run");
+        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary");
+
+        primaryCancel.click();
+        primaryCancel.click();
+
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("no active run");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("no active run");
+        assertThat(view.chatPanel().composerCancelVisible()).isFalse();
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
+    }
+
     @SuppressWarnings("unused")
     private static final class DeterministicConsoleExecutionFixtures {
         private final SessionResponse session = new SessionResponse(

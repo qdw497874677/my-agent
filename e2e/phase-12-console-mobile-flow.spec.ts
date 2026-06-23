@@ -31,7 +31,11 @@ test.describe('Phase 12 mobile Console product flow', () => {
 
     const feed = page.locator('[data-role="event-feed"]').first();
     const composerStatus = page.locator('[data-role="composer-run-status"]').first();
-    await expect(feed.or(composerStatus)).toContainText(/running|queued|model|completed|cancel/i);
+    await expect(composerStatus.or(feed)).toContainText(/running|queued|model|completed|cancel/i);
+    await expect.poll(
+      async () => feed.locator('[data-event-category], [data-event-type], [data-run-event]').count(),
+      { message: 'Send click should produce browser-visible run event progression' },
+    ).toBeGreaterThanOrEqual(1);
 
     // MVER-03 tool/approval reachability: Phase 12 only proves the surfaces are reachable;
     // Phase 13 owns detailed runtime card interiors and approval risk UX.
@@ -47,7 +51,7 @@ test.describe('Phase 12 mobile Console product flow', () => {
 
     await openConsolePanel(page, 'run-context');
     await expectNoPageHorizontalOverflow(page);
-    await expect(page.locator('[data-action="cancel-run"], [data-role="composer-run-status"], [data-role="event-feed"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="cancel-run"], [data-role="run-status"], [data-role="event-feed"]').first()).toBeVisible();
 
     await openConsolePanel(page, 'chat');
     await assertScrollKeepsComposerAndCancelReachable(page, feed, composerStatus);

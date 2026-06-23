@@ -139,7 +139,7 @@ public class ConsoleView extends Div {
         agentCatalogPanel.setAgentActionHandler(this::handleAgentAction);
         sessionListPanel.setSessionActivationHandler(this::selectSession);
         chatPanel.setSubmitHandler(this::planChatSubmission);
-        Runnable cancel = () -> planCancelRunningRun("mobile user requested cancellation");
+        Runnable cancel = () -> handleCancelRunningRun("mobile user requested cancellation");
         chatPanel.setCancelHandler(cancel);
         runContextPanel.setCancelHandler(cancel);
     }
@@ -224,6 +224,15 @@ public class ConsoleView extends Div {
         applyRunStatus(response.status(), response.terminal());
         activeRunId = response.terminal() ? null : response.runId();
         return new CancelPlan(httpClient.cancelRunPath(response.sessionId(), response.runId()), request);
+    }
+
+    void handleCancelRunningRun(String reason) {
+        try {
+            planCancelRunningRun(reason);
+        } catch (IllegalStateException noActiveRun) {
+            runContextPanel.showStatus("no active run", true);
+            chatPanel.showComposerRunStatus("No active run to cancel", false);
+        }
     }
 
     public void applyRunStatus(String status, boolean terminal) {
