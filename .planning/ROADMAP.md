@@ -77,7 +77,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 12-console-mobile-first-flow-01-PLAN.md — Chat-first Console panel state, segmented switcher, stacked Agent/session cards
-- [ ] 12-console-mobile-first-flow-02-PLAN.md — Sticky bounded composer, vertical event feed, inline run state, dual Cancel controls
+- [x] 12-console-mobile-first-flow-02-PLAN.md — Sticky bounded composer, vertical event feed, inline run state, dual Cancel controls
 - [ ] 12-console-mobile-first-flow-03-PLAN.md — Console mobile product-path E2E, desktop regression, and documentation
 **UI hint**: yes
 
@@ -128,7 +128,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 |-------|-----------|----------------|--------|-----------|
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
-| 12. Console Mobile-First Flow | v1.1 | 1/3 | In Progress|  |
+| 12. Console Mobile-First Flow | v1.1 | 2/3 | In Progress|  |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |

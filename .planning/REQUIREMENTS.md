@@ -19,10 +19,10 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 ### Console Mobile Experience
 
 - [x] **MCON-01**: Mobile user can browse Agent Catalog as stacked cards and select/start the General Agent without desktop-width layout.
-- [ ] **MCON-02**: Mobile user can type a multi-line chat prompt, submit it, and see active run/composer state in a mobile-first Chat/Run flow.
-- [ ] **MCON-03**: Mobile user can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls.
+- [x] **MCON-02**: Mobile user can type a multi-line chat prompt, submit it, and see active run/composer state in a mobile-first Chat/Run flow.
+- [x] **MCON-03**: Mobile user can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls.
 - [x] **MCON-04**: Mobile user can open session history, select a past session, continue it, and clearly see the active session.
-- [ ] **MCON-05**: Mobile user can cancel an active run from a visible touch-safe control and see terminal/cancelling feedback.
+- [x] **MCON-05**: Mobile user can cancel an active run from a visible touch-safe control and see terminal/cancelling feedback.
 
 ### Runtime Cards, Timeline, Tools, and Approvals
 
@@ -90,10 +90,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MH5-04 | Phase 11 | Complete |
 | MH5-05 | Phase 11 | Complete |
 | MCON-01 | Phase 12 | Complete |
-| MCON-02 | Phase 12 | Pending |
-| MCON-03 | Phase 12 | Pending |
+| MCON-02 | Phase 12 | Complete |
+| MCON-03 | Phase 12 | Complete |
 | MCON-04 | Phase 12 | Complete |
-| MCON-05 | Phase 12 | Pending |
+| MCON-05 | Phase 12 | Complete |
 | MCARD-01 | Phase 13 | Pending |
 | MCARD-02 | Phase 13 | Pending |
 | MCARD-03 | Phase 13 | Pending |
