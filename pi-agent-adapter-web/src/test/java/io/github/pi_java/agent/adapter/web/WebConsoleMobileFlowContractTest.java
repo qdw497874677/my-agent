@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.dom.Element;
+import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
 import io.github.pi_java.agent.adapter.web.ui.console.AgentCatalogPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
@@ -256,6 +257,32 @@ class WebConsoleMobileFlowContractTest {
         backupCancel.click();
         assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
         assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+    }
+
+    @Test
+    void mcon01NormalConsoleConstructionRendersGeneralAgentFromExistingCatalogReadModel() {
+        ConsoleView view = new ConsoleView(new DefaultAgentCatalogQueryService());
+
+        assertThat(view.agentCatalogPanel().renderedAgentIds()).contains("cloud-general-agent");
+        assertThat(view.agentCatalogPanel().cardCount()).isGreaterThan(0);
+
+        Div agentsPanel = onlyChildWithAttribute(view, "data-console-panel", "agents");
+        assertThat(descendantComponents(agentsPanel)).contains(view.agentCatalogPanel());
+    }
+
+    @Test
+    void mcon04HistoricalSessionsRemainExplicitlyEmptyUntilExistingHistoryModelProvidesRows() {
+        ConsoleView view = new ConsoleView(new DefaultAgentCatalogQueryService());
+
+        assertThat(view.sessionListPanel().sessionCount()).isZero();
+        assertThat(view.sessionListPanel().emptyStateText()).containsIgnoringCase("no recent sessions");
+
+        view.sessionListPanel().showSession("session-history", "History row from existing read model", Instant.parse("2026-06-23T05:00:00Z"));
+        view.showConsolePanel("sessions");
+        view.sessionListPanel().activateSessionCardForTest("session-history", "Enter");
+
+        assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-history");
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
     }
 
     private static void assertPanelState(ConsoleView view, String panel, String active) {

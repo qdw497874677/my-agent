@@ -7,10 +7,17 @@ import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
+import io.github.pi_java.agent.app.context.CorrelationContext;
+import io.github.pi_java.agent.app.context.RequestContext;
+import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
+import io.github.pi_java.agent.app.usecase.AgentCatalogQueryService;
+import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** Chat-first user Console route backed by public REST/SSE helper boundaries. */
 @Route(value = "console", layout = PiResponsiveShell.class)
@@ -26,6 +33,7 @@ public class ConsoleView extends Div {
 
     private final ConsoleHttpClient httpClient;
     private final EventStreamClient eventStreamClient;
+    private final AgentCatalogQueryService agentCatalogQueryService;
     private final SessionListPanel sessionListPanel;
     private final AgentCatalogPanel agentCatalogPanel;
     private final ChatEventStreamPanel chatPanel;
@@ -38,12 +46,22 @@ public class ConsoleView extends Div {
     private String activeConsolePanel = "chat";
 
     public ConsoleView() {
-        this(new ConsoleHttpClient(), new EventStreamClient());
+        this(new DefaultAgentCatalogQueryService());
+    }
+
+    @Autowired
+    public ConsoleView(AgentCatalogQueryService agentCatalogQueryService) {
+        this(new ConsoleHttpClient(), new EventStreamClient(), agentCatalogQueryService);
     }
 
     public ConsoleView(ConsoleHttpClient httpClient, EventStreamClient eventStreamClient) {
+        this(httpClient, eventStreamClient, new DefaultAgentCatalogQueryService());
+    }
+
+    public ConsoleView(ConsoleHttpClient httpClient, EventStreamClient eventStreamClient, AgentCatalogQueryService agentCatalogQueryService) {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
+        this.agentCatalogQueryService = agentCatalogQueryService;
         this.sessionListPanel = new SessionListPanel();
         this.agentCatalogPanel = new AgentCatalogPanel(httpClient);
         this.chatPanel = new ChatEventStreamPanel();
@@ -69,6 +87,7 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-layout", "three-column-workbench");
         getElement().setAttribute("data-mobile-critical", "true");
         add(switcher, sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
+        loadInitialAgentCatalog();
         applyPanelState();
     }
 
@@ -84,6 +103,16 @@ public class ConsoleView extends Div {
     private void handleAgentAction(String agentId, String actionId) {
         selectedAgentId = requireText(agentId, "agentId");
         showConsolePanel("chat");
+    }
+
+    private void loadInitialAgentCatalog() {
+        agentCatalogPanel.showCatalog(agentCatalogQueryService.listAgents(consoleRequestContext()));
+    }
+
+    private static RequestContext consoleRequestContext() {
+        return new RequestContext(
+                new SecurityPrincipalContext("console", "vaadin-console", Set.of("ROLE_USER")),
+                new CorrelationContext("vaadin-console", "vaadin-console", null));
     }
 
     public RunSubmissionPlan planChatSubmission(String text) {
