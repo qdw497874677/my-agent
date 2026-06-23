@@ -67,6 +67,31 @@ class WebConsoleMobileFlowContractTest {
     }
 
     @Test
+    void chatPanelSplitsVerticalEventFeedFromStickyComposer() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        Div feed = onlyChildWithAttribute(panel, "data-role", "event-feed");
+        Div composer = onlyChildWithAttribute(panel, "data-role", "chat-composer");
+
+        assertThat(feed.getClassNames()).contains("pi-console-event-feed");
+        assertThat(composer.getClassNames()).contains("pi-console-composer");
+        assertThat(onlyDescendantWithAttribute(composer, "data-role", "composer-run-status").getElement().getTextRecursively())
+                .contains("No active run");
+        assertThat(onlyDescendantWithAttribute(composer, "data-role", "chat-input")).isNotNull();
+        assertThat(onlyDescendantWithAttribute(composer, "data-action", "send-chat")).isNotNull();
+        assertThat(onlyDescendantWithAttribute(composer, "data-action", "cancel-run-primary")).isNotNull();
+        assertThat(panel.composerCancelVisible()).isFalse();
+    }
+
+    @Test
+    void chatComposerUsesBoundedMultilineTextAreaRows() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        assertThat(panel.inputMinRows()).isEqualTo(2);
+        assertThat(panel.inputMaxRows()).isEqualTo(6);
+    }
+
+    @Test
     void agentCatalogCardsExposeGeneralAgentPrimaryActionContract() {
         AgentCatalogPanel panel = new AgentCatalogPanel();
 
@@ -125,6 +150,25 @@ class WebConsoleMobileFlowContractTest {
                 .filter(child -> value.equals(child.getElement().getAttribute(attribute)))
                 .toList();
         assertThat(matches).extracting(Component::getElement).hasSize(1);
+        return matches.getFirst();
+    }
+
+    private static Div onlyChildWithAttribute(ChatEventStreamPanel panel, String attribute, String value) {
+        List<Div> matches = panel.getChildren()
+                .filter(Div.class::isInstance)
+                .map(Div.class::cast)
+                .filter(child -> value.equals(child.getElement().getAttribute(attribute)))
+                .toList();
+        assertThat(matches).extracting(Component::getElement).hasSize(1);
+        return matches.getFirst();
+    }
+
+    private static Component onlyDescendantWithAttribute(Component root, String attribute, String value) {
+        List<Component> matches = root.getElement().getChildren()
+                .filter(element -> value.equals(element.getAttribute(attribute)))
+                .map(element -> element.getComponent().orElseThrow())
+                .toList();
+        assertThat(matches).hasSize(1);
         return matches.getFirst();
     }
 
