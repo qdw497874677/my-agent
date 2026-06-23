@@ -46,7 +46,7 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 
 - [x] **MVER-01**: Automated browser tests run representative Mobile Chrome, Mobile Safari/WebKit, Mobile Firefox or Firefox mobile viewport, and tablet contexts where supported by CI.
 - [x] **MVER-02**: Mobile smoke tests verify route load, no page-level horizontal overflow, visible primary action, and at least one key interaction per route category.
-- [ ] **MVER-03**: Console mobile E2E starts a fake/no-key run, observes streamed event UI, opens tool/approval/session areas, and cancels or reaches terminal status.
+- [x] **MVER-03**: Console mobile E2E starts a fake/no-key run, observes streamed event UI, opens tool/approval/session areas, and cancels or reaches terminal status.
 - [ ] **MVER-04**: Admin mobile E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies mobile card/detail content.
 - [ ] **MVER-05**: Representative portrait, landscape, and tablet viewports pass mobile navigation and no-horizontal-overflow checks.
 - [ ] **MVER-06**: Desktop Web Console/Admin browser regressions remain passing after mobile-first changes.
@@ -108,7 +108,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MADM-07 | Phase 14 | Pending |
 | MVER-01 | Phase 10 | Complete |
 | MVER-02 | Phase 10 | Complete |
-| MVER-03 | Phase 12 | Pending |
+| MVER-03 | Phase 12 | Complete |
 | MVER-04 | Phase 14 | Pending |
 | MVER-05 | Phase 15 | Pending |
 | MVER-06 | Phase 15 | Pending |
