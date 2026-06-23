@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
-status: verifying
-stopped_at: Completed 12-console-mobile-first-flow-03-PLAN.md
-last_updated: "2026-06-23T05:55:30.915Z"
+status: executing
+stopped_at: Completed 12-console-mobile-first-flow-04-PLAN.md
+last_updated: "2026-06-23T09:22:53.747Z"
 last_activity: 2026-06-23
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 2
+  total_plans: 11
+  completed_plans: 10
   percent: 100
 ---
 
@@ -26,8 +26,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 12 (console-mobile-first-flow) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-06-23
 
 Progress: [██████████] 100%
@@ -65,6 +65,7 @@ Progress: [██████████] 100%
 | Phase 12-console-mobile-first-flow P01 | 8m32s | 2 tasks | 6 files |
 | Phase 12-console-mobile-first-flow P02 | 5m42s | 2 tasks | 5 files |
 | Phase 12-console-mobile-first-flow P03 | 11m20s | 2 tasks | 5 files |
+| Phase 12-console-mobile-first-flow P04 | 12min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 12-console-mobile-first-flow]: Preserve public REST/SSE path behavior while synchronizing run state through existing ConsoleView seams.
 - [Phase 12-console-mobile-first-flow]: Keep MVER-03 browser assertions on stable data-* selectors and tolerant cancel-or-terminal behavior to avoid Vaadin shadow DOM and fake-runtime timing brittleness.
 - [Phase 12-console-mobile-first-flow]: Document Phase 13 runtime/tool/approval card interiors and Phase 15 real-device/accessibility hardening as explicit downstream handoffs.
+- [Phase 12-console-mobile-first-flow]: Use route-local Vaadin callbacks instead of new routes or mobile-only APIs for Agent, Session, Send, and Cancel actions.
+- [Phase 12-console-mobile-first-flow]: Initialize Console Agent Catalog from the existing AgentCatalogQueryService read model, keeping Vaadin concerns in adapter-web.
+- [Phase 12-console-mobile-first-flow]: Keep historical Session population limited to existing/current flow seams; preserve explicit empty state until a history/list read model supplies rows.
 
 ### Pending Todos
 
@@ -108,8 +112,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-23T05:55:30.911Z
-Stopped at: Completed 12-console-mobile-first-flow-03-PLAN.md
+Last session: 2026-06-23T09:22:53.743Z
+Stopped at: Completed 12-console-mobile-first-flow-04-PLAN.md
 Resume file: None
 
 ---
