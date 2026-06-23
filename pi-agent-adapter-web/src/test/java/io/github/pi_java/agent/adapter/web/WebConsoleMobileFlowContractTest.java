@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.dom.Element;
 import io.github.pi_java.agent.adapter.web.ui.console.AgentCatalogPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
@@ -206,12 +207,16 @@ class WebConsoleMobileFlowContractTest {
     }
 
     private static Component onlyDescendantWithAttribute(Component root, String attribute, String value) {
-        List<Component> matches = root.getElement().getChildren()
+        List<Component> matches = descendants(root.getElement())
                 .filter(element -> value.equals(element.getAttribute(attribute)))
                 .map(element -> element.getComponent().orElseThrow())
                 .toList();
         assertThat(matches).hasSize(1);
         return matches.getFirst();
+    }
+
+    private static java.util.stream.Stream<Element> descendants(Element root) {
+        return root.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
     }
 
     private static String fieldText(Div card, String field) {

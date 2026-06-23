@@ -282,6 +282,17 @@ vaadin-text-area[data-role="chat-input"] {
   overflow: auto;
 }
 
+.pi-console-cancel-backup,
+[data-action="cancel-run-primary"] {
+  min-width: var(--pi-mobile-tap-target);
+  min-height: var(--pi-mobile-tap-target);
+}
+
+[data-role="composer-run-status"],
+[data-role="run-status"] {
+  font-weight: 700;
+}
+
 .pi-agent-catalog [data-role="agent-catalog-cards"],
 .pi-console-sessions [data-role="session-list"] {
   display: grid;

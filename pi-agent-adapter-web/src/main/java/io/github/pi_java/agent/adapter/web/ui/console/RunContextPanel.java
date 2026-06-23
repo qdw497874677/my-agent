@@ -14,6 +14,8 @@ public class RunContextPanel extends Div {
     public RunContextPanel() {
         addClassName("pi-console-run-context");
         getElement().setAttribute("data-column", "run-context");
+        status.getElement().setAttribute("data-role", "run-status");
+        cancel.addClassName("pi-console-cancel-backup");
         cancel.getElement().setAttribute("data-action", "cancel-run");
         cancel.setVisible(false);
         add(new H2("Run context"), status, cancel);

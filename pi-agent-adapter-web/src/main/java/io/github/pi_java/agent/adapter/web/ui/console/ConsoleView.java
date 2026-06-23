@@ -86,6 +86,7 @@ public class ConsoleView extends Div {
                 Map.of("source", "vaadin-console"));
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
         runContextPanel.showRunning(sessionId, runId);
+        chatPanel.showComposerRunStatus("Running run " + runId + " in session " + sessionId, true);
         return new RunSubmissionPlan(
                 selectedSessionId == null ? httpClient.createSessionPath() : null,
                 sessionId,
@@ -118,6 +119,7 @@ public class ConsoleView extends Div {
         selectedSessionId = requireText(sessionId, "sessionId");
         activeRunId = requireText(runId, "runId");
         runContextPanel.showRunning(selectedSessionId, activeRunId);
+        chatPanel.showComposerRunStatus("Running run " + activeRunId + " in session " + selectedSessionId, true);
     }
 
     public CancelPlan planCancelRunningRun(String reason) {
@@ -125,11 +127,13 @@ public class ConsoleView extends Div {
             throw new IllegalStateException("No active run to cancel");
         }
         runContextPanel.showCancelling();
+        chatPanel.showComposerCancelling();
         return new CancelPlan(httpClient.cancelRunPath(selectedSessionId, activeRunId), new CancelRunRequest(reason));
     }
 
     public void applyRunStatus(String status, boolean terminal) {
         runContextPanel.showStatus(status, terminal);
+        chatPanel.showComposerRunStatus("Run status: " + requireText(status, "status"), !terminal && isCancellable(status));
     }
 
     public AgentCatalogPlan agentCatalogPlan() {
@@ -165,6 +169,13 @@ public class ConsoleView extends Div {
             throw new IllegalArgumentException(name + " must not be blank");
         }
         return value.trim();
+    }
+
+    private static boolean isCancellable(String runStatus) {
+        return runStatus != null
+                && (runStatus.equalsIgnoreCase("running")
+                || runStatus.equalsIgnoreCase("queued")
+                || runStatus.equalsIgnoreCase("cancelling"));
     }
 
     private Div createPanelSwitcher() {
