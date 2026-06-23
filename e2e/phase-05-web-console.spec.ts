@@ -14,6 +14,14 @@ test.describe('Phase 5 Agent Web Console and Runtime Cockpit', () => {
     await expectConsoleShell(page);
     await attachKeyScreenshot(page, 'console-shell');
 
+    await page.goto('/console', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-layout="three-column-workbench"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="sessions"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="chat-event-stream"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="run-context"]').first()).toBeVisible();
+    await expect(page.locator('[data-role="chat-input"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="send-chat"]').first()).toBeVisible();
+
     const catalog = await request.get('/api/agents', { headers: devHeaders });
     expect(catalog.ok()).toBeTruthy();
     const catalogJson = await catalog.json();

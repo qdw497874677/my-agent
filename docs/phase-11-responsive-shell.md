@@ -64,7 +64,7 @@ The Playwright gate is deterministic/no-key. It opens routes, navigates through 
 
 ## Deferred Scope
 
-- Full Console mobile-first flow and composer/session/event stream redesign: Phase 12.
+- Full Console mobile-first flow and composer/session/event stream redesign: Implemented in Phase 12; see docs/phase-12-console-mobile-flow.md.
 - Runtime event/tool/approval cards and final confirmation UX: Phase 13.
 - Full Admin card/detail/table migration: Phase 14.
 - Real-device UAT, orientation sweeps, and deeper accessibility hardening: Phase 15.
