@@ -14,6 +14,11 @@ import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
 import io.github.pi_java.agent.adapter.web.ui.console.SessionListPanel;
 import io.github.pi_java.agent.client.agent.AgentCatalogItemDto;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.event.EventHistoryResponse;
+import io.github.pi_java.agent.client.event.RunEventDto;
+import io.github.pi_java.agent.client.run.RunResponse;
+import io.github.pi_java.agent.client.run.RunStatusResponse;
+import io.github.pi_java.agent.client.session.SessionResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -285,6 +290,61 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.activeConsolePanel()).isEqualTo("chat");
     }
 
+    @Test
+    void mcon02UserTriggeredSubmitUsesDtoBackedSessionAndRunIds() {
+        ConsoleView view = new ConsoleView();
+
+        ConsoleView.RunSubmissionPlan plan = view.planChatSubmission("First line\nsecond line");
+
+        assertThat(plan.sessionId()).isEqualTo("session-mobile-1");
+        assertThat(plan.streamSpec().url()).contains("/runs/run-mobile-1/stream");
+        assertThat(plan.request().input()).containsEntry("text", "First line\nsecond line");
+        assertThat(view.chatPanel().messages()).contains("First line\nsecond line");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("queued");
+        assertThat(view.runContextPanel().statusText()).contains("run-mobile-1");
+        assertThat(view.chatPanel().composerCancelVisible()).isTrue();
+    }
+
+    @Test
+    void mcon03SubmitRendersRunHistoryEventsThroughFeedRenderer() {
+        ConsoleView view = new ConsoleView();
+
+        view.planChatSubmission("Render replayed events");
+
+        assertThat(view.chatPanel().messageCount()).isGreaterThan(1);
+        assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("RUNNING"));
+        assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("model reply"));
+    }
+
+    @Test
+    void mcon05CancelAppliesDtoBackedCancellationResultToBothSurfaces() {
+        ConsoleView view = new ConsoleView();
+        view.planChatSubmission("Cancel this run");
+
+        ConsoleView.CancelPlan cancel = view.planCancelRunningRun("mobile cancel");
+
+        assertThat(cancel.cancelPath()).isEqualTo("/api/sessions/session-mobile-1/runs/run-mobile-1/cancel");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelled");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
+        assertThat(view.chatPanel().composerCancelVisible()).isFalse();
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
+    }
+
+    @SuppressWarnings("unused")
+    private static final class DeterministicConsoleExecutionFixtures {
+        private final SessionResponse session = new SessionResponse(
+                "tenant", "user", "session-mobile-1", "workspace", null, "ACTIVE", now(), now(), Map.of());
+        private final RunResponse run = new RunResponse(
+                "tenant", "user", "session-mobile-1", "run-mobile-1", "workspace", "QUEUED", "trace", "correlation", now(), now());
+        private final EventHistoryResponse events = new EventHistoryResponse(
+                "session-mobile-1", "run-mobile-1", List.of(
+                event("run.status", Map.of("status", "RUNNING"), 1),
+                event("model.delta", Map.of("text", "model reply"), 2)
+        ), 0, 2, false);
+        private final RunStatusResponse cancelled = new RunStatusResponse(
+                "session-mobile-1", "run-mobile-1", "cancelled", true, now(), "trace", "correlation");
+    }
+
     private static void assertPanelState(ConsoleView view, String panel, String active) {
         Div wrapper = onlyChildWithAttribute(view, "data-console-panel", panel);
         assertThat(wrapper.getElement().getAttribute("data-console-panel-active")).isEqualTo(active);
@@ -353,5 +413,31 @@ class WebConsoleMobileFlowContractTest {
                 List.of(new AgentCatalogItemDto.EntryActionDto(actionId, "Start chat", "CREATE_RUN", "CHAT", Map.of())),
                 Duration.ofSeconds(30),
                 Map.of("source", "test"));
+    }
+
+    private static RunEventDto event(String type, Map<String, Object> payload, long sequence) {
+        return new RunEventDto(
+                "event-" + sequence,
+                "tenant",
+                "user",
+                "session-mobile-1",
+                "run-mobile-1",
+                null,
+                "workspace",
+                sequence,
+                now(),
+                type,
+                "trace",
+                "correlation",
+                null,
+                "USER",
+                null,
+                type,
+                1,
+                payload);
+    }
+
+    private static Instant now() {
+        return Instant.parse("2026-06-23T06:00:00Z");
     }
 }
