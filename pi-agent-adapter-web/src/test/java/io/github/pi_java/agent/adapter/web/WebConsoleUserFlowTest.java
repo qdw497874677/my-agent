@@ -52,13 +52,13 @@ class WebConsoleUserFlowTest {
         ConsoleView.RunSubmissionPlan first = view.planChatSubmission("Summarize the current workspace");
 
         assertThat(first.createSessionPath()).isEqualTo("/api/sessions");
-        assertThat(first.sessionId()).isEqualTo("pending-session");
-        assertThat(first.createRunPath()).isEqualTo("/api/sessions/pending-session/runs");
+        assertThat(first.sessionId()).isEqualTo("session-mobile-1");
+        assertThat(first.createRunPath()).isEqualTo("/api/sessions/session-mobile-1/runs");
         assertThat(first.request().agentId()).isEqualTo("cloud-general-agent");
         assertThat(first.request().inputType()).isEqualTo("chat");
         assertThat(first.request().input()).containsEntry("text", "Summarize the current workspace");
-        assertThat(first.streamSpec().url()).isEqualTo("/api/sessions/pending-session/runs/pending-run/stream?afterSequence=0");
-        assertThat(view.chatPanel().messageCount()).isEqualTo(1);
+        assertThat(first.streamSpec().url()).isEqualTo("/api/sessions/session-mobile-1/runs/run-mobile-1/stream?afterSequence=0");
+        assertThat(view.chatPanel().messages()).contains("Summarize the current workspace");
 
         view.selectSession("session-42");
         ConsoleView.RunSubmissionPlan continuation = view.planChatSubmission("Continue from history");
@@ -90,8 +90,8 @@ class WebConsoleUserFlowTest {
 
         assertThat(plan.cancelPath()).isEqualTo("/api/sessions/session-1/runs/run-1/cancel");
         assertThat(plan.request().reason()).isEqualTo("user requested stop");
-        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
-        assertThat(view.runContextPanel().cancelProminent()).isTrue();
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
 
         view.applyRunStatus("cancelled", true);
 

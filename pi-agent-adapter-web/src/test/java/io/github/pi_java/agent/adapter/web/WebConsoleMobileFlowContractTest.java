@@ -69,7 +69,7 @@ class WebConsoleMobileFlowContractTest {
 
         assertThat(view.activeConsolePanel()).isEqualTo("sessions");
         assertThat(view.chatPanel()).isSameAs(originalChatPanel);
-        assertThat(view.chatPanel().messageCount()).isEqualTo(1);
+        assertThat(view.chatPanel().messages()).contains("Keep this message while browsing sessions");
         assertPanelState(view, "chat", "false");
         assertPanelState(view, "sessions", "true");
     }
@@ -118,10 +118,10 @@ class WebConsoleMobileFlowContractTest {
 
         view.planCancelRunningRun("mobile cancel");
 
-        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
-        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
-        assertThat(view.runContextPanel().cancelProminent()).isTrue();
-        assertThat(view.chatPanel().composerCancelVisible()).isTrue();
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelled");
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
+        assertThat(view.chatPanel().composerCancelVisible()).isFalse();
 
         view.applyRunStatus("completed", true);
 
@@ -254,14 +254,14 @@ class WebConsoleMobileFlowContractTest {
 
         Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary");
         primaryCancel.click();
-        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
-        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelled");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
 
         view.markRunRunning("session-backup", "run-backup");
         Button backupCancel = (Button) onlyDescendantWithAttribute(view.runContextPanel(), "data-action", "cancel-run");
         backupCancel.click();
-        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelling");
-        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelling");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelled");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
     }
 
     @Test
@@ -300,8 +300,8 @@ class WebConsoleMobileFlowContractTest {
         assertThat(plan.streamSpec().url()).contains("/runs/run-mobile-1/stream");
         assertThat(plan.request().input()).containsEntry("text", "First line\nsecond line");
         assertThat(view.chatPanel().messages()).contains("First line\nsecond line");
-        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("queued");
-        assertThat(view.runContextPanel().statusText()).contains("run-mobile-1");
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("running");
         assertThat(view.chatPanel().composerCancelVisible()).isTrue();
     }
 

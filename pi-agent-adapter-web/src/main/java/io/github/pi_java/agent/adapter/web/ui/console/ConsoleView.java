@@ -12,8 +12,18 @@ import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
 import io.github.pi_java.agent.app.usecase.AgentCatalogQueryService;
 import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
+import io.github.pi_java.agent.app.usecase.RunCommandService;
+import io.github.pi_java.agent.app.usecase.RunQueryService;
+import io.github.pi_java.agent.app.usecase.SessionCommandService;
+import io.github.pi_java.agent.client.event.EventHistoryResponse;
+import io.github.pi_java.agent.client.event.RunEventDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
+import io.github.pi_java.agent.client.run.RunResponse;
+import io.github.pi_java.agent.client.run.RunStatusResponse;
+import io.github.pi_java.agent.client.session.SessionResponse;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +44,8 @@ public class ConsoleView extends Div {
     private final ConsoleHttpClient httpClient;
     private final EventStreamClient eventStreamClient;
     private final AgentCatalogQueryService agentCatalogQueryService;
+    private final ConsoleRunExecutionBridge executionBridge;
+    private final RunEventRenderer runEventRenderer;
     private final SessionListPanel sessionListPanel;
     private final AgentCatalogPanel agentCatalogPanel;
     private final ChatEventStreamPanel chatPanel;
@@ -46,22 +58,54 @@ public class ConsoleView extends Div {
     private String activeConsolePanel = "chat";
 
     public ConsoleView() {
-        this(new DefaultAgentCatalogQueryService());
+        this(new ConsoleHttpClient(), new EventStreamClient(), new DefaultAgentCatalogQueryService(), new DemoConsoleRunExecutionBridge(), new RunEventRenderer());
     }
 
     @Autowired
+    public ConsoleView(
+            AgentCatalogQueryService agentCatalogQueryService,
+            SessionCommandService sessionCommandService,
+            RunCommandService runCommandService,
+            RunQueryService runQueryService) {
+        this(
+                new ConsoleHttpClient(),
+                new EventStreamClient(),
+                agentCatalogQueryService,
+                new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService),
+                new RunEventRenderer());
+    }
+
     public ConsoleView(AgentCatalogQueryService agentCatalogQueryService) {
-        this(new ConsoleHttpClient(), new EventStreamClient(), agentCatalogQueryService);
+        this(new ConsoleHttpClient(), new EventStreamClient(), agentCatalogQueryService, new DemoConsoleRunExecutionBridge(), new RunEventRenderer());
     }
 
     public ConsoleView(ConsoleHttpClient httpClient, EventStreamClient eventStreamClient) {
-        this(httpClient, eventStreamClient, new DefaultAgentCatalogQueryService());
+        this(httpClient, eventStreamClient, new DefaultAgentCatalogQueryService(), new DemoConsoleRunExecutionBridge(), new RunEventRenderer(httpClient));
     }
 
     public ConsoleView(ConsoleHttpClient httpClient, EventStreamClient eventStreamClient, AgentCatalogQueryService agentCatalogQueryService) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, new DemoConsoleRunExecutionBridge(), new RunEventRenderer(httpClient));
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, new RunEventRenderer(httpClient));
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer) {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
         this.agentCatalogQueryService = agentCatalogQueryService;
+        this.executionBridge = executionBridge;
+        this.runEventRenderer = runEventRenderer;
         this.sessionListPanel = new SessionListPanel();
         this.agentCatalogPanel = new AgentCatalogPanel(httpClient);
         this.chatPanel = new ChatEventStreamPanel();
@@ -109,7 +153,7 @@ public class ConsoleView extends Div {
         agentCatalogPanel.showCatalog(agentCatalogQueryService.listAgents(consoleRequestContext()));
     }
 
-    private static RequestContext consoleRequestContext() {
+    static RequestContext consoleRequestContext() {
         return new RequestContext(
                 new SecurityPrincipalContext("console", "vaadin-console", Set.of("ROLE_USER")),
                 new CorrelationContext("vaadin-console", "vaadin-console", null));
@@ -119,19 +163,21 @@ public class ConsoleView extends Div {
         String message = requireText(text, "text");
         chatPanel.appendUserMessage(message);
         boolean needsSession = selectedSessionId == null;
-        String sessionId = needsSession ? PENDING_SESSION_ID : selectedSessionId;
-        String runId = PENDING_RUN_ID;
+        String sessionId = needsSession ? executionBridge.createSession().sessionId() : selectedSessionId;
         selectedSessionId = sessionId;
-        activeRunId = runId;
         CreateRunRequest request = new CreateRunRequest(
                 selectedAgentId,
                 "chat",
                 Map.of("text", message),
                 null,
                 Map.of("source", "vaadin-console"));
+        RunResponse run = executionBridge.createRun(sessionId, request);
+        String runId = run.runId();
+        activeRunId = runId;
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
         runContextPanel.showRunning(sessionId, runId);
-        chatPanel.showComposerRunStatus("Running run " + runId + " in session " + sessionId, true);
+        chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
+        appendRunEvents(executionBridge.listEvents(sessionId, runId, 0));
         return new RunSubmissionPlan(
                 needsSession ? httpClient.createSessionPath() : null,
                 sessionId,
@@ -173,7 +219,11 @@ public class ConsoleView extends Div {
         }
         runContextPanel.showCancelling();
         chatPanel.showComposerCancelling();
-        return new CancelPlan(httpClient.cancelRunPath(selectedSessionId, activeRunId), new CancelRunRequest(reason));
+        CancelRunRequest request = new CancelRunRequest(reason);
+        RunStatusResponse response = executionBridge.cancelRun(selectedSessionId, activeRunId, request);
+        applyRunStatus(response.status(), response.terminal());
+        activeRunId = response.terminal() ? null : response.runId();
+        return new CancelPlan(httpClient.cancelRunPath(response.sessionId(), response.runId()), request);
     }
 
     public void applyRunStatus(String status, boolean terminal) {
@@ -221,6 +271,25 @@ public class ConsoleView extends Div {
                 && (runStatus.equalsIgnoreCase("running")
                 || runStatus.equalsIgnoreCase("queued")
                 || runStatus.equalsIgnoreCase("cancelling"));
+    }
+
+    private void appendRunEvents(EventHistoryResponse history) {
+        if (history == null || history.events() == null) {
+            return;
+        }
+        for (RunEventDto event : history.events()) {
+            RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
+            chatPanel.appendEvent(rendered);
+            if (event.type() != null && event.type().toLowerCase().contains("status") && event.payload() != null) {
+                Object status = event.payload().get("status");
+                if (status != null) {
+                    applyRunStatus(String.valueOf(status), rendered.terminal());
+                }
+            }
+            if (rendered.terminal()) {
+                applyRunStatus("terminal", true);
+            }
+        }
     }
 
     private Div createPanelSwitcher() {
@@ -282,5 +351,58 @@ public class ConsoleView extends Div {
     }
 
     public record CancelPlan(String cancelPath, CancelRunRequest request) {
+    }
+
+    static final class DemoConsoleRunExecutionBridge implements ConsoleRunExecutionBridge {
+
+        private int runCounter;
+
+        @Override
+        public SessionResponse createSession() {
+            return new SessionResponse(
+                    "tenant", "user", "session-mobile-1", "workspace", null, "ACTIVE", Instant.now(), Instant.now(), Map.of("source", "vaadin-console"));
+        }
+
+        @Override
+        public RunResponse createRun(String sessionId, CreateRunRequest request) {
+            runCounter++;
+            String runId = runCounter == 1 ? "run-mobile-1" : "run-mobile-" + runCounter;
+            return new RunResponse("tenant", "user", sessionId, runId, "workspace", "QUEUED", "trace", "correlation", Instant.now(), Instant.now());
+        }
+
+        @Override
+        public EventHistoryResponse listEvents(String sessionId, String runId, long afterSequence) {
+            List<RunEventDto> events = new ArrayList<>();
+            events.add(event(sessionId, runId, 1, "run.status", Map.of("status", "RUNNING")));
+            events.add(event(sessionId, runId, 2, "model.delta", Map.of("text", "model reply")));
+            return new EventHistoryResponse(sessionId, runId, events, afterSequence, afterSequence + events.size(), false);
+        }
+
+        @Override
+        public RunStatusResponse cancelRun(String sessionId, String runId, CancelRunRequest request) {
+            return new RunStatusResponse(sessionId, runId, "cancelled", true, Instant.now(), "trace", "correlation");
+        }
+
+        private static RunEventDto event(String sessionId, String runId, long sequence, String type, Map<String, Object> payload) {
+            return new RunEventDto(
+                    "event-" + sequence,
+                    "tenant",
+                    "user",
+                    sessionId,
+                    runId,
+                    null,
+                    "workspace",
+                    sequence,
+                    Instant.now(),
+                    type,
+                    "trace",
+                    "correlation",
+                    null,
+                    "USER",
+                    null,
+                    type,
+                    1,
+                    payload);
+        }
     }
 }
