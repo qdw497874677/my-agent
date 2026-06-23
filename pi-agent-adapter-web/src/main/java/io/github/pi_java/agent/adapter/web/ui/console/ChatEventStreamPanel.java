@@ -14,9 +14,12 @@ public class ChatEventStreamPanel extends Div {
 
     private static final String PLACEHOLDER = "Type a message for the selected Agent…";
 
-    private final Div stream = new Div();
+    private final Div feed = new Div();
+    private final Div composer = new Div();
+    private final Span composerRunStatus = new Span("No active run");
     private final TextArea input = new TextArea("Message");
     private final Button send = new Button("Send");
+    private final Button composerCancel = new Button("Cancel run");
     private final List<String> messages = new ArrayList<>();
     private final List<Component> eventComponents = new ArrayList<>();
 
@@ -24,10 +27,20 @@ public class ChatEventStreamPanel extends Div {
         addClassName("pi-console-chat");
         getElement().setAttribute("data-column", "chat-event-stream");
         getElement().setAttribute("data-primary", "chat-first");
+        feed.addClassName("pi-console-event-feed");
+        feed.getElement().setAttribute("data-role", "event-feed");
+        composer.addClassName("pi-console-composer");
+        composer.getElement().setAttribute("data-role", "chat-composer");
+        composerRunStatus.getElement().setAttribute("data-role", "composer-run-status");
         input.setPlaceholder(PLACEHOLDER);
+        input.setMinRows(2);
+        input.setMaxRows(6);
         input.getElement().setAttribute("data-role", "chat-input");
         send.getElement().setAttribute("data-action", "send-chat");
-        add(new H2("Chat"), stream, input, send);
+        composerCancel.getElement().setAttribute("data-action", "cancel-run-primary");
+        composerCancel.setVisible(false);
+        composer.add(composerRunStatus, input, send, composerCancel);
+        add(new H2("Chat"), feed, composer);
         showEmptyState();
     }
 
@@ -55,10 +68,36 @@ public class ChatEventStreamPanel extends Div {
         return eventComponents.size();
     }
 
+    public void showComposerRunStatus(String status, boolean cancellable) {
+        composerRunStatus.setText(requireText(status, "status"));
+        composerCancel.setVisible(cancellable);
+        composerCancel.getElement().setAttribute("data-prominent", Boolean.toString(cancellable));
+    }
+
+    public void showComposerCancelling() {
+        showComposerRunStatus("Cancelling run…", true);
+    }
+
+    public String composerStatusText() {
+        return composerRunStatus.getText();
+    }
+
+    public boolean composerCancelVisible() {
+        return composerCancel.isVisible();
+    }
+
+    public int inputMinRows() {
+        return input.getMinRows();
+    }
+
+    public int inputMaxRows() {
+        return input.getMaxRows();
+    }
+
     private void showEmptyState() {
         Span empty = new Span("Start with a message or continue a session from the left.");
         empty.getElement().setAttribute("data-state", "empty");
-        stream.add(empty);
+        feed.add(empty);
     }
 
     private void append(String category, String text) {
@@ -67,17 +106,17 @@ public class ChatEventStreamPanel extends Div {
 
     private void append(String category, String text, Component component) {
         if (messages.isEmpty()) {
-            stream.removeAll();
+            feed.removeAll();
         }
         messages.add(text);
         if (component != null) {
             eventComponents.add(component);
-            stream.add(component);
+            feed.add(component);
             return;
         }
         Div line = new Div(text);
         line.getElement().setAttribute("data-event-category", category);
-        stream.add(line);
+        feed.add(line);
     }
 
     private static String requireText(String value, String name) {

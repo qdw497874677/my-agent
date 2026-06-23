@@ -265,6 +265,23 @@ div {
   max-width: 100%;
 }
 
+.pi-console-chat {
+  display: grid;
+  min-height: 0;
+}
+
+.pi-console-event-feed {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+  min-height: 12rem;
+  padding-bottom: calc(var(--pi-mobile-tap-target) * 2);
+}
+
+vaadin-text-area[data-role="chat-input"] {
+  max-height: 14rem;
+  overflow: auto;
+}
+
 .pi-agent-catalog [data-role="agent-catalog-cards"],
 .pi-console-sessions [data-role="session-list"] {
   display: grid;
@@ -328,6 +345,18 @@ div {
 
   .pi-console-workbench [data-console-panel="chat"] {
     display: block;
+  }
+
+  .pi-console-composer {
+    position: sticky;
+    bottom: calc(var(--pi-mobile-safe-area-bottom) + var(--pi-mobile-space-sm));
+    z-index: 5;
+    display: grid;
+    gap: var(--pi-mobile-space-sm);
+    padding: var(--pi-mobile-space-sm);
+    border: 1px solid var(--pi-mobile-shell-border);
+    border-radius: 1rem;
+    background: var(--pi-mobile-shell-surface);
   }
 
   .pi-console-workbench > *,
