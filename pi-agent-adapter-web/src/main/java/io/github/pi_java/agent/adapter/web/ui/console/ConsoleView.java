@@ -22,6 +22,7 @@ public class ConsoleView extends Div {
     private static final String PENDING_RUN_ID = "pending-run";
     private static final String CHAT_PANEL_SELECTOR_CONTRACT = "data-console-panel=chat";
     private static final String AGENTS_TARGET_SELECTOR_CONTRACT = "data-console-target=agents";
+    private static final String SELECT_SESSION_RETURN_CONTRACT = "showConsolePanel(\"chat\")";
 
     private final ConsoleHttpClient httpClient;
     private final EventStreamClient eventStreamClient;
@@ -96,6 +97,7 @@ public class ConsoleView extends Div {
     public SessionSelectionPlan selectSession(String sessionId) {
         selectedSessionId = requireText(sessionId, "sessionId");
         sessionListPanel.selectSession(selectedSessionId);
+        showConsolePanel("chat");
         return new SessionSelectionPlan(selectedSessionId, httpClient.sessionHistoryPath(selectedSessionId));
     }
 

@@ -265,6 +265,30 @@ div {
   max-width: 100%;
 }
 
+.pi-agent-catalog [data-role="agent-catalog-cards"],
+.pi-console-sessions [data-role="session-list"] {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+}
+
+.pi-agent-card,
+.pi-session-card {
+  width: 100%;
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 1rem;
+  padding: var(--pi-mobile-space-md);
+  background: var(--pi-mobile-shell-surface);
+}
+
+.pi-agent-card-primary-action {
+  width: 100%;
+}
+
+.pi-session-card[data-session-active="true"] {
+  border-color: var(--pi-mobile-focus-color);
+  background: #e8f0ff;
+}
+
 .pi-admin-governance-surface,
 .pi-admin-governance-overview,
 .pi-admin-registry-status,

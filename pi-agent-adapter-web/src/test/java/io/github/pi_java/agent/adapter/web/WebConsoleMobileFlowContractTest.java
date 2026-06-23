@@ -73,7 +73,7 @@ class WebConsoleMobileFlowContractTest {
         panel.showCatalog(new AgentCatalogResponse(List.of(generalAgent("cloud-general-agent", "start-chat"))));
 
         assertThat(panel.getClassNames()).contains("pi-agent-catalog-panel");
-        assertThat(panel.cardsElement().getAttribute("data-role")).isEqualTo("agent-catalog-cards");
+        assertThat(panel.cardsElement().getElement().getAttribute("data-role")).isEqualTo("agent-catalog-cards");
         assertThat(panel.renderedCards().getFirst().getClassNames()).contains("pi-agent-card");
         assertThat(panel.renderedCards().getFirst().getElement().getAttribute("data-agent-id"))
                 .isEqualTo("cloud-general-agent");
@@ -90,7 +90,7 @@ class WebConsoleMobileFlowContractTest {
         panel.selectSession("session-a");
 
         Div card = panel.sessionCards().getFirst();
-        assertThat(panel.listElement().getAttribute("data-role")).isEqualTo("session-list");
+        assertThat(panel.listElement().getElement().getAttribute("data-role")).isEqualTo("session-list");
         assertThat(card.getClassNames()).contains("pi-session-card");
         assertThat(card.getElement().getAttribute("data-role")).isEqualTo("session-card");
         assertThat(card.getElement().getAttribute("data-session-id")).isEqualTo("session-a");

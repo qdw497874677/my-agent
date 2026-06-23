@@ -14,8 +14,12 @@ import java.util.stream.Collectors;
 /** Agent Catalog card that exposes run-decision metadata from the public Agent Catalog API. */
 public class AgentCard extends Div {
 
+    private static final String GENERAL_AGENT_PRIMARY_SELECTOR_CONTRACT = "data-primary-action=general-agent";
+
     private final AgentCatalogItemDto agent;
     private final String summaryText;
+    private String primaryActionMarker;
+    private String firstEntryAction;
 
     public AgentCard(AgentCatalogItemDto agent) {
         this.agent = Objects.requireNonNull(agent, "agent must not be null");
@@ -23,6 +27,9 @@ public class AgentCard extends Div {
         addClassName("pi-agent-card");
         getElement().setAttribute("data-agent-id", safe(agent.id()));
         getElement().setAttribute("data-action", "choose-agent");
+        if (isGeneralAgent(agent)) {
+            getElement().setAttribute("data-general-agent", "true");
+        }
         add(
                 new H3(safe(agent.name())),
                 new Paragraph(safe(agent.description())),
@@ -33,10 +40,21 @@ public class AgentCard extends Div {
                 line("Scopes", join(agent.allowedToolScopes())),
                 line("Risk", join(agent.riskLabels())),
                 line("Side effects", join(agent.sideEffectLabels())));
+        boolean primaryAssigned = false;
         for (AgentCatalogItemDto.EntryActionDto action : agent.entryActions()) {
             Button button = new Button(safe(action.label()));
-            button.getElement().setAttribute("data-entry-action", safe(action.id()));
+            String actionId = safe(action.id());
+            if (firstEntryAction == null) {
+                firstEntryAction = actionId;
+            }
+            button.getElement().setAttribute("data-entry-action", actionId);
             button.getElement().setAttribute("data-input-mode", safe(action.inputMode()));
+            if (isGeneralAgent(agent) && !primaryAssigned) {
+                primaryActionMarker = primaryAction(actionId);
+                button.addClassName("pi-agent-card-primary-action");
+                button.getElement().setAttribute("data-primary-action", primaryActionMarker);
+                primaryAssigned = true;
+            }
             add(button);
         }
     }
@@ -47,6 +65,26 @@ public class AgentCard extends Div {
 
     public String summaryText() {
         return summaryText;
+    }
+
+    public String primaryActionMarker() {
+        return primaryActionMarker;
+    }
+
+    public String firstEntryAction() {
+        return firstEntryAction;
+    }
+
+    private static boolean isGeneralAgent(AgentCatalogItemDto agent) {
+        return "cloud-general-agent".equals(safe(agent.id()));
+    }
+
+    private static String primaryAction(String actionId) {
+        String normalized = actionId.toLowerCase();
+        if (normalized.contains("continue")) {
+            return "general-agent-continue";
+        }
+        return "general-agent-start";
     }
 
     private static Span line(String label, String value) {

@@ -23,6 +23,7 @@ public class AgentCatalogPanel extends Div {
     public AgentCatalogPanel(ConsoleHttpClient httpClient) {
         this.httpClient = httpClient;
         addClassName("pi-agent-catalog");
+        addClassName("pi-agent-catalog-panel");
         getElement().setAttribute("data-secondary", "catalog-switcher");
         cards.getElement().setAttribute("data-role", "agent-catalog-cards");
         add(new H2("Agent Catalog"), new Paragraph("Choose or switch the Agent for the next run."), cards);
@@ -56,6 +57,14 @@ public class AgentCatalogPanel extends Div {
 
     public List<String> renderedAgentIds() {
         return renderedCards.stream().map(AgentCard::agentId).toList();
+    }
+
+    public Div cardsElement() {
+        return cards;
+    }
+
+    public List<AgentCard> renderedCards() {
+        return List.copyOf(renderedCards);
     }
 
     public String renderedText() {
