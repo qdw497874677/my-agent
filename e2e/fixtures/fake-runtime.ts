@@ -5,6 +5,10 @@ export const devHeaders = {
   'X-Pi-Dev-User': 'e2e-user',
 };
 
+export function mobileToolApprovalHint(): string {
+  return 'please stream and use a tool; approval workspace write; cancel me slowly';
+}
+
 export type RuntimeRun = {
   sessionId: string;
   runId: string;
