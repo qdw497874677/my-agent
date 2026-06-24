@@ -2,8 +2,12 @@ package io.github.pi_java.agent.adapter.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.pi_java.agent.client.event.RunEventDto;
+import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.console.ApprovalCard;
 import io.github.pi_java.agent.adapter.web.ui.console.RuntimeEventCard;
+import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
+import io.github.pi_java.agent.adapter.web.ui.console.ToolCallCard;
+import io.github.pi_java.agent.client.event.RunEventDto;
 import java.time.Instant;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -64,7 +68,67 @@ class WebConsoleRuntimeCardsTest {
         assertThat(card.getElement().getAttribute("data-layered-detail")).isEqualTo("true");
     }
 
+    @Test
+    void rendererKeepsModelDeltaTextAndReturnsRuntimeEventCard() {
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        RunEventRenderer.RenderedEvent rendered = renderer.render(event("model.delta", Map.of("text", "streamed model content")));
+
+        assertThat(rendered.category()).isEqualTo("model");
+        assertThat(rendered.terminal()).isFalse();
+        assertThat(rendered.text()).contains("streamed model content");
+        assertThat(rendered.component()).isInstanceOf(RuntimeEventCard.class);
+    }
+
+    @Test
+    void rendererReturnsRuntimeCardsForPolicyStatusTerminalAndGenericEvents() {
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        RunEventRenderer.RenderedEvent policy = renderer.render(event("policy.decision", Map.of("decision", "ALLOW")));
+        RunEventRenderer.RenderedEvent status = renderer.render(event("run.status", Map.of("status", "RUNNING")));
+        RunEventRenderer.RenderedEvent terminal = renderer.render(event("run.completed", Map.of("status", "COMPLETED")));
+        RunEventRenderer.RenderedEvent generic = renderer.render(event("runtime.heartbeat", Map.of("message", "still alive")));
+
+        assertThat(policy.category()).isEqualTo("policy");
+        assertThat(policy.text()).contains("Policy:");
+        assertThat(policy.component()).isInstanceOf(RuntimeEventCard.class);
+        assertThat(status.category()).isEqualTo("status");
+        assertThat(status.text()).contains("Run status:");
+        assertThat(status.component()).isInstanceOf(RuntimeEventCard.class);
+        assertThat(terminal.category()).isEqualTo("terminal");
+        assertThat(terminal.text()).contains("Run terminal:");
+        assertThat(terminal.component()).isInstanceOf(RuntimeEventCard.class);
+        assertThat(generic.category()).isEqualTo("event");
+        assertThat(generic.component()).isInstanceOf(RuntimeEventCard.class);
+    }
+
+    @Test
+    void rendererKeepsToolAndApprovalEventsOnSpecializedCards() {
+        RunEventRenderer renderer = new RunEventRenderer(new ConsoleHttpClient());
+
+        RunEventRenderer.RenderedEvent tool = renderer.render(event("tool.started", Map.of(
+                "toolName", "builtin.info",
+                "status", "STARTED"), "tool.lifecycle"));
+        RunEventRenderer.RenderedEvent approval = renderer.render(event("tool.approval_required", Map.of(
+                "toolCallId", "tool-call-1",
+                "toolId", "builtin.workspace.write",
+                "toolName", "builtin.workspace.write",
+                "status", "APPROVAL_REQUIRED",
+                "previewId", "preview-1"), "tool.lifecycle"));
+
+        assertThat(tool.category()).isEqualTo("tool");
+        assertThat(tool.component()).isInstanceOf(ToolCallCard.class);
+        assertThat(tool.component()).isNotInstanceOf(RuntimeEventCard.class);
+        assertThat(approval.category()).isEqualTo("approval");
+        assertThat(approval.component()).isInstanceOf(ApprovalCard.class);
+        assertThat(approval.component()).isNotInstanceOf(RuntimeEventCard.class);
+    }
+
     private static RunEventDto event(String type, Map<String, Object> payload) {
+        return event(type, payload, type);
+    }
+
+    private static RunEventDto event(String type, Map<String, Object> payload, String payloadSchema) {
         return new RunEventDto(
                 "event-1",
                 "tenant",
@@ -75,7 +139,7 @@ class WebConsoleRuntimeCardsTest {
                 "workspace",
                 7,
                 Instant.parse("2026-06-15T05:00:00Z"),
-                type,
+                payloadSchema,
                 "trace",
                 "correlation",
                 null,
