@@ -90,5 +90,5 @@ This ensures the mobile-first panel state and sticky composer work remains addit
 
 ## Deferred Handoffs
 
-- **Phase 13:** Runtime event card interiors, tool card interiors, approval card interiors, approval dialogs, risk presentation, and detailed tool/approval UX remain Phase 13. Phase 12 only verifies that tool/approval areas are reachable in the mobile feed or approved fallback surfaces.
+- **Phase 13:** Runtime event, tool, and approval interiors are implemented by Phase 13; see `docs/phase-13-runtime-cards.md` for the selector contract, redaction/detail rules, approval UX, and verification commands. Phase 15 still owns real-device/orientation/accessibility hardening.
 - **Phase 15:** Real-device Android/iOS browser UAT, orientation sweeps, final keyboard/viewport chrome checks, and deeper accessibility hardening remain Phase 15. Phase 12 uses Playwright Mobile Chrome, Mobile Safari/WebKit proxy, and Tablet projects as deterministic CI-friendly gates; local WebKit/dev-mode host dependency issues remain environment-only and do not change the selector contract.
