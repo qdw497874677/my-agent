@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
+import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import java.util.Objects;
 
@@ -16,15 +17,29 @@ public class ApprovalCard extends Div {
     private final ApprovalSummaryDto approval;
     private final ConsoleHttpClient httpClient;
     private final String actorRole;
+    private final ApprovalDecisionHandler approvalDecisionHandler;
     private final String summaryText;
+    private final Button approveButton;
+    private final Button rejectButton;
+    private final Span feedback;
     private String statusFeedback = "Awaiting backend approval decision for the original run/tool call.";
 
     public ApprovalCard(ApprovalSummaryDto approval, ConsoleHttpClient httpClient, String actorRole) {
+        this(approval, httpClient, actorRole, ApprovalDecisionHandler.demo());
+    }
+
+    public ApprovalCard(
+            ApprovalSummaryDto approval,
+            ConsoleHttpClient httpClient,
+            String actorRole,
+            ApprovalDecisionHandler approvalDecisionHandler) {
         this.approval = Objects.requireNonNull(approval, "approval must not be null");
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
         this.actorRole = normalizeRole(actorRole);
+        this.approvalDecisionHandler = Objects.requireNonNull(approvalDecisionHandler, "approvalDecisionHandler must not be null");
         this.summaryText = buildSummary(approval);
         addClassNames("pi-approval-card", "pi-card");
+        getElement().setAttribute("data-decision-state", "idle");
         getElement().setAttribute("data-event-category", "approval");
         getElement().setAttribute("data-session-id", safe(approval.sessionId()));
         getElement().setAttribute("data-run-id", safe(approval.runId()));
@@ -52,21 +67,23 @@ public class ApprovalCard extends Div {
                 field("Provision preview", RuntimeDetailRedactor.stringify(approval.provisionPreview())),
                 field("Arguments", RuntimeDetailRedactor.stringify(approval.redactedArgumentSummary())));
 
-        Button approve = new Button("Approve");
-        approve.addClassName("pi-approval-card__approve");
-        approve.getElement().setAttribute("theme", "primary success");
-        approve.getElement().setAttribute("data-action", "approve-tool-call");
-        approve.getElement().setAttribute("data-risk-action", "approve");
-        Button reject = new Button("Reject");
-        reject.addClassName("pi-approval-card__reject");
-        reject.getElement().setAttribute("theme", "error tertiary");
-        reject.getElement().setAttribute("data-action", "reject-tool-call");
-        reject.getElement().setAttribute("data-risk-action", "reject");
+        approveButton = new Button("Approve");
+        approveButton.addClassName("pi-approval-card__approve");
+        approveButton.getElement().setAttribute("theme", "primary success");
+        approveButton.getElement().setAttribute("data-action", "approve-tool-call");
+        approveButton.getElement().setAttribute("data-risk-action", "approve");
+        approveButton.addClickListener(event -> executeDecision(planApprove("Approved from mobile approval card")));
+        rejectButton = new Button("Reject");
+        rejectButton.addClassName("pi-approval-card__reject");
+        rejectButton.getElement().setAttribute("theme", "error tertiary");
+        rejectButton.getElement().setAttribute("data-action", "reject-tool-call");
+        rejectButton.getElement().setAttribute("data-risk-action", "reject");
+        rejectButton.addClickListener(event -> executeDecision(planReject("Rejected from mobile approval card")));
         Div actionRow = new Div();
         actionRow.addClassName("pi-action-row");
         actionRow.getElement().setAttribute("data-approval-actions", "inline");
-        actionRow.add(approve, reject);
-        Span feedback = new Span(statusFeedback);
+        actionRow.add(approveButton, rejectButton);
+        feedback = new Span(statusFeedback);
         feedback.addClassName("pi-approval-card__feedback");
         feedback.getElement().setAttribute("data-role", "approval-decision-feedback");
         add(header, riskGrid, preview, new Span("Actions: Approve/Reject"), new Details("Decision context", new Span(detailsText())), actionRow, feedback);
@@ -104,6 +121,28 @@ public class ApprovalCard extends Div {
 
     public ApprovalSummaryDto approval() {
         return approval;
+    }
+
+    private void executeDecision(DecisionPlan plan) {
+        updateFeedback("Submitting approval decision...");
+        getElement().setAttribute("data-decision-state", "submitting");
+        try {
+            ApprovalDecisionResponse response = approvalDecisionHandler.decide(plan);
+            updateFeedback("Decision recorded: " + response.status() + " (" + response.decision() + ")");
+            getElement().setAttribute("data-decision-state", "succeeded");
+            approveButton.setEnabled(false);
+            rejectButton.setEnabled(false);
+        } catch (RuntimeException exception) {
+            updateFeedback("Decision failed: " + fallback(exception.getMessage(), exception.getClass().getSimpleName()));
+            getElement().setAttribute("data-decision-state", "failed");
+            approveButton.setEnabled(true);
+            rejectButton.setEnabled(true);
+        }
+    }
+
+    private void updateFeedback(String value) {
+        statusFeedback = value;
+        feedback.setText(value);
     }
 
     private DecisionPlan plan(ApprovalDecisionRequest.Decision decision, String reason) {

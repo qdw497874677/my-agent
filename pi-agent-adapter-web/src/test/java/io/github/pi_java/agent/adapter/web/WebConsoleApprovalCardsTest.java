@@ -3,13 +3,19 @@ package io.github.pi_java.agent.adapter.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import io.github.pi_java.agent.app.context.RequestContext;
+import io.github.pi_java.agent.app.usecase.ApprovalCommandService;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminApprovalQueueView;
 import io.github.pi_java.agent.adapter.web.ui.console.ApprovalCard;
+import io.github.pi_java.agent.adapter.web.ui.console.ApprovalDecisionHandler;
 import io.github.pi_java.agent.adapter.web.ui.console.ApprovalPanel;
+import io.github.pi_java.agent.adapter.web.ui.console.AppApprovalDecisionHandler;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
+import io.github.pi_java.agent.client.approval.ApprovalDecisionResponse;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import java.time.Instant;
@@ -95,6 +101,87 @@ class WebConsoleApprovalCardsTest {
         assertThat(reject.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.REJECT);
         assertThat(reject.request().actorRole()).isEqualTo("USER");
         assertThat(card.statusFeedback()).contains("Reject requested").contains("same run timeline");
+    }
+
+    @Test
+    void clickingApproveCallsDecisionHandlerAndShowsSuccessFeedback() {
+        RecordingApprovalDecisionHandler handler = new RecordingApprovalDecisionHandler();
+        ApprovalCard card = new ApprovalCard(approvalSummary("USER"), new ConsoleHttpClient(), "USER", handler);
+
+        button(card, "data-risk-action", "approve").click();
+
+        assertThat(handler.plans).hasSize(1);
+        ApprovalCard.DecisionPlan plan = handler.plans.getFirst();
+        assertThat(plan.path()).isEqualTo("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision");
+        assertThat(plan.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.APPROVE);
+        assertThat(plan.request().actorRole()).isEqualTo("USER");
+        assertThat(plan.sessionId()).isEqualTo("session-1");
+        assertThat(plan.runId()).isEqualTo("run-1");
+        assertThat(plan.approvalId()).isEqualTo("preview-1");
+        assertThat(plan.toolCallId()).isEqualTo("tool-call-1");
+        assertThat(card.statusFeedback()).contains("Decision recorded:").contains("APPROVED");
+        assertThat(card.getElement().getAttribute("data-decision-state")).isEqualTo("succeeded");
+        assertThat(button(card, "data-risk-action", "approve").isEnabled()).isFalse();
+        assertThat(button(card, "data-risk-action", "reject").isEnabled()).isFalse();
+        assertThat(flattenedElements(card))
+                .anySatisfy(component -> {
+                    assertThat(component.getElement().getAttribute("data-role")).isEqualTo("approval-decision-feedback");
+                    assertThat(component.getElement().getText()).contains("Decision recorded:").contains("APPROVED");
+                });
+    }
+
+    @Test
+    void clickingRejectCallsDecisionHandlerAndShowsRejectedFeedback() {
+        RecordingApprovalDecisionHandler handler = new RecordingApprovalDecisionHandler();
+        ApprovalCard card = new ApprovalCard(approvalSummary("USER"), new ConsoleHttpClient(), "USER", handler);
+
+        button(card, "data-risk-action", "reject").click();
+
+        assertThat(handler.plans).hasSize(1);
+        ApprovalCard.DecisionPlan plan = handler.plans.getFirst();
+        assertThat(plan.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.REJECT);
+        assertThat(plan.request().actorRole()).isEqualTo("USER");
+        assertThat(plan.sessionId()).isEqualTo("session-1");
+        assertThat(plan.runId()).isEqualTo("run-1");
+        assertThat(plan.approvalId()).isEqualTo("preview-1");
+        assertThat(plan.toolCallId()).isEqualTo("tool-call-1");
+        assertThat(card.statusFeedback()).contains("Decision recorded:").contains("REJECTED");
+        assertThat(card.getElement().getAttribute("data-decision-state")).isEqualTo("succeeded");
+    }
+
+    @Test
+    void failedApprovalDecisionShowsRetryableFailureFeedback() {
+        ApprovalCard card = new ApprovalCard(approvalSummary("USER"), new ConsoleHttpClient(), "USER", plan -> {
+            throw new RuntimeException("boom");
+        });
+
+        button(card, "data-risk-action", "approve").click();
+
+        assertThat(card.statusFeedback()).isEqualTo("Decision failed: boom");
+        assertThat(card.getElement().getAttribute("data-decision-state")).isEqualTo("failed");
+        assertThat(button(card, "data-risk-action", "approve").isEnabled()).isTrue();
+        assertThat(button(card, "data-risk-action", "reject").isEnabled()).isTrue();
+    }
+
+    @Test
+    void appApprovalDecisionHandlerDelegatesWithRoleSpecificAuthorities() {
+        List<RequestContext> contexts = new java.util.ArrayList<>();
+        List<ApprovalCard.DecisionPlan> plans = new java.util.ArrayList<>();
+        ApprovalCommandService service = (context, sessionId, runId, approvalId, request) -> {
+            contexts.add(context);
+            plans.add(new ApprovalCard.DecisionPlan("delegated", request, sessionId, runId, approvalId, "tool-call-1"));
+            return response(new ApprovalCard.DecisionPlan("delegated", request, sessionId, runId, approvalId, "tool-call-1"));
+        };
+        AppApprovalDecisionHandler handler = new AppApprovalDecisionHandler(service);
+
+        handler.decide(new ApprovalCard(approvalSummary("ADMIN"), new ConsoleHttpClient(), "ADMIN").planApprove("admin ok"));
+        handler.decide(new ApprovalCard(approvalSummary("USER"), new ConsoleHttpClient(), "USER").planReject("user no"));
+
+        assertThat(plans).hasSize(2);
+        assertThat(contexts.get(0).principal().authorities()).containsExactly("ROLE_ADMIN");
+        assertThat(contexts.get(1).principal().authorities()).containsExactly("ROLE_USER");
+        assertThat(contexts.get(0).principal().userId()).isEqualTo("vaadin-approval");
+        assertThat(contexts.get(0).correlation().traceId()).isEqualTo("vaadin-approval");
     }
 
     @Test
@@ -189,6 +276,39 @@ class WebConsoleApprovalCardsTest {
                         java.util.stream.Stream.of(component),
                         component.getChildren().flatMap(child -> flattenedElements(child).stream()))
                 .toList();
+    }
+
+    private static Button button(Component component, String attribute, String value) {
+        return flattenedElements(component).stream()
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .filter(candidate -> value.equals(candidate.getElement().getAttribute(attribute)))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static ApprovalDecisionResponse response(ApprovalCard.DecisionPlan plan) {
+        return new ApprovalDecisionResponse(
+                plan.sessionId(),
+                plan.runId(),
+                plan.approvalId(),
+                plan.toolCallId(),
+                plan.request().decision(),
+                plan.request().decision() == ApprovalDecisionRequest.Decision.APPROVE ? "APPROVED" : "REJECTED",
+                "test-principal",
+                plan.request().actorRole(),
+                plan.request().reason(),
+                Instant.parse("2026-06-24T00:00:00Z"));
+    }
+
+    private static final class RecordingApprovalDecisionHandler implements ApprovalDecisionHandler {
+        private final List<ApprovalCard.DecisionPlan> plans = new java.util.ArrayList<>();
+
+        @Override
+        public ApprovalDecisionResponse decide(ApprovalCard.DecisionPlan plan) {
+            plans.add(plan);
+            return response(plan);
+        }
     }
 
     private static ApprovalSummaryDto approvalSummary(String role) {
