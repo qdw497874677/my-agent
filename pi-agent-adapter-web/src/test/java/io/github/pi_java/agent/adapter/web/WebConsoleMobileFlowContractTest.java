@@ -317,6 +317,76 @@ class WebConsoleMobileFlowContractTest {
     }
 
     @Test
+    void mcon03AppendsLaterRunEventsAfterCreateRunWithoutAnotherSend() {
+        ReplayBridge bridge = new ReplayBridge(
+                new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(), 0, 0, false),
+                new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(
+                        event("run.status", Map.of("status", "RUNNING"), 1),
+                        event("model.delta", Map.of("text", "later model reply"), 2)
+                ), 0, 2, false));
+        ConsoleView view = new ConsoleView(
+                new io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient(),
+                new io.github.pi_java.agent.adapter.web.ui.EventStreamClient(),
+                new DefaultAgentCatalogQueryService(),
+                bridge);
+
+        view.planChatSubmission("Start run before later events exist");
+        int afterCreateRunCount = view.chatPanel().messageCount();
+
+        int appended = view.refreshActiveRunEvents();
+
+        assertThat(appended).isEqualTo(2);
+        assertThat(view.chatPanel().messageCount()).isEqualTo(afterCreateRunCount + 2);
+        assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("later model reply"));
+        assertThat(bridge.afterSequences()).containsExactly(0L, 0L);
+    }
+
+    @Test
+    void mcon03ReplayRefreshDoesNotAppendDuplicateSequences() {
+        EventHistoryResponse laterEvents = new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(
+                event("model.delta", Map.of("text", "deduplicated reply"), 1)
+        ), 0, 1, false);
+        ReplayBridge bridge = new ReplayBridge(
+                new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(), 0, 0, false),
+                laterEvents,
+                laterEvents);
+        ConsoleView view = new ConsoleView(
+                new io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient(),
+                new io.github.pi_java.agent.adapter.web.ui.EventStreamClient(),
+                new DefaultAgentCatalogQueryService(),
+                bridge);
+
+        view.planChatSubmission("Start run before duplicate replay");
+        assertThat(view.refreshActiveRunEvents()).isEqualTo(1);
+        int afterFirstRefresh = view.chatPanel().messageCount();
+
+        assertThat(view.refreshActiveRunEvents()).isZero();
+        assertThat(view.chatPanel().messageCount()).isEqualTo(afterFirstRefresh);
+    }
+
+    @Test
+    void mcon03TerminalLaterEventsUpdateBothRunStatusSurfaces() {
+        ReplayBridge bridge = new ReplayBridge(
+                new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(), 0, 0, false),
+                new EventHistoryResponse("session-mobile-1", "run-mobile-1", List.of(
+                        event("run.status", Map.of("status", "COMPLETED"), 3)
+                ), 0, 3, false));
+        ConsoleView view = new ConsoleView(
+                new io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient(),
+                new io.github.pi_java.agent.adapter.web.ui.EventStreamClient(),
+                new DefaultAgentCatalogQueryService(),
+                bridge);
+
+        view.planChatSubmission("Start run before terminal event");
+
+        assertThat(view.refreshActiveRunEvents()).isEqualTo(1);
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("completed");
+        assertThat(view.runContextPanel().statusText()).containsIgnoringCase("completed");
+        assertThat(view.chatPanel().composerCancelVisible()).isFalse();
+        assertThat(view.runContextPanel().cancelProminent()).isFalse();
+    }
+
+    @Test
     void mcon05CancelAppliesDtoBackedCancellationResultToBothSurfaces() {
         ConsoleView view = new ConsoleView();
         view.planChatSubmission("Cancel this run");
@@ -428,6 +498,44 @@ class WebConsoleMobileFlowContractTest {
                 List.of(new AgentCatalogItemDto.EntryActionDto(actionId, "Start chat", "CREATE_RUN", "CHAT", Map.of())),
                 Duration.ofSeconds(30),
                 Map.of("source", "test"));
+    }
+
+    private static final class ReplayBridge implements io.github.pi_java.agent.adapter.web.ui.console.ConsoleRunExecutionBridge {
+        private final List<EventHistoryResponse> histories;
+        private final List<Long> afterSequences = new java.util.ArrayList<>();
+        private int historyIndex;
+
+        private ReplayBridge(EventHistoryResponse... histories) {
+            this.histories = List.of(histories);
+        }
+
+        @Override
+        public SessionResponse createSession() {
+            return new SessionResponse(
+                    "tenant", "user", "session-mobile-1", "workspace", null, "ACTIVE", now(), now(), Map.of("source", "test"));
+        }
+
+        @Override
+        public RunResponse createRun(String sessionId, io.github.pi_java.agent.client.run.CreateRunRequest request) {
+            return new RunResponse("tenant", "user", sessionId, "run-mobile-1", "workspace", "QUEUED", "trace", "correlation", now(), now());
+        }
+
+        @Override
+        public EventHistoryResponse listEvents(String sessionId, String runId, long afterSequence) {
+            afterSequences.add(afterSequence);
+            EventHistoryResponse history = histories.get(Math.min(historyIndex, histories.size() - 1));
+            historyIndex++;
+            return history;
+        }
+
+        @Override
+        public RunStatusResponse cancelRun(String sessionId, String runId, io.github.pi_java.agent.client.run.CancelRunRequest request) {
+            return new RunStatusResponse(sessionId, runId, "cancelled", true, now(), "trace", "correlation");
+        }
+
+        private List<Long> afterSequences() {
+            return List.copyOf(afterSequences);
+        }
     }
 
     private static RunEventDto event(String type, Map<String, Object> payload, long sequence) {
