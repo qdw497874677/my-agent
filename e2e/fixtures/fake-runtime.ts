@@ -9,6 +9,10 @@ export function mobileToolApprovalHint(): string {
   return 'please stream and use a tool; approval workspace write; cancel me slowly';
 }
 
+export function phase13RuntimeCardMatrixHint(): string {
+  return 'phase 13 runtime card matrix: emit model status policy terminal error dense detail events; use a governed tool; approval workspace write; redact sk-live-secret and raw-token-value';
+}
+
 export type RuntimeRun = {
   sessionId: string;
   runId: string;
