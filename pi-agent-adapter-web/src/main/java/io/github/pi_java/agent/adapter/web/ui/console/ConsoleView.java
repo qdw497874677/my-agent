@@ -177,6 +177,8 @@ public class ConsoleView extends Div {
         activeRunId = runId;
         activeRunNextAfterSequence = 0;
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
+        sessionListPanel.showSession(sessionId, sessionTitle(message), run.status(), latest(run.createdAt(), run.updatedAt()));
+        sessionListPanel.selectSession(sessionId);
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
         appendRunEvents(executionBridge.listEvents(sessionId, runId, 0));
@@ -291,6 +293,21 @@ public class ConsoleView extends Div {
                 && (runStatus.equalsIgnoreCase("running")
                 || runStatus.equalsIgnoreCase("queued")
                 || runStatus.equalsIgnoreCase("cancelling"));
+    }
+
+    private static String sessionTitle(String message) {
+        String normalized = requireText(message, "message").replaceAll("\\s+", " ").trim();
+        return normalized.length() <= 72 ? normalized : normalized.substring(0, 69) + "…";
+    }
+
+    private static Instant latest(Instant first, Instant second) {
+        if (first == null) {
+            return second;
+        }
+        if (second == null) {
+            return first;
+        }
+        return second.isAfter(first) ? second : first;
     }
 
     private int appendRunEvents(EventHistoryResponse history) {

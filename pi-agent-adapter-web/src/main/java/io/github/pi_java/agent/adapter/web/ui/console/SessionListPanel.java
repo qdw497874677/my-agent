@@ -33,14 +33,19 @@ public class SessionListPanel extends Div {
     }
 
     public void showSession(String sessionId, String title, Instant updatedAt) {
+        showSession(sessionId, title, "ready", updatedAt);
+    }
+
+    public void showSession(String sessionId, String title, String status, Instant updatedAt) {
         String id = requireText(sessionId, "sessionId");
         if (!sessionIds.contains(id)) {
             sessionIds.add(id);
         }
+        SessionMetadata existing = sessionMetadata.get(id);
         sessionMetadata.put(id, new SessionMetadata(
-                title == null || title.isBlank() ? "Recent session" : title,
-                "ready",
-                updatedAt == null ? "not yet updated" : updatedAt.toString()));
+                title == null || title.isBlank() ? existing == null ? "Recent session" : existing.title() : title,
+                status == null || status.isBlank() ? existing == null ? "ready" : existing.status() : status,
+                updatedAt == null ? existing == null ? "not yet updated" : existing.updatedAt() : updatedAt.toString()));
         renderList();
     }
 
@@ -49,7 +54,7 @@ public class SessionListPanel extends Div {
         if (!sessionIds.contains(selectedSessionId)) {
             sessionIds.add(selectedSessionId);
         }
-        sessionMetadata.put(selectedSessionId, new SessionMetadata("Selected session", "ready", "not yet updated"));
+        sessionMetadata.putIfAbsent(selectedSessionId, new SessionMetadata("Selected session", "ready", "not yet updated"));
         renderList();
     }
 
