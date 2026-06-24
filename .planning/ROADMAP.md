@@ -97,7 +97,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 13-runtime-cards-timeline-tool-and-approval-ux-01-PLAN.md — Runtime timeline-card foundation and reusable redaction
-- [ ] 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md — Structured redacted tool execution cards
+- [x] 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md — Structured redacted tool execution cards
 - [ ] 13-runtime-cards-timeline-tool-and-approval-ux-03-PLAN.md — Inline risk-first approval card UX
 - [ ] 13-runtime-cards-timeline-tool-and-approval-ux-04-PLAN.md — Mobile CSS, browser matrix gate, and documentation
 **UI hint**: yes
@@ -137,7 +137,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
-| 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 1/4 | In Progress|  |
+| 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 2/4 | In Progress|  |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
 
