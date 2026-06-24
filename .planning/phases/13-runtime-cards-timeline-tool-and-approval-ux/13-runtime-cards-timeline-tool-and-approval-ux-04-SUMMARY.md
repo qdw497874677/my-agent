@@ -74,7 +74,7 @@ Each task was committed atomically:
 2. **Task 2: Add representative Phase 13 Playwright runtime-card gate** - `7445150` (test)
 3. **Task 3: Document Phase 13 selector and verification handoff** - `4b72ce2` (docs)
 
-**Plan metadata:** pending final docs commit
+**Plan metadata:** `c3aacc8` (docs)
 
 ## Files Created/Modified
 
