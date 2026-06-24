@@ -53,10 +53,23 @@ public class ApprovalCard extends Div {
                 field("Arguments", RuntimeDetailRedactor.stringify(approval.redactedArgumentSummary())));
 
         Button approve = new Button("Approve");
+        approve.addClassName("pi-approval-card__approve");
+        approve.getElement().setAttribute("theme", "primary success");
         approve.getElement().setAttribute("data-action", "approve-tool-call");
+        approve.getElement().setAttribute("data-risk-action", "approve");
         Button reject = new Button("Reject");
+        reject.addClassName("pi-approval-card__reject");
+        reject.getElement().setAttribute("theme", "error tertiary");
         reject.getElement().setAttribute("data-action", "reject-tool-call");
-        add(header, riskGrid, preview, new Span("Actions: Approve/Reject"), new Details("Decision context", new Span(detailsText())), approve, reject);
+        reject.getElement().setAttribute("data-risk-action", "reject");
+        Div actionRow = new Div();
+        actionRow.addClassName("pi-action-row");
+        actionRow.getElement().setAttribute("data-approval-actions", "inline");
+        actionRow.add(approve, reject);
+        Span feedback = new Span(statusFeedback);
+        feedback.addClassName("pi-approval-card__feedback");
+        feedback.getElement().setAttribute("data-role", "approval-decision-feedback");
+        add(header, riskGrid, preview, new Span("Actions: Approve/Reject"), new Details("Decision context", new Span(detailsText())), actionRow, feedback);
     }
 
     public static ApprovalCard from(ApprovalSummaryDto approval, ConsoleHttpClient httpClient) {

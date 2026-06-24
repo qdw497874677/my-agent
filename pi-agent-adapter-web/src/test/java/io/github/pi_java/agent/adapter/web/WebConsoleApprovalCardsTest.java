@@ -2,6 +2,7 @@ package io.github.pi_java.agent.adapter.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.vaadin.flow.component.Component;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminApprovalQueueView;
 import io.github.pi_java.agent.adapter.web.ui.console.ApprovalCard;
@@ -92,7 +93,40 @@ class WebConsoleApprovalCardsTest {
         assertThat(approve.request().actorRole()).isEqualTo("USER");
         assertThat(reject.path()).isEqualTo("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision");
         assertThat(reject.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.REJECT);
+        assertThat(reject.request().actorRole()).isEqualTo("USER");
         assertThat(card.statusFeedback()).contains("Reject requested").contains("same run timeline");
+    }
+
+    @Test
+    void inlineApprovalActionsHaveStableTouchSafeActionRowHooks() {
+        ApprovalCard card = new ApprovalCard(approvalSummary("USER"), new ConsoleHttpClient(), "USER");
+
+        assertThat(card.getChildren())
+                .anySatisfy(child -> assertThat(child.getElement().getAttribute("data-approval-actions")).isEqualTo("inline"));
+        assertThat(flattenedElements(card))
+                .anySatisfy(component -> {
+                    assertThat(component.getElement().getAttribute("data-action")).isEqualTo("approve-tool-call");
+                    assertThat(component.getElement().getAttribute("data-risk-action")).isEqualTo("approve");
+                })
+                .anySatisfy(component -> {
+                    assertThat(component.getElement().getAttribute("data-action")).isEqualTo("reject-tool-call");
+                    assertThat(component.getElement().getAttribute("data-risk-action")).isEqualTo("reject");
+                })
+                .anySatisfy(component -> assertThat(component.getElement().getAttribute("data-role"))
+                        .isEqualTo("approval-decision-feedback"));
+    }
+
+    @Test
+    void adminDecisionPlansUseAdminActorRoleForApproveAndReject() {
+        ApprovalCard card = new ApprovalCard(approvalSummary("ADMIN"), new ConsoleHttpClient(), "ADMIN");
+
+        ApprovalCard.DecisionPlan approve = card.planApprove("admin approves");
+        ApprovalCard.DecisionPlan reject = card.planReject("admin rejects");
+
+        assertThat(approve.request().actorRole()).isEqualTo("ADMIN");
+        assertThat(reject.request().actorRole()).isEqualTo("ADMIN");
+        assertThat(approve.toolCallId()).isEqualTo("tool-call-1");
+        assertThat(reject.toolCallId()).isEqualTo("tool-call-1");
     }
 
     @Test
@@ -148,6 +182,13 @@ class WebConsoleApprovalCardsTest {
         assertThat(plan.path()).isEqualTo("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision");
         assertThat(plan.request().actorRole()).isEqualTo("ADMIN");
         assertThat(plan.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.APPROVE);
+    }
+
+    private static List<Component> flattenedElements(Component component) {
+        return java.util.stream.Stream.concat(
+                        java.util.stream.Stream.of(component),
+                        component.getChildren().flatMap(child -> flattenedElements(child).stream()))
+                .toList();
     }
 
     private static ApprovalSummaryDto approvalSummary(String role) {
