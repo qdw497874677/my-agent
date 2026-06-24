@@ -25,7 +25,8 @@ public class RunEventRenderer {
         Map<String, Object> payload = event.payload() == null ? Map.of() : event.payload();
         String lower = type.toLowerCase();
         if (lower.contains("model.delta")) {
-            return new RenderedEvent("model", value(payload, "text", "delta", "content"), false);
+            String text = value(payload, "text", "delta", "content");
+            return runtimeEvent(event, "model", text, false, value(payload, "status", "state"));
         }
         if (lower.contains("approval_required") || "APPROVAL_REQUIRED".equalsIgnoreCase(value(payload, "status"))) {
             ApprovalCard card = ApprovalCard.from(toApprovalSummary(event, payload), httpClient);
@@ -36,15 +37,24 @@ public class RunEventRenderer {
             return new RenderedEvent("tool", card.summaryText(), terminal(lower, payload), card);
         }
         if (lower.contains("policy")) {
-            return new RenderedEvent("policy", "Policy: " + value(payload, "decision", "reason", "status"), terminal(lower, payload), null);
+            String text = "Policy: " + value(payload, "decision", "reason", "status");
+            return runtimeEvent(event, "policy", text, terminal(lower, payload), value(payload, "status", "decision"));
         }
         if (lower.contains("completed") || lower.contains("failed") || lower.contains("cancelled")) {
-            return new RenderedEvent("terminal", "Run terminal: " + value(payload, "status", "reason", "message"), true, null);
+            String text = "Run terminal: " + value(payload, "status", "reason", "message");
+            return runtimeEvent(event, "terminal", text, true, value(payload, "status", "state"));
         }
         if (lower.contains("status")) {
-            return new RenderedEvent("status", "Run status: " + value(payload, "status", "state", "message"), terminal(lower, payload), null);
+            String text = "Run status: " + value(payload, "status", "state", "message");
+            return runtimeEvent(event, "status", text, terminal(lower, payload), value(payload, "status", "state"));
         }
-        return new RenderedEvent("event", type + ": " + payload, terminal(lower, payload), null);
+        String text = type + ": " + payload;
+        return runtimeEvent(event, "event", text, terminal(lower, payload), value(payload, "status", "state"));
+    }
+
+    private static RenderedEvent runtimeEvent(RunEventDto event, String category, String text, boolean terminal, String status) {
+        RuntimeEventCard card = RuntimeEventCard.from(event, category, fallback(status, event.type()), text);
+        return new RenderedEvent(category, text, terminal, card);
     }
 
     private static String value(Map<String, Object> payload, String... keys) {
