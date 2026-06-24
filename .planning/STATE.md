@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-06-24T04:29:01.829Z"
+stopped_at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-01-PLAN.md
+last_updated: "2026-06-24T05:45:05.345Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 16
+  completed_plans: 13
   percent: 100
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 12 — console-mobile-first-flow
+**Current focus:** Phase 13 — runtime-cards-timeline-tool-and-approval-ux
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
+Phase: 13 (runtime-cards-timeline-tool-and-approval-ux) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
 Last activity: 2026-06-24
 
@@ -68,6 +68,7 @@ Progress: [██████████] 100%
 | Phase 12-console-mobile-first-flow P04 | 12min | 3 tasks | 7 files |
 | Phase 12-console-mobile-first-flow P05 | 14min | 3 tasks | 6 files |
 | Phase 12-console-mobile-first-flow P06 | 9m03s | 3 tasks | 5 files |
+| Phase 13-runtime-cards-timeline-tool-and-approval-ux P01 | 9min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 12-console-mobile-first-flow]: Treat terminal cancellation races as acceptable mobile feedback and harden double-click/no-active-run UI handlers to show status instead of throwing.
 - [Phase 12-console-mobile-first-flow]: Use a Vaadin poll-backed bounded replay hook in adapter-web rather than new mobile-only REST/SSE APIs.
 - [Phase 12-console-mobile-first-flow]: Make MVER-03 fail on empty-session fallbacks by requiring an active [data-role=session-card].
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Runtime cards stay inside RunEventRenderer and ChatEventStreamPanel appendEvent seams instead of adding a standalone timeline route.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Sensitive runtime diagnostics use a package-private adapter-web redaction utility for conservative mobile detail rendering.
 
 ### Pending Todos
 
@@ -119,9 +122,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-24T04:29:01.825Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-runtime-cards-timeline-tool-and-approval-ux/13-CONTEXT.md
+Last session: 2026-06-24T05:45:05.342Z
+Stopped at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-20 after v1.1 roadmap creation*
