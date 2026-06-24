@@ -170,9 +170,9 @@ class WebConsoleMobileFlowContractTest {
         assertThat(card.getElement().getAttribute("data-role")).isEqualTo("session-card");
         assertThat(card.getElement().getAttribute("data-session-id")).isEqualTo("session-a");
         assertThat(card.getElement().getAttribute("data-session-active")).isEqualTo("true");
-        assertThat(fieldText(card, "session-title")).contains("Selected session");
+        assertThat(fieldText(card, "session-title")).contains("Architecture review");
         assertThat(fieldText(card, "session-status")).contains("ready");
-        assertThat(fieldText(card, "session-updated-at")).contains("not yet updated");
+        assertThat(fieldText(card, "session-updated-at")).contains("2026-06-23T05:00:00Z");
     }
 
     @Test
@@ -303,6 +303,42 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
         assertThat(view.runContextPanel().statusText()).containsIgnoringCase("running");
         assertThat(view.chatPanel().composerCancelVisible()).isTrue();
+    }
+
+    @Test
+    void mcon04SuccessfulSendAddsVisibleActiveSessionCardWithPromptTitle() {
+        ConsoleView view = new ConsoleView();
+
+        view.planChatSubmission("Summarize mobile session history after send");
+
+        SessionListPanel sessions = view.sessionListPanel();
+        assertThat(sessions.sessionCount()).isEqualTo(1);
+        assertThat(sessions.selectedSessionId()).isEqualTo("session-mobile-1");
+        Div card = sessions.sessionCards().getFirst();
+        assertThat(card.getElement().getAttribute("data-role")).isEqualTo("session-card");
+        assertThat(card.getElement().getAttribute("data-session-id")).isEqualTo("session-mobile-1");
+        assertThat(card.getElement().getAttribute("data-session-active")).isEqualTo("true");
+        assertThat(fieldText(card, "session-title")).contains("Summarize mobile session history after send");
+        assertThat(fieldText(card, "session-status")).containsIgnoringCase("queued");
+        assertThat(fieldText(card, "session-updated-at")).contains("2026");
+    }
+
+    @Test
+    void mcon04ActivatingCreatedSessionReturnsToChatAndNextSendContinuesSameSession() {
+        ConsoleView view = new ConsoleView();
+
+        view.planChatSubmission("Create selectable session card");
+        view.showConsolePanel("sessions");
+        view.sessionListPanel().activateSessionCardForTest("session-mobile-1", "click");
+        ConsoleView.RunSubmissionPlan continued = view.planChatSubmission("Continue same selected session");
+
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
+        assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-mobile-1");
+        assertThat(continued.createSessionPath()).isNull();
+        assertThat(continued.sessionId()).isEqualTo("session-mobile-1");
+        assertThat(view.sessionListPanel().sessionCount()).isEqualTo(1);
+        assertThat(view.sessionListPanel().sessionCards().getFirst().getElement().getAttribute("data-session-active"))
+                .isEqualTo("true");
     }
 
     @Test
