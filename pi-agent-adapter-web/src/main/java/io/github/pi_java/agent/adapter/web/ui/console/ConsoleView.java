@@ -55,6 +55,7 @@ public class ConsoleView extends Div {
     private String selectedAgentId = DEFAULT_AGENT_ID;
     private String selectedSessionId;
     private String activeRunId;
+    private long activeRunNextAfterSequence;
     private String activeConsolePanel = "chat";
 
     public ConsoleView() {
@@ -174,6 +175,7 @@ public class ConsoleView extends Div {
         RunResponse run = executionBridge.createRun(sessionId, request);
         String runId = run.runId();
         activeRunId = runId;
+        activeRunNextAfterSequence = 0;
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
@@ -209,8 +211,17 @@ public class ConsoleView extends Div {
     public void markRunRunning(String sessionId, String runId) {
         selectedSessionId = requireText(sessionId, "sessionId");
         activeRunId = requireText(runId, "runId");
+        activeRunNextAfterSequence = 0;
         runContextPanel.showRunning(selectedSessionId, activeRunId);
         chatPanel.showComposerRunStatus("Running run " + activeRunId + " in session " + selectedSessionId, true);
+    }
+
+    public int refreshActiveRunEvents() {
+        if (selectedSessionId == null || activeRunId == null) {
+            return 0;
+        }
+        EventHistoryResponse history = executionBridge.listEvents(selectedSessionId, activeRunId, activeRunNextAfterSequence);
+        return appendRunEvents(history);
     }
 
     public CancelPlan planCancelRunningRun(String reason) {
@@ -282,23 +293,35 @@ public class ConsoleView extends Div {
                 || runStatus.equalsIgnoreCase("cancelling"));
     }
 
-    private void appendRunEvents(EventHistoryResponse history) {
+    private int appendRunEvents(EventHistoryResponse history) {
         if (history == null || history.events() == null) {
-            return;
+            return 0;
         }
+        int appended = 0;
         for (RunEventDto event : history.events()) {
+            if (event.sequence() <= activeRunNextAfterSequence) {
+                continue;
+            }
             RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
             chatPanel.appendEvent(rendered);
+            activeRunNextAfterSequence = Math.max(activeRunNextAfterSequence, event.sequence());
+            appended++;
+            boolean statusApplied = false;
             if (event.type() != null && event.type().toLowerCase().contains("status") && event.payload() != null) {
                 Object status = event.payload().get("status");
                 if (status != null) {
                     applyRunStatus(String.valueOf(status), rendered.terminal());
+                    statusApplied = true;
                 }
             }
-            if (rendered.terminal()) {
+            if (rendered.terminal() && !statusApplied) {
                 applyRunStatus("terminal", true);
             }
         }
+        if (history.nextAfterSequence() > activeRunNextAfterSequence) {
+            activeRunNextAfterSequence = history.nextAfterSequence();
+        }
+        return appended;
     }
 
     private Div createPanelSwitcher() {
