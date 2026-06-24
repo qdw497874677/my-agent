@@ -7,7 +7,6 @@ import io.github.pi_java.agent.client.event.RunEventDto;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /** Expandable, redacted governed tool lifecycle card for the integrated Console event stream. */
 public class ToolCallCard extends Div {
@@ -15,36 +14,47 @@ public class ToolCallCard extends Div {
     private final String summaryText;
     private final String detailsText;
 
-    private ToolCallCard(String summaryText, String detailsText, String status) {
+    private ToolCallCard(String summaryText, String detailsText, String status, String toolName, String source, String policy) {
         this.summaryText = summaryText;
         this.detailsText = detailsText;
-        addClassName("pi-tool-call-card");
+        addClassNames("pi-tool-call-card", "pi-card");
         getElement().setAttribute("data-event-category", "tool");
         getElement().setAttribute("data-tool-status", safe(status));
+        getElement().setAttribute("data-tool-name", safe(toolName));
+        getElement().setAttribute("data-tool-source", safe(source));
+        getElement().setAttribute("data-policy-state", safe(policy));
         getElement().setAttribute("data-expandable", "true");
-        add(new Span(summaryText), new Details("Details", new Span(detailsText)));
+        add(summary(summaryText));
     }
 
     public static ToolCallCard from(RunEventDto event) {
         Objects.requireNonNull(event, "event must not be null");
         Map<String, Object> payload = event.payload() == null ? Map.of() : event.payload();
         String toolName = first(payload, "toolName", "tool", "toolId", "descriptorRef");
+        String source = first(payload, "source", "provider", "registrySource", "toolSource");
         String status = first(payload, "status", "decision", "phase");
-        String purpose = first(payload, "purpose", "summary", "reason", "policyReason");
+        String policy = first(payload, "policyDecision", "policyState", "policyReason", "decision");
+        String approval = first(payload, "approvalState", "approvalStatus", "requiresApproval", "previewId");
+        String duration = first(payload, "durationMs", "durationMillis", "elapsedMs", "duration");
+        String purpose = first(payload, "purpose", "summary", "reason", "resultSummary", "outputSummary", "redactedResultSummary");
         String risk = first(payload, "riskLevel", "risk", "riskLabel");
         String sideEffect = first(payload, "sideEffect", "sideEffectLevel", "sideEffectLabel");
         String progress = first(payload, "progress", "percent", "progressText");
         String result = first(payload, "resultSummary", "outputSummary", "redactedResultSummary");
         String error = first(payload, "errorCategory", "error", "errorSummary");
         String summary = String.join(" | ",
-                "Tool " + fallback(toolName, "event"),
-                "status=" + fallback(status, event.type()),
-                "purpose=" + fallback(purpose, "not specified"),
-                "risk=" + fallback(risk, "unknown"),
-                "sideEffect=" + fallback(sideEffect, "unknown"),
-                "progress=" + fallback(progress, "n/a"),
-                "result=" + fallback(result, "pending"),
-                "error=" + fallback(error, "none"));
+                "Tool: " + fallback(toolName, "event"),
+                "Source: " + fallback(source, "runtime"),
+                "Status: " + fallback(status, event.type()),
+                "Policy: " + fallback(policy, "unknown"),
+                "Approval: " + fallback(approval, "unknown"),
+                "Duration: " + fallback(formatDuration(duration), "n/a"),
+                "Error: " + fallback(error, "none"),
+                "Summary: " + fallback(purpose, "not specified"),
+                "Risk: " + fallback(risk, "unknown"),
+                "Side effect: " + fallback(sideEffect, "unknown"),
+                "Progress: " + fallback(progress, "n/a"),
+                "Result: " + fallback(result, "pending"));
         String details = "sequence=" + event.sequence()
                 + " | type=" + safe(event.type())
                 + " | payloadSchema=" + safe(event.payloadSchema())
@@ -52,7 +62,7 @@ public class ToolCallCard extends Div {
                 + " | policyReason=" + fallback(first(payload, "policyReason", "policy", "decisionReason"), "n/a")
                 + " | previewId=" + fallback(first(payload, "previewId", "previewRef"), "n/a")
                 + " | diagnostics=" + value(payload);
-        return new ToolCallCard(summary, details, status);
+        return new ToolCallCard(summary, details, status, toolName, fallback(source, "runtime"), policy);
     }
 
     public String summaryText() {
@@ -75,18 +85,7 @@ public class ToolCallCard extends Div {
 
     @SuppressWarnings("unchecked")
     private static String value(Object value) {
-        if (value == null) {
-            return "";
-        }
-        if (value instanceof Map<?, ?> map) {
-            return map.entrySet().stream()
-                    .map(entry -> safe(String.valueOf(entry.getKey())) + "=" + value(entry.getValue()))
-                    .collect(Collectors.joining(", ", "{", "}"));
-        }
-        if (value instanceof Collection<?> collection) {
-            return collection.stream().map(ToolCallCard::value).collect(Collectors.joining(", ", "[", "]"));
-        }
-        return safe(String.valueOf(value));
+        return RuntimeDetailRedactor.stringify(value);
     }
 
     private static String fallback(String value, String fallback) {
@@ -97,21 +96,21 @@ public class ToolCallCard extends Div {
         if (value == null || value.isBlank()) {
             return "unknown";
         }
-        String sanitized = value.trim();
-        if (looksSensitive(sanitized)) {
-            return "[REDACTED]";
-        }
-        return sanitized;
+        return RuntimeDetailRedactor.redact(value.trim());
     }
 
-    private static boolean looksSensitive(String value) {
-        String lower = value.toLowerCase();
-        return lower.contains("sk-live-")
-                || lower.contains("raw-token-value")
-                || lower.contains("api_key=")
-                || lower.contains("api-key=")
-                || lower.contains("password=")
-                || lower.contains("secret=")
-                || lower.contains("token=");
+    private Div summary(String text) {
+        Div container = new Div();
+        container.addClassName("pi-tool-call-card__summary");
+        container.add(new Span(text));
+        return container;
+    }
+
+    private static String formatDuration(String duration) {
+        if (duration == null || duration.isBlank()) {
+            return "";
+        }
+        String trimmed = duration.trim();
+        return trimmed.matches("\\d+") ? trimmed + "ms" : trimmed;
     }
 }

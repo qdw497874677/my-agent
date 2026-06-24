@@ -67,28 +67,43 @@ class WebConsoleCatalogAndToolCardsTest {
 
     @Test
     void toolCardSummaryShowsLifecycleFieldsAndRedactedOutcome() {
-        RunEventDto completed = toolEvent("tool.completed", Map.of(
-                "toolName", "workspace.write",
-                "status", "COMPLETED",
-                "purpose", "Write generated report",
-                "riskLevel", "MEDIUM",
-                "sideEffect", "WORKSPACE_WRITE",
-                "progress", "100%",
-                "resultSummary", "Wrote report.md with token [REDACTED]",
-                "errorCategory", "none"));
+        RunEventDto completed = toolEvent("tool.completed", Map.ofEntries(
+                Map.entry("toolName", "workspace.write"),
+                Map.entry("source", "builtin"),
+                Map.entry("status", "COMPLETED"),
+                Map.entry("policyDecision", "ALLOW"),
+                Map.entry("approvalState", "APPROVED"),
+                Map.entry("durationMs", 245),
+                Map.entry("purpose", "Write generated report"),
+                Map.entry("riskLevel", "MEDIUM"),
+                Map.entry("sideEffect", "WORKSPACE_WRITE"),
+                Map.entry("progress", "100%"),
+                Map.entry("resultSummary", "Wrote report.md with token [REDACTED]"),
+                Map.entry("errorCategory", "none")));
 
         ToolCallCard card = ToolCallCard.from(completed);
 
         assertThat(card.summaryText())
-                .contains("workspace.write")
-                .contains("COMPLETED")
+                .contains("Tool", "workspace.write")
+                .contains("Source", "builtin")
+                .contains("Status", "COMPLETED")
+                .contains("Policy", "ALLOW")
+                .contains("Approval", "APPROVED")
+                .contains("Duration", "245")
+                .contains("Error", "none")
+                .contains("Summary", "Wrote report.md")
                 .contains("Write generated report")
                 .contains("MEDIUM")
                 .contains("WORKSPACE_WRITE")
                 .contains("100%")
                 .contains("[REDACTED]")
                 .doesNotContain("sk-live-secret");
+        assertThat(card.detailsText()).contains("workspace.write");
+        assertThat(card.getElement().getAttribute("data-event-category")).isEqualTo("tool");
         assertThat(card.getElement().getAttribute("data-tool-status")).isEqualTo("COMPLETED");
+        assertThat(card.getElement().getAttribute("data-tool-name")).isEqualTo("workspace.write");
+        assertThat(card.getElement().getAttribute("data-tool-source")).isEqualTo("builtin");
+        assertThat(card.getElement().getAttribute("data-policy-state")).isEqualTo("ALLOW");
         assertThat(card.getElement().getAttribute("data-expandable")).isEqualTo("true");
     }
 
