@@ -3,14 +3,12 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.client.approval.ApprovalDecisionRequest;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /** User/Admin approval decision card for gated governed tool calls. */
 public class ApprovalCard extends Div {
@@ -26,18 +24,39 @@ public class ApprovalCard extends Div {
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
         this.actorRole = normalizeRole(actorRole);
         this.summaryText = buildSummary(approval);
-        addClassName("pi-approval-card");
+        addClassNames("pi-approval-card", "pi-card");
         getElement().setAttribute("data-event-category", "approval");
         getElement().setAttribute("data-session-id", safe(approval.sessionId()));
         getElement().setAttribute("data-run-id", safe(approval.runId()));
         getElement().setAttribute("data-approval-id", safe(approval.approvalId()));
         getElement().setAttribute("data-tool-call-id", safe(approval.toolCallId()));
         getElement().setAttribute("data-actor-role", this.actorRole);
+        getElement().setAttribute("data-risk-level", fallback(approval.riskLabel(), "unknown"));
+        getElement().setAttribute("data-side-effect", fallback(approval.sideEffectLabel(), "unknown"));
+
+        Div header = new Div();
+        header.addClassName("pi-approval-card__header");
+        header.add(new H4("Approval required"), new Span(fallback(approval.toolName(), approval.toolId())));
+
+        Div riskGrid = new Div();
+        riskGrid.addClassName("pi-approval-card__risk-grid");
+        riskGrid.add(
+                field("Risk", fallback(approval.riskLabel(), "unknown")),
+                field("Side effect", fallback(approval.sideEffectLabel(), "unknown")),
+                field("Policy reason", fallback(approval.policyReason(), "review required")),
+                field("Expected consequence", fallback(approval.expectedConsequence(), "Approve or reject changes the original run state.")));
+
+        Div preview = new Div();
+        preview.addClassName("pi-approval-card__preview");
+        preview.add(
+                field("Provision preview", RuntimeDetailRedactor.stringify(approval.provisionPreview())),
+                field("Arguments", RuntimeDetailRedactor.stringify(approval.redactedArgumentSummary())));
+
         Button approve = new Button("Approve");
         approve.getElement().setAttribute("data-action", "approve-tool-call");
         Button reject = new Button("Reject");
         reject.getElement().setAttribute("data-action", "reject-tool-call");
-        add(new Span(summaryText), new Details("Decision context", new Span(detailsText())), approve, reject);
+        add(header, riskGrid, preview, new Span("Actions: Approve/Reject"), new Details("Decision context", new Span(detailsText())), approve, reject);
     }
 
     public static ApprovalCard from(ApprovalSummaryDto approval, ConsoleHttpClient httpClient) {
@@ -61,9 +80,9 @@ public class ApprovalCard extends Div {
                 + " | run=" + safe(approval.runId())
                 + " | approval=" + safe(approval.approvalId())
                 + " | toolCall=" + safe(approval.toolCallId())
-                + " | preview=" + value(approval.provisionPreview())
-                + " | arguments=" + value(approval.redactedArgumentSummary())
-                + " | eligibleRoles=" + value(approval.eligibleActorRoles());
+                + " | preview=" + RuntimeDetailRedactor.stringify(approval.provisionPreview())
+                + " | arguments=" + RuntimeDetailRedactor.stringify(approval.redactedArgumentSummary())
+                + " | eligibleRoles=" + RuntimeDetailRedactor.stringify(approval.eligibleActorRoles());
     }
 
     public String statusFeedback() {
@@ -91,13 +110,24 @@ public class ApprovalCard extends Div {
     private static String buildSummary(ApprovalSummaryDto approval) {
         return String.join(" | ",
                 "Approval required for " + fallback(approval.toolName(), approval.toolId()),
-                "policy=" + fallback(approval.policyReason(), "review required"),
-                "risk=" + fallback(approval.riskLabel(), "unknown"),
-                "sideEffect=" + fallback(approval.sideEffectLabel(), "unknown"),
-                "preview=" + value(approval.provisionPreview()),
-                "arguments=" + value(approval.redactedArgumentSummary()),
-                "expected=" + fallback(approval.expectedConsequence(), "Approve or reject changes the original run state."),
-                "actions=Approve/Reject");
+                "Policy reason=" + fallback(approval.policyReason(), "review required"),
+                "Risk=" + fallback(approval.riskLabel(), "unknown"),
+                "Side effect=" + fallback(approval.sideEffectLabel(), "unknown"),
+                "Provision preview=" + RuntimeDetailRedactor.stringify(approval.provisionPreview()),
+                "Arguments=" + RuntimeDetailRedactor.stringify(approval.redactedArgumentSummary()),
+                "Expected consequence=" + fallback(approval.expectedConsequence(), "Approve or reject changes the original run state."),
+                "Actions=Approve/Reject");
+    }
+
+    private static Div field(String label, String value) {
+        Div field = new Div();
+        field.addClassName("pi-approval-card__field");
+        Span labelSpan = new Span(label);
+        labelSpan.addClassName("pi-approval-card__label");
+        Span valueSpan = new Span(fallback(value, "unknown"));
+        valueSpan.addClassName("pi-approval-card__value");
+        field.add(labelSpan, valueSpan);
+        return field;
     }
 
     private static String normalizeRole(String role) {
@@ -106,21 +136,6 @@ public class ApprovalCard extends Div {
 
     private static String fallback(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
-    }
-
-    private static String value(Object value) {
-        if (value == null) {
-            return "";
-        }
-        if (value instanceof Map<?, ?> map) {
-            return map.entrySet().stream()
-                    .map(entry -> safe(String.valueOf(entry.getKey())) + "=" + value(entry.getValue()))
-                    .collect(Collectors.joining(", ", "{", "}"));
-        }
-        if (value instanceof Collection<?> collection) {
-            return collection.stream().map(ApprovalCard::value).collect(Collectors.joining(", ", "[", "]"));
-        }
-        return safe(String.valueOf(value));
     }
 
     private static String safe(String value) {

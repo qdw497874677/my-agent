@@ -33,13 +33,51 @@ class WebConsoleApprovalCardsTest {
                 .contains("write notes/approval.txt")
                 .contains("path=notes/approval.txt")
                 .contains("Approve resumes")
+                .contains("Approval required")
+                .contains("Risk")
+                .contains("Side effect")
+                .contains("Policy reason")
+                .contains("Expected consequence")
+                .contains("Provision preview")
+                .contains("Arguments")
                 .contains("Approve")
                 .contains("Reject")
                 .doesNotContain("sk-live-secret")
                 .doesNotContain("raw-token-value");
         assertThat(card.getElement().getAttribute("data-event-category")).isEqualTo("approval");
+        assertThat(card.getElement().getAttribute("class")).contains("pi-approval-card").contains("pi-card");
+        assertThat(card.getElement().getAttribute("data-risk-level")).isEqualTo("MEDIUM");
+        assertThat(card.getElement().getAttribute("data-side-effect")).isEqualTo("WORKSPACE_WRITE");
         assertThat(card.getElement().getAttribute("data-approval-id")).isEqualTo("preview-1");
         assertThat(card.getElement().getAttribute("data-tool-call-id")).isEqualTo("tool-call-1");
+        assertThat(card.getElement().getAttribute("data-actor-role")).isEqualTo("USER");
+        assertThat(card.detailsText())
+                .contains("eligibleRoles=[USER]")
+                .doesNotContain("sk-live-secret")
+                .doesNotContain("raw-token-value");
+    }
+
+    @Test
+    void approvalCardRedactsRawSensitivePreviewAndArgumentValues() {
+        ApprovalSummaryDto approval = new ApprovalSummaryDto("session-1", "run-1", "preview-1", "tool-call-1",
+                "builtin.workspace.write", "builtin.workspace.write", "workspace writes require approval", "HIGH",
+                "EXTERNAL_CALL", Map.of("apiKey", "sk-live-secret", "impact", "write token=raw-token-value"),
+                Map.of("authorization", "bearer raw-token-value", "path", "notes/approval.txt"),
+                "Approve resumes the gated tool path; reject records a same-run policy outcome.", true,
+                Set.of("USER"));
+
+        ApprovalCard card = new ApprovalCard(approval, new ConsoleHttpClient(), "USER");
+
+        assertThat(card.summaryText())
+                .contains("[REDACTED]")
+                .doesNotContain("sk-live-secret")
+                .doesNotContain("raw-token-value")
+                .doesNotContain("bearer raw-token-value");
+        assertThat(card.detailsText())
+                .contains("[REDACTED]")
+                .doesNotContain("sk-live-secret")
+                .doesNotContain("raw-token-value")
+                .doesNotContain("bearer raw-token-value");
     }
 
     @Test
