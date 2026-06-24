@@ -277,6 +277,124 @@ div {
   padding-bottom: calc(var(--pi-mobile-tap-target) * 2);
 }
 
+.pi-runtime-event-card,
+.pi-tool-call-card,
+.pi-approval-card {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: var(--pi-mobile-space-md);
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 1rem;
+  background: var(--pi-mobile-shell-surface);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-runtime-card-summary,
+.pi-runtime-card-meta,
+.pi-tool-call-card__summary,
+.pi-approval-card__header,
+.pi-approval-card__risk-grid,
+.pi-approval-card__preview,
+.pi-approval-card__field,
+.pi-approval-card__feedback {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-runtime-card-meta,
+.pi-approval-card__risk-grid,
+.pi-approval-card__preview {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+}
+
+.pi-runtime-card-meta {
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+}
+
+.pi-status-chip,
+.pi-risk-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  min-height: calc(var(--pi-mobile-tap-target) - 12px);
+  padding: 0 var(--pi-mobile-space-sm);
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 999px;
+  background: var(--pi-mobile-shell-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-risk-chip {
+  border-color: color-mix(in srgb, #b45309 45%, var(--pi-mobile-shell-border));
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+.pi-detail-block,
+.pi-redacted-json,
+[data-detail-layer] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-detail-block,
+[data-detail-layer] {
+  border-radius: 0.75rem;
+  background: #fbfcfe;
+}
+
+.pi-redacted-json {
+  display: block;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.pi-runtime-event-card vaadin-details,
+.pi-tool-call-card vaadin-details,
+.pi-approval-card vaadin-details,
+.pi-runtime-event-card [data-detail-layer],
+.pi-tool-call-card [data-detail-layer],
+.pi-approval-card [data-detail-layer] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.pi-approval-card [data-approval-actions="inline"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pi-mobile-space-sm);
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.pi-approval-card [data-approval-actions="inline"] > *,
+.pi-approval-card [data-action="approve-tool-call"],
+.pi-approval-card [data-action="reject-tool-call"],
+.pi-approval-card [data-risk-action="approve"],
+.pi-approval-card [data-risk-action="reject"] {
+  min-width: var(--pi-mobile-tap-target);
+  min-height: var(--pi-mobile-tap-target);
+}
+
 vaadin-text-area[data-role="chat-input"] {
   max-height: 14rem;
   overflow: auto;
