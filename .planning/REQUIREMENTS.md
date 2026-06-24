@@ -29,7 +29,7 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 - [x] **MCARD-01**: Mobile user can inspect run timeline events as compact cards or accordions with status, timestamp/type, summary, and expandable details.
 - [x] **MCARD-02**: Mobile user can inspect tool cards with tool name, source, status, policy/approval state, duration, error, and redacted input/output summaries.
 - [x] **MCARD-03**: Mobile user can expand dense run/tool/policy/audit details without exposing raw sensitive payloads or causing page-level horizontal overflow.
-- [ ] **MCARD-04**: Mobile user can approve or reject a pending tool approval from a risk-first card that clearly shows side-effect context and requires intentional action.
+- [x] **MCARD-04**: Mobile user can approve or reject a pending tool approval from a risk-first card that clearly shows side-effect context and requires intentional action.
 - [x] **MCARD-05**: Mobile user sees dialogs, drawers, notifications, and confirmations fit the viewport with safe scrolling and explicit close/action controls.
 
 ### Admin Governance Mobile Coverage
@@ -97,7 +97,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCARD-01 | Phase 13 | Complete |
 | MCARD-02 | Phase 13 | Complete |
 | MCARD-03 | Phase 13 | Complete |
-| MCARD-04 | Phase 13 | Pending |
+| MCARD-04 | Phase 13 | Complete |
 | MCARD-05 | Phase 13 | Complete |
 | MADM-01 | Phase 14 | Pending |
 | MADM-02 | Phase 14 | Pending |

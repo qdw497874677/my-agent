@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md
-last_updated: "2026-06-24T06:00:47.619Z"
+stopped_at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-03-PLAN.md
+last_updated: "2026-06-24T06:11:51.423Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 13 (runtime-cards-timeline-tool-and-approval-ux) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-24
 
@@ -70,6 +70,7 @@ Progress: [██████████] 100%
 | Phase 12-console-mobile-first-flow P06 | 9m03s | 3 tasks | 5 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P01 | 9min | 2 tasks | 4 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P02 | 11m09s | 2 tasks | 4 files |
+| Phase 13-runtime-cards-timeline-tool-and-approval-ux P03 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Sensitive runtime diagnostics use a package-private adapter-web redaction utility for conservative mobile detail rendering.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Tool lifecycle rendering remains one ToolCallCard per runtime event; no toolCallId aggregation cache was introduced.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Tool payload-derived summary, structured detail, and advanced diagnostics now reuse RuntimeDetailRedactor rather than local ad-hoc redaction.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Keep approval decisions inline in ApprovalCard with no Dialog, ConfirmDialog, Notification, MenuBar, or ContextMenu confirmation layer.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Reuse the same ApprovalCard constructor for Console USER and Admin ADMIN roles while preserving public approval decision API paths.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Render approval preview, arguments, and eligible roles through RuntimeDetailRedactor so mobile summaries stay conservative.
 
 ### Pending Todos
 
@@ -125,8 +129,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-24T06:00:47.614Z
-Stopped at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md
+Last session: 2026-06-24T06:11:51.420Z
+Stopped at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-03-PLAN.md
 Resume file: None
 
 ---
