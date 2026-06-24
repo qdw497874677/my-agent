@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: verifying
-stopped_at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-04-PLAN.md
-last_updated: "2026-06-24T06:26:57.426Z"
+stopped_at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-05-PLAN.md
+last_updated: "2026-06-24T08:54:00.740Z"
 last_activity: 2026-06-24
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 17
+  completed_plans: 17
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 13 (runtime-cards-timeline-tool-and-approval-ux) — EXECUTING
-Plan: 4 of 4
+Plan: 5 of 5
 Status: Phase complete — ready for verification
 Last activity: 2026-06-24
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P02 | 11m09s | 2 tasks | 4 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P03 | 5min | 2 tasks | 2 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P04 | 9m08s | 3 tasks | 5 files |
+| Phase 13-runtime-cards-timeline-tool-and-approval-ux P05 | 9m38s | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Render approval preview, arguments, and eligible roles through RuntimeDetailRedactor so mobile summaries stay conservative.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Keep Phase 13 browser coverage as a representative Console runtime-card matrix using stable data-* selectors and fake-runtime hints.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Document full runtime/tool/approval selector and redaction contracts for Phase 14/15 handoff rather than introducing new mobile-only APIs or modal primitives.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Keep approval decision execution in adapter-web via ApprovalDecisionHandler/AppApprovalDecisionHandler instead of adding mobile-only REST DTOs or Vaadin dependencies outside the adapter layer.
+- [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Preserve deterministic demo constructors with ApprovalDecisionHandler.demo() while Spring constructors bridge to ApprovalCommandService for live Console/Admin cards.
 
 ### Pending Todos
 
@@ -132,8 +135,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-24T06:26:57.422Z
-Stopped at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-04-PLAN.md
+Last session: 2026-06-24T08:54:00.734Z
+Stopped at: Completed 13-runtime-cards-timeline-tool-and-approval-ux-05-PLAN.md
 Resume file: None
 
 ---

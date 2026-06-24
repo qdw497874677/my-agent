@@ -100,7 +100,7 @@ Plans:
 - [x] 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md — Structured redacted tool execution cards
 - [x] 13-runtime-cards-timeline-tool-and-approval-ux-03-PLAN.md — Inline risk-first approval card UX
 - [x] 13-runtime-cards-timeline-tool-and-approval-ux-04-PLAN.md — Mobile CSS, browser matrix gate, and documentation
-- [ ] 13-runtime-cards-timeline-tool-and-approval-ux-05-PLAN.md — Gap closure for actionable approval decision clicks and feedback
+- [x] 13-runtime-cards-timeline-tool-and-approval-ux-05-PLAN.md — Gap closure for actionable approval decision clicks and feedback
 **UI hint**: yes
 
 ### Phase 14: Admin Governance Full-Site Mobile Coverage
@@ -138,7 +138,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
-| 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 4/5 | Gap closure planned | - |
+| 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete   | 2026-06-24 |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
 
