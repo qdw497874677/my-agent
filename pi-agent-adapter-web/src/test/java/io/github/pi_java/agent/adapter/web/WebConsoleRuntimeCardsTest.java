@@ -124,6 +124,37 @@ class WebConsoleRuntimeCardsTest {
         assertThat(approval.component()).isNotInstanceOf(RuntimeEventCard.class);
     }
 
+    @Test
+    void toolCardUsesLayeredDetailsForStructuredAndAdvancedRedactedData() {
+        RunEventDto event = event("tool.completed", Map.ofEntries(
+                Map.entry("toolName", "builtin.workspace.write"),
+                Map.entry("status", "COMPLETED"),
+                Map.entry("inputSummary", "Write report with password=hunter2"),
+                Map.entry("argumentSummary", "authorization=Bearer abc123"),
+                Map.entry("outputSummary", "Created artifact with raw-token-value"),
+                Map.entry("resultSummary", "Stored result for sk-live-secret"),
+                Map.entry("preview", Map.of("command", "write", "api_key", "api_key=sk-live-secret")),
+                Map.entry("diagnostics", Map.of("token", "token=raw-token-value")),
+                Map.entry("eventSequence", 42),
+                Map.entry("policyReason", "write requires policy check"),
+                Map.entry("previewId", "preview-42")), "tool.lifecycle");
+
+        ToolCallCard card = ToolCallCard.from(event);
+
+        assertThat(card.detailsText())
+                .contains("sequence=7")
+                .contains("type=tool.lifecycle")
+                .contains("payloadSchema=tool.completed")
+                .contains("eventSequence=42")
+                .contains("write requires policy check")
+                .contains("preview-42")
+                .contains("[REDACTED]")
+                .doesNotContain("sk-live-secret")
+                .doesNotContain("raw-token-value")
+                .doesNotContain("password=hunter2")
+                .doesNotContain("authorization=Bearer abc123");
+    }
+
     private static RunEventDto event(String type, Map<String, Object> payload) {
         return event(type, payload, type);
     }

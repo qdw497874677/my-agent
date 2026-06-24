@@ -2,6 +2,7 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -58,6 +59,7 @@ final class RuntimeDetailRedactor {
         }
         if (value instanceof Map<?, ?> map) {
             return map.entrySet().stream()
+                    .sorted(Comparator.comparing(entry -> sensitiveKeyRank(entry.getKey())))
                     .map(entry -> stringifyValue(entry.getKey()) + "=" + stringifyValue(entry.getValue()))
                     .collect(Collectors.joining(", ", "{", "}"));
         }
@@ -71,5 +73,17 @@ final class RuntimeDetailRedactor {
                     .collect(Collectors.joining(", ", "[", "]"));
         }
         return String.valueOf(value);
+    }
+
+    private static int sensitiveKeyRank(Object key) {
+        if (key == null) {
+            return 1;
+        }
+        String normalized = String.valueOf(key).toLowerCase();
+        return normalized.contains("api")
+                || normalized.contains("password")
+                || normalized.contains("secret")
+                || normalized.contains("token")
+                || normalized.contains("authorization") ? 0 : 1;
     }
 }

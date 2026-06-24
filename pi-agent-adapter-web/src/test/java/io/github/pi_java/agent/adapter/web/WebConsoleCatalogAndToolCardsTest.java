@@ -109,26 +109,35 @@ class WebConsoleCatalogAndToolCardsTest {
 
     @Test
     void expandedToolDetailsShowSequenceDiagnosticsAndNeverRawSecretValues() {
-        RunEventDto approval = toolEvent("tool.approval_required", Map.of(
-                "toolName", "workspace.command",
-                "status", "REQUIRE_APPROVAL",
-                "eventSequence", List.of("tool.proposed", "tool.policy_decided", "tool.preview_generated", "tool.approval_required"),
-                "policyReason", "side effect requires approval",
-                "previewId", "preview-123",
-                "preview", Map.of("impact", "Would run allowlisted command with secret [REDACTED]"),
-                "diagnostics", Map.of("credential", "[REDACTED]", "raw", "[REDACTED]"),
-                "fakeSecret", "[REDACTED]"));
+        RunEventDto approval = toolEvent("tool.approval_required", Map.ofEntries(
+                Map.entry("toolName", "workspace.command"),
+                Map.entry("status", "REQUIRE_APPROVAL"),
+                Map.entry("inputSummary", "command=deploy authorization=Bearer abc123"),
+                Map.entry("argumentSummary", "password=hunter2"),
+                Map.entry("outputSummary", "raw-token-value"),
+                Map.entry("resultSummary", "sk-live-secret"),
+                Map.entry("eventSequence", List.of("tool.proposed", "tool.policy_decided", "tool.preview_generated", "tool.approval_required")),
+                Map.entry("policyReason", "side effect requires approval"),
+                Map.entry("previewId", "preview-123"),
+                Map.entry("preview", Map.of("impact", "Would run allowlisted command with secret=my-secret")),
+                Map.entry("diagnostics", Map.of("credential", "authorization=Bearer abc123", "raw", "raw-token-value")),
+                Map.entry("fakeSecret", "sk-live-secret")));
 
         ToolCallCard card = ToolCallCard.from(approval);
 
         assertThat(card.detailsText())
                 .contains("tool.proposed")
                 .contains("tool.approval_required")
+                .contains("sequence=7")
+                .contains("type=tool.approval_required")
+                .contains("payloadSchema=tool.lifecycle")
                 .contains("side effect requires approval")
                 .contains("preview-123")
                 .contains("[REDACTED]")
                 .doesNotContain("sk-live-secret")
-                .doesNotContain("raw-token-value");
+                .doesNotContain("raw-token-value")
+                .doesNotContain("password=hunter2")
+                .doesNotContain("authorization=Bearer abc123");
     }
 
     @Test

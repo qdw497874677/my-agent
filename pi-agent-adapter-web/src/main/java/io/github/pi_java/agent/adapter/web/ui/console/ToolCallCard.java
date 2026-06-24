@@ -4,7 +4,6 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import io.github.pi_java.agent.client.event.RunEventDto;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
@@ -14,7 +13,7 @@ public class ToolCallCard extends Div {
     private final String summaryText;
     private final String detailsText;
 
-    private ToolCallCard(String summaryText, String detailsText, String status, String toolName, String source, String policy) {
+    private ToolCallCard(String summaryText, String structuredText, String detailsText, String status, String toolName, String source, String policy) {
         this.summaryText = summaryText;
         this.detailsText = detailsText;
         addClassNames("pi-tool-call-card", "pi-card");
@@ -24,7 +23,8 @@ public class ToolCallCard extends Div {
         getElement().setAttribute("data-tool-source", safe(source));
         getElement().setAttribute("data-policy-state", safe(policy));
         getElement().setAttribute("data-expandable", "true");
-        add(summary(summaryText));
+        add(summary(summaryText), details("Input / output summary", "structured", structuredText),
+                details("Advanced redacted detail", "advanced", detailsText));
     }
 
     public static ToolCallCard from(RunEventDto event) {
@@ -55,6 +55,13 @@ public class ToolCallCard extends Div {
                 "Side effect: " + fallback(sideEffect, "unknown"),
                 "Progress: " + fallback(progress, "n/a"),
                 "Result: " + fallback(result, "pending"));
+        String structured = String.join(" | ",
+                "inputSummary=" + fallback(first(payload, "inputSummary"), "n/a"),
+                "argumentSummary=" + fallback(first(payload, "argumentSummary"), "n/a"),
+                "outputSummary=" + fallback(first(payload, "outputSummary"), "n/a"),
+                "resultSummary=" + fallback(first(payload, "resultSummary", "redactedResultSummary"), "n/a"),
+                "preview=" + fallback(value(payload.get("preview")), "n/a"),
+                "diagnostics=" + fallback(value(payload.get("diagnostics")), "n/a"));
         String details = "sequence=" + event.sequence()
                 + " | type=" + safe(event.type())
                 + " | payloadSchema=" + safe(event.payloadSchema())
@@ -62,7 +69,7 @@ public class ToolCallCard extends Div {
                 + " | policyReason=" + fallback(first(payload, "policyReason", "policy", "decisionReason"), "n/a")
                 + " | previewId=" + fallback(first(payload, "previewId", "previewRef"), "n/a")
                 + " | diagnostics=" + value(payload);
-        return new ToolCallCard(summary, details, status, toolName, fallback(source, "runtime"), policy);
+        return new ToolCallCard(summary, structured, details, status, toolName, fallback(source, "runtime"), policy);
     }
 
     public String summaryText() {
@@ -104,6 +111,13 @@ public class ToolCallCard extends Div {
         container.addClassName("pi-tool-call-card__summary");
         container.add(new Span(text));
         return container;
+    }
+
+    private Details details(String summary, String layer, String text) {
+        Details details = new Details(summary, new Span(text));
+        details.addClassName("pi-detail");
+        details.getElement().setAttribute("data-detail-layer", layer);
+        return details;
     }
 
     private static String formatDuration(String duration) {
