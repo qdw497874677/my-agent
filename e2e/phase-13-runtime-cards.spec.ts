@@ -71,10 +71,16 @@ async function assertApprovalControls(page: Page, feed: Locator): Promise<void> 
   if (await approve.isVisible({ timeout: 2500 }).catch(() => false)) {
     await expectTapTargetAtLeast(approve, 44, 'approve tool call action');
     await expectFocusVisible(page, approve, 'approve tool call action');
+    await approve.click();
   }
-  if (await reject.isVisible({ timeout: 2500 }).catch(() => false)) {
+  else if (await reject.isVisible({ timeout: 2500 }).catch(() => false)) {
     await expectTapTargetAtLeast(reject, 44, 'reject tool call action');
     await expectFocusVisible(page, reject, 'reject tool call action');
+    await reject.click();
   }
   await expect(approve.or(reject), 'approval approve/reject controls should be available in card or pending approval panel').toBeVisible();
+  await expect(
+    page.locator('[data-decision-state="succeeded"], [data-role="approval-decision-feedback"]:has-text("Decision recorded:")').first(),
+    'approval click should record visible decision feedback',
+  ).toBeVisible();
 }

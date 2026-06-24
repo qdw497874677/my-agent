@@ -15,6 +15,7 @@ public class ApprovalPanel extends Div {
 
     private final ConsoleHttpClient httpClient;
     private final String actorRole;
+    private final ApprovalDecisionHandler approvalDecisionHandler;
     private final List<ApprovalCard> cards = new ArrayList<>();
 
     public ApprovalPanel() {
@@ -22,8 +23,13 @@ public class ApprovalPanel extends Div {
     }
 
     public ApprovalPanel(ConsoleHttpClient httpClient, String actorRole) {
+        this(httpClient, actorRole, ApprovalDecisionHandler.demo());
+    }
+
+    public ApprovalPanel(ConsoleHttpClient httpClient, String actorRole, ApprovalDecisionHandler approvalDecisionHandler) {
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
         this.actorRole = actorRole == null || actorRole.isBlank() ? "USER" : actorRole.trim().toUpperCase();
+        this.approvalDecisionHandler = Objects.requireNonNull(approvalDecisionHandler, "approvalDecisionHandler must not be null");
         addClassName("pi-approval-panel");
         getElement().setAttribute("data-panel", "approvals");
         add(new H3("Pending approvals"));
@@ -41,7 +47,7 @@ public class ApprovalPanel extends Div {
             return;
         }
         for (ApprovalSummaryDto approval : approvals) {
-            ApprovalCard card = new ApprovalCard(approval, httpClient, actorRole);
+            ApprovalCard card = new ApprovalCard(approval, httpClient, actorRole, approvalDecisionHandler);
             cards.add(card);
             add(card);
         }

@@ -11,6 +11,7 @@ import io.github.pi_java.agent.app.context.CorrelationContext;
 import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
 import io.github.pi_java.agent.app.usecase.AgentCatalogQueryService;
+import io.github.pi_java.agent.app.usecase.ApprovalCommandService;
 import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
@@ -67,13 +68,14 @@ public class ConsoleView extends Div {
             AgentCatalogQueryService agentCatalogQueryService,
             SessionCommandService sessionCommandService,
             RunCommandService runCommandService,
-            RunQueryService runQueryService) {
+            RunQueryService runQueryService,
+            ApprovalCommandService approvalCommandService) {
         this(
                 new ConsoleHttpClient(),
                 new EventStreamClient(),
                 agentCatalogQueryService,
                 new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService),
-                new RunEventRenderer());
+                new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)));
     }
 
     public ConsoleView(AgentCatalogQueryService agentCatalogQueryService) {

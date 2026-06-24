@@ -228,6 +228,19 @@ class WebConsoleApprovalCardsTest {
     }
 
     @Test
+    void rendererApprovalCardsUseSuppliedDecisionHandler() {
+        RecordingApprovalDecisionHandler handler = new RecordingApprovalDecisionHandler();
+        RunEventRenderer renderer = new RunEventRenderer(new ConsoleHttpClient(), handler);
+
+        RunEventRenderer.RenderedEvent rendered = renderer.render(approvalRequiredEvent());
+        button(rendered.component(), "data-risk-action", "approve").click();
+
+        assertThat(handler.plans).hasSize(1);
+        assertThat(handler.plans.getFirst().request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.APPROVE);
+        assertThat(handler.plans.getFirst().request().actorRole()).isEqualTo("USER");
+    }
+
+    @Test
     void chatPanelAppendsApprovalComponentAndNarrativeStatus() {
         ChatEventStreamPanel panel = new ChatEventStreamPanel();
         RunEventRenderer renderer = new RunEventRenderer(new ConsoleHttpClient());
@@ -252,6 +265,19 @@ class WebConsoleApprovalCardsTest {
     }
 
     @Test
+    void approvalPanelCardsUseSuppliedDecisionHandlerWithUserRole() {
+        RecordingApprovalDecisionHandler handler = new RecordingApprovalDecisionHandler();
+        ApprovalPanel panel = new ApprovalPanel(new ConsoleHttpClient(), "USER", handler);
+
+        panel.showApprovals(List.of(approvalSummary("USER")));
+        button(panel, "data-risk-action", "reject").click();
+
+        assertThat(handler.plans).hasSize(1);
+        assertThat(handler.plans.getFirst().request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.REJECT);
+        assertThat(handler.plans.getFirst().request().actorRole()).isEqualTo("USER");
+    }
+
+    @Test
     void adminApprovalQueueListsPendingApprovalsAndUsesAdminDecisionRole() {
         AdminApprovalQueueView view = new AdminApprovalQueueView(new ConsoleHttpClient());
 
@@ -269,6 +295,19 @@ class WebConsoleApprovalCardsTest {
         assertThat(plan.path()).isEqualTo("/api/sessions/session-1/runs/run-1/approvals/preview-1/decision");
         assertThat(plan.request().actorRole()).isEqualTo("ADMIN");
         assertThat(plan.request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.APPROVE);
+    }
+
+    @Test
+    void adminApprovalQueueCardsUseSuppliedHandlerWithAdminRole() {
+        RecordingApprovalDecisionHandler handler = new RecordingApprovalDecisionHandler();
+        AdminApprovalQueueView view = new AdminApprovalQueueView(new ConsoleHttpClient(), handler);
+
+        view.showPendingApprovals(List.of(approvalSummary("ADMIN")));
+        button(view, "data-risk-action", "approve").click();
+
+        assertThat(handler.plans).hasSize(1);
+        assertThat(handler.plans.getFirst().request().decision()).isEqualTo(ApprovalDecisionRequest.Decision.APPROVE);
+        assertThat(handler.plans.getFirst().request().actorRole()).isEqualTo("ADMIN");
     }
 
     private static List<Component> flattenedElements(Component component) {

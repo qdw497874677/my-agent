@@ -11,13 +11,19 @@ import java.util.Set;
 public class RunEventRenderer {
 
     private final ConsoleHttpClient httpClient;
+    private final ApprovalDecisionHandler approvalDecisionHandler;
 
     public RunEventRenderer() {
         this(new ConsoleHttpClient());
     }
 
     public RunEventRenderer(ConsoleHttpClient httpClient) {
+        this(httpClient, ApprovalDecisionHandler.demo());
+    }
+
+    public RunEventRenderer(ConsoleHttpClient httpClient, ApprovalDecisionHandler approvalDecisionHandler) {
         this.httpClient = httpClient;
+        this.approvalDecisionHandler = approvalDecisionHandler;
     }
 
     public RenderedEvent render(RunEventDto event) {
@@ -29,7 +35,7 @@ public class RunEventRenderer {
             return runtimeEvent(event, "model", text, false, value(payload, "status", "state"));
         }
         if (lower.contains("approval_required") || "APPROVAL_REQUIRED".equalsIgnoreCase(value(payload, "status"))) {
-            ApprovalCard card = ApprovalCard.from(toApprovalSummary(event, payload), httpClient);
+            ApprovalCard card = new ApprovalCard(toApprovalSummary(event, payload), httpClient, "USER", approvalDecisionHandler);
             return new RenderedEvent("approval", card.summaryText(), false, card);
         }
         if (lower.contains("tool.lifecycle") || "tool.lifecycle".equalsIgnoreCase(event.payloadSchema())) {

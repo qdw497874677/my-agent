@@ -7,12 +7,16 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
+import io.github.pi_java.agent.adapter.web.ui.console.AppApprovalDecisionHandler;
 import io.github.pi_java.agent.adapter.web.ui.console.ApprovalCard;
+import io.github.pi_java.agent.adapter.web.ui.console.ApprovalDecisionHandler;
+import io.github.pi_java.agent.app.usecase.ApprovalCommandService;
 import io.github.pi_java.agent.client.approval.ApprovalSummaryDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** Admin Governance approval inspection and decision surface. */
 @Route(value = "admin/governance/approvals", layout = PiResponsiveShell.class)
@@ -20,14 +24,25 @@ import java.util.stream.Collectors;
 public class AdminApprovalQueueView extends Div {
 
     private final ConsoleHttpClient httpClient;
+    private final ApprovalDecisionHandler approvalDecisionHandler;
     private final List<ApprovalCard> cards = new ArrayList<>();
 
     public AdminApprovalQueueView() {
         this(new ConsoleHttpClient());
     }
 
+    @Autowired
+    public AdminApprovalQueueView(ApprovalCommandService approvalCommandService) {
+        this(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService));
+    }
+
     public AdminApprovalQueueView(ConsoleHttpClient httpClient) {
+        this(httpClient, ApprovalDecisionHandler.demo());
+    }
+
+    public AdminApprovalQueueView(ConsoleHttpClient httpClient, ApprovalDecisionHandler approvalDecisionHandler) {
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
+        this.approvalDecisionHandler = Objects.requireNonNull(approvalDecisionHandler, "approvalDecisionHandler must not be null");
         addClassName("pi-admin-approval-queue");
         getElement().setAttribute("data-route", "admin-approval-queue");
         getElement().setAttribute("data-admin-surface", "separated-governance");
@@ -50,7 +65,7 @@ public class AdminApprovalQueueView extends Div {
                     + " | Run " + approval.runId()
                     + " | Tool call " + approval.toolCallId());
             context.getElement().setAttribute("data-approval-context", approval.approvalId());
-            ApprovalCard card = new ApprovalCard(approval, httpClient, "ADMIN");
+            ApprovalCard card = new ApprovalCard(approval, httpClient, "ADMIN", approvalDecisionHandler);
             cards.add(card);
             add(context, card);
         }
