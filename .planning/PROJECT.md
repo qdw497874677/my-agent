@@ -110,7 +110,7 @@ Pi Java Agent Platform 是一个基于 Java 的通用 Agent 基座，用于支�
 
 ## Current State
 
-Phase 9 complete — the v1.0 roadmap now contains a deployable Java Agent platform foundation with Cloud Server, REST/SSE runtime APIs, durable run/session/event persistence, OpenAI-compatible model adapter, governed ToolExecutionGateway, Workspace/Command boundaries, Vaadin Agent Web Console, Admin Governance, Java SPI/Spring extensions, governed MCP remote tools, controlled dynamic plugin JARs, and production observability/policy/tenancy hardening. The next milestone focuses on converting the existing desktop-first Vaadin Web Console/Admin Governance surfaces into a mobile-first, full-site H5 experience with automated mobile browser verification.
+Phase 12 complete — the v1.1 mobile Web work now has a mobile-first Console flow for Agent Catalog, Chat/Run, live/bounded run-event progression, cancel feedback, and selectable session identity. Automated Java contracts and Playwright list gates passed; the full mobile/tablet browser matrix remains tracked as Phase 12 HUMAN-UAT. The next milestone phase focuses on runtime cards, timeline, tool, and approval UX interiors.
 
 This document evolves at phase transitions and milestone boundaries.
 
@@ -128,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-20 after starting milestone v1.1 适配移动端web*
+*Last updated: 2026-06-24 after completing Phase 12 Console Mobile-First Flow*
