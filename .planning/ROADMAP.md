@@ -25,7 +25,7 @@ Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Gov
 
 - [x] **Phase 10: Responsive Baseline and Mobile Test Harness** - Establish mobile-first theme defaults, stable UI hooks, route smoke, browser contexts, and no-overflow gates before broad refactoring. (completed 2026-06-21)
 - [x] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives. (completed 2026-06-22)
-- [ ] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow. (additional gap closure planned 2026-06-23)
+- [x] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow. (additional gap closure planned 2026-06-23) (completed 2026-06-24)
 - [ ] **Phase 13: Runtime Cards, Timeline, Tool, and Approval UX** - Make run events, tool cards, dense details, approvals, dialogs, and confirmations safe and readable on mobile.
 - [ ] **Phase 14: Admin Governance Full-Site Mobile Coverage** - Convert every existing Admin Governance surface to mobile card/detail layouts without relying on desktop tables.
 - [ ] **Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening** - Validate final mobile/tablet/browser/orientation/accessibility behavior and preserve desktop regression coverage.
@@ -81,7 +81,7 @@ Plans:
 - [x] 12-console-mobile-first-flow-03-PLAN.md — Console mobile product-path E2E, desktop regression, and documentation
 - [x] 12-console-mobile-first-flow-04-PLAN.md — Gap closure for real Agent, Session, Send, and Cancel UI activation wiring
 - [x] 12-console-mobile-first-flow-05-PLAN.md — Gap closure for user-triggered run execution, event feed progression, and cancellation feedback
-- [ ] 12-console-mobile-first-flow-06-PLAN.md — Gap closure for incremental live/replay event append and visible selectable session history
+- [x] 12-console-mobile-first-flow-06-PLAN.md — Gap closure for incremental live/replay event append and visible selectable session history
 **UI hint**: yes
 
 ### Phase 13: Runtime Cards, Timeline, Tool, and Approval UX
@@ -131,7 +131,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 |-------|-----------|----------------|--------|-----------|
 | 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
-| 12. Console Mobile-First Flow | v1.1 | 5/6 | Gap closure planned | - |
+| 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete   | 2026-06-24 |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 0/TBD | Not started | - |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 0/TBD | Not started | - |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |

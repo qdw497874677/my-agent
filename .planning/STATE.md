@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 12-console-mobile-first-flow-05-PLAN.md
-last_updated: "2026-06-23T09:43:34.508Z"
-last_activity: 2026-06-23
+stopped_at: Completed 12-console-mobile-first-flow-06-PLAN.md
+last_updated: "2026-06-24T01:40:45.355Z"
+last_activity: 2026-06-24
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 12
+  completed_plans: 12
   percent: 100
 ---
 
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 12 (console-mobile-first-flow) — EXECUTING
-Plan: 3 of 5
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-06-23
+Last activity: 2026-06-24
 
 Progress: [██████████] 100%
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 | Phase 12-console-mobile-first-flow P03 | 11m20s | 2 tasks | 5 files |
 | Phase 12-console-mobile-first-flow P04 | 12min | 3 tasks | 7 files |
 | Phase 12-console-mobile-first-flow P05 | 14min | 3 tasks | 6 files |
+| Phase 12-console-mobile-first-flow P06 | 9m03s | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 12-console-mobile-first-flow]: Use an adapter-web ConsoleRunExecutionBridge so Vaadin UI code can call existing App-layer session/run/query use cases without introducing mobile-only APIs.
 - [Phase 12-console-mobile-first-flow]: Keep a safe direct-construction demo bridge for no-Spring component tests while Spring construction delegates to AppConsoleRunExecutionBridge.
 - [Phase 12-console-mobile-first-flow]: Treat terminal cancellation races as acceptable mobile feedback and harden double-click/no-active-run UI handlers to show status instead of throwing.
+- [Phase 12-console-mobile-first-flow]: Use a Vaadin poll-backed bounded replay hook in adapter-web rather than new mobile-only REST/SSE APIs.
+- [Phase 12-console-mobile-first-flow]: Make MVER-03 fail on empty-session fallbacks by requiring an active [data-role=session-card].
 
 ### Pending Todos
 
@@ -116,8 +119,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-23T09:43:34.504Z
-Stopped at: Completed 12-console-mobile-first-flow-05-PLAN.md
+Last session: 2026-06-24T01:40:45.348Z
+Stopped at: Completed 12-console-mobile-first-flow-06-PLAN.md
 Resume file: None
 
 ---
