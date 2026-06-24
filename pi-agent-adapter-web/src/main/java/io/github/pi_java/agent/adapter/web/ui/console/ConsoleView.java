@@ -132,6 +132,10 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-layout", "three-column-workbench");
         getElement().setAttribute("data-mobile-critical", "true");
         add(switcher, sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
+        addAttachListener(event -> {
+            event.getUI().setPollInterval(750);
+            event.getUI().addPollListener(poll -> refreshActiveRunEvents());
+        });
         loadInitialAgentCatalog();
         applyPanelState();
     }

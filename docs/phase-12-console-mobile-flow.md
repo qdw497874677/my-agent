@@ -8,8 +8,8 @@ Requirement traceability:
 
 - **MCON-01:** Mobile users can open Console, switch to Agents, find `cloud-general-agent`, start or continue the General Agent flow, and return to Chat.
 - **MCON-02:** Chat uses a bounded multi-line prompt composer and submits `Phase 12 mobile prompt\nline two\nline three` through the existing no-key Console path.
-- **MCON-03:** The live event feed is a vertical mobile feed; the Phase 12 E2E scrolls prior events and verifies composer/cancel or terminal status remains practically reachable.
-- **MCON-04:** Sessions are reachable through the mobile Console panel contract, with active session cards or empty session state exposed through stable hooks.
+- **MCON-03:** The live event feed is a vertical mobile feed; a Vaadin poll-backed bounded replay hook appends later run events after `createRun` without another Send click, de-duplicates by sequence, and propagates terminal status to composer/run-context surfaces.
+- **MCON-04:** Sessions are reachable through the mobile Console panel contract, and a successful send creates a real visible active session card that can be selected to return to Chat and continue the same session identity.
 - **MCON-05:** Cancellation is reachable through a primary composer control when a run is cancellable, with a run-context backup action/status surface and tolerant terminal-state fallback.
 - **MVER-03:** `e2e/phase-12-console-mobile-flow.spec.ts` is the browser-visible fake/no-key mobile Console gate for Mobile Chrome, Mobile Safari/WebKit proxy, and Tablet.
 
@@ -23,11 +23,13 @@ Core mobile Console panel hooks:
 - `[data-console-panel-active="true"]`
 - `[data-action="show-console-panel"][data-console-target="agents|sessions|run-context|chat"]`
 - `[data-agent-id="cloud-general-agent"] [data-primary-action^="general-agent-"]`
-- `[data-role="session-card"][data-session-active="true"]`
+- `[data-role="session-card"][data-session-active="true|false"]`
+- `[data-role="session-card"] [data-field="session-title|session-status|session-updated-at"]`
 
 Chat/run hooks:
 
 - `[data-role="event-feed"]`
+- `[data-event-category]`, `[data-event-type]`, or `[data-run-event]` inside the feed for appended run events
 - `[data-role="chat-composer"]`
 - `[data-role="chat-input"]`
 - `[data-role="composer-run-status"]`
@@ -74,6 +76,12 @@ Desktop Console regression:
 npm run e2e -- e2e/phase-05-web-console.spec.ts --project="chromium"
 ```
 
+## Final MVER-03 Evidence Contract
+
+The Phase 12 mobile spec no longer accepts a one-shot replay plus an empty Sessions state as the main product path. It now records the browser-visible feed event count immediately after Send, waits for the live/bounded replay path to increase that count without clicking Send again, then opens Sessions and requires a real `[data-role="session-card"]` with `data-session-active="true"`. The test activates that card and asserts Chat becomes the active panel again, proving the visible card is selectable rather than an empty-state fallback.
+
+The local no-key Java contract gate covers the same behavior without a browser: `ConsoleView.refreshActiveRunEvents()` consumes `ConsoleRunExecutionBridge.listEvents(...)` using `nextAfterSequence`, ignores duplicate replayed sequences, and applies terminal feedback to both run-status surfaces. The Vaadin view wires this hook to UI polling so browser runs can observe post-createRun append behavior through existing REST/SSE DTO seams only.
+
 ## Desktop Regression
 
 Phase 12 explicitly preserves desktop Console coverage rather than deferring it to Phase 15. The Phase 05 Playwright regression now checks the three-column workbench layout, sessions column, chat/event stream column, run-context column, chat input, and send action before continuing through the existing API-level no-key catalog, run, session, tool, approval, and cancellation assertions.
@@ -83,4 +91,4 @@ This ensures the mobile-first panel state and sticky composer work remains addit
 ## Deferred Handoffs
 
 - **Phase 13:** Runtime event card interiors, tool card interiors, approval card interiors, approval dialogs, risk presentation, and detailed tool/approval UX remain Phase 13. Phase 12 only verifies that tool/approval areas are reachable in the mobile feed or approved fallback surfaces.
-- **Phase 15:** Real-device Android/iOS browser UAT, orientation sweeps, final keyboard/viewport chrome checks, and deeper accessibility hardening remain Phase 15. Phase 12 uses Playwright Mobile Chrome, Mobile Safari/WebKit proxy, and Tablet projects as deterministic CI-friendly gates.
+- **Phase 15:** Real-device Android/iOS browser UAT, orientation sweeps, final keyboard/viewport chrome checks, and deeper accessibility hardening remain Phase 15. Phase 12 uses Playwright Mobile Chrome, Mobile Safari/WebKit proxy, and Tablet projects as deterministic CI-friendly gates; local WebKit/dev-mode host dependency issues remain environment-only and do not change the selector contract.

@@ -32,10 +32,11 @@ test.describe('Phase 12 mobile Console product flow', () => {
     const feed = page.locator('[data-role="event-feed"]').first();
     const composerStatus = page.locator('[data-role="composer-run-status"]').first();
     await expect(composerStatus.or(feed)).toContainText(/running|queued|model|completed|cancel/i);
+    const countAfterSend = await feed.locator('[data-event-category], [data-event-type], [data-run-event]').count();
     await expect.poll(
       async () => feed.locator('[data-event-category], [data-event-type], [data-run-event]').count(),
-      { message: 'Send click should produce browser-visible run event progression' },
-    ).toBeGreaterThanOrEqual(1);
+      { message: 'Bounded live/replay refresh should append run events after createRun without another Send click' },
+    ).toBeGreaterThan(countAfterSend);
 
     // MVER-03 tool/approval reachability: Phase 12 only proves the surfaces are reachable;
     // Phase 13 owns detailed runtime card interiors and approval risk UX.
@@ -47,7 +48,12 @@ test.describe('Phase 12 mobile Console product flow', () => {
 
     await openConsolePanel(page, 'sessions');
     await expectNoPageHorizontalOverflow(page);
-    await expect(page.locator('[data-role="session-card"], [data-state*="session"], [data-empty-state*="session"]').first()).toBeVisible();
+    const activeSessionCard = page.locator('[data-role="session-card"][data-session-active="true"]').first();
+    await expect(activeSessionCard).toBeVisible();
+    await expect(activeSessionCard.locator('[data-field="session-title"]')).not.toHaveText('');
+    await expect(activeSessionCard.locator('[data-field="session-status"]')).toContainText(/queued|running|completed|ready|cancel/i);
+    await activeSessionCard.click();
+    await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
 
     await openConsolePanel(page, 'run-context');
     await expectNoPageHorizontalOverflow(page);
