@@ -88,8 +88,45 @@ class AdminPluginGovernanceViewTest {
                 .doesNotContain("Upgrade plugin")
                 .doesNotContain("Search marketplace")
                 .doesNotContain("Export plugin");
+        assertThat(countElementsWithAttribute(view, "data-plugin-card")).isEqualTo(3);
+        assertThat(countElementsWithAttribute(view, "data-plugin-capability-card")).isEqualTo(2);
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-card", "failed-plugin")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-card", "quarantined-plugin")).isEqualTo(1);
+        assertThat(firstElementAttribute(view, "data-plugin-card")).isEqualTo("quarantined-plugin");
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-action", "refresh")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-action", "disable")).isEqualTo(3);
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-action", "quarantine")).isEqualTo(3);
+        assertThat(countElementsWithAttributeValue(view, "data-plugin-warning", "not-a-sandbox")).isEqualTo(1);
 
         assertThat(view.mutationControlsPresent()).isTrue();
+    }
+
+    private static long countElementsWithAttribute(com.vaadin.flow.component.Component component, String attribute) {
+        return elementStream(component).filter(element -> element.hasAttribute(attribute)).count();
+    }
+
+    private static long countElementsWithAttributeValue(com.vaadin.flow.component.Component component, String attribute, String value) {
+        return elementStream(component).filter(element -> value.equals(element.getAttribute(attribute))).count();
+    }
+
+    private static String firstElementAttribute(com.vaadin.flow.component.Component component, String attribute) {
+        return elementStream(component)
+                .filter(element -> element.hasAttribute(attribute))
+                .map(element -> element.getAttribute(attribute))
+                .findFirst()
+                .orElse("");
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> elementStream(com.vaadin.flow.component.Component component) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(component.getElement()),
+                component.getElement().getChildren().flatMap(AdminPluginGovernanceViewTest::descendants));
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> descendants(com.vaadin.flow.dom.Element element) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(element),
+                element.getChildren().flatMap(AdminPluginGovernanceViewTest::descendants));
     }
 
     private static PluginGovernanceResponse samplePluginGovernance() {

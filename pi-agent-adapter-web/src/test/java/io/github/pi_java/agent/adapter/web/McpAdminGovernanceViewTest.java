@@ -60,7 +60,42 @@ class McpAdminGovernanceViewTest {
                 .doesNotContain("Edit MCP")
                 .doesNotContain("Delete MCP")
                 .doesNotContain("Disable MCP");
+        assertThat(countElementsWithAttribute(view, "data-mcp-server-card")).isEqualTo(2);
+        assertThat(countElementsWithAttribute(view, "data-mcp-tool-card")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-mcp-server-card", "failed")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-mcp-tool-card", "mcp.fake.echo")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-mcp-connection", "UNHEALTHY")).isEqualTo(1);
+        assertThat(firstElementAttribute(view, "data-mcp-server-card")).isEqualTo("failed");
+        assertThat(countElementsWithAttribute(view, "data-status-severity")).isGreaterThanOrEqualTo(2);
         assertThat(view.mutationControlsPresent()).isFalse();
+    }
+
+    private static long countElementsWithAttribute(com.vaadin.flow.component.Component component, String attribute) {
+        return elementStream(component).filter(element -> element.hasAttribute(attribute)).count();
+    }
+
+    private static long countElementsWithAttributeValue(com.vaadin.flow.component.Component component, String attribute, String value) {
+        return elementStream(component).filter(element -> value.equals(element.getAttribute(attribute))).count();
+    }
+
+    private static String firstElementAttribute(com.vaadin.flow.component.Component component, String attribute) {
+        return elementStream(component)
+                .filter(element -> element.hasAttribute(attribute))
+                .map(element -> element.getAttribute(attribute))
+                .findFirst()
+                .orElse("");
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> elementStream(com.vaadin.flow.component.Component component) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(component.getElement()),
+                component.getElement().getChildren().flatMap(McpAdminGovernanceViewTest::descendants));
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> descendants(com.vaadin.flow.dom.Element element) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(element),
+                element.getChildren().flatMap(McpAdminGovernanceViewTest::descendants));
     }
 
     private static McpGovernanceResponse sampleMcpGovernance() {

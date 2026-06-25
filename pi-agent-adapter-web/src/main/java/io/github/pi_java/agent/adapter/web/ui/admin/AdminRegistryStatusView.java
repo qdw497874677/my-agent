@@ -23,6 +23,7 @@ import io.github.pi_java.agent.client.admin.PluginCapabilityDto;
 import io.github.pi_java.agent.client.admin.PluginGovernanceResponse;
 import io.github.pi_java.agent.client.admin.PluginSourceDto;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -152,7 +153,9 @@ public class AdminRegistryStatusView extends Div {
             add(empty);
             return;
         }
-        for (McpServerDto server : governance.servers()) {
+        for (McpServerDto server : governance.servers().stream()
+                .sorted(Comparator.comparingInt((McpServerDto server) -> abnormalRank(server)).reversed())
+                .toList()) {
             addMcpServer(server);
         }
     }
@@ -184,7 +187,9 @@ public class AdminRegistryStatusView extends Div {
             add(empty);
             return;
         }
-        for (PluginSourceDto plugin : governance.plugins()) {
+        for (PluginSourceDto plugin : governance.plugins().stream()
+                .sorted(Comparator.comparingInt((PluginSourceDto plugin) -> abnormalRank(plugin)).reversed())
+                .toList()) {
             addPlugin(plugin);
         }
     }
@@ -319,19 +324,37 @@ public class AdminRegistryStatusView extends Div {
                 + " | error=" + safe(server.redactedError())
                 + " | " + metadata(server.metadata());
         renderedLines.add(text);
-        Div card = new Div(new H3(server.name()), new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("serverId", server.serverId()),
+                AdminMobileCardSupport.labelValue("name", server.name()),
+                AdminMobileCardSupport.labelValue("enabled", String.valueOf(server.enabled())),
+                AdminMobileCardSupport.labelValue("transport", server.transport()),
+                AdminMobileCardSupport.labelValue("auth", server.authSummary()),
+                AdminMobileCardSupport.labelValue("tools", String.valueOf(server.toolCount())),
+                AdminMobileCardSupport.labelValue("lastRefresh", server.lastRefreshedAt() == null ? "never" : server.lastRefreshedAt().toString()),
+                AdminMobileCardSupport.labelValue("message", server.redactedError()),
+                AdminMobileCardSupport.statusChip(server.connectionStatus()),
+                AdminMobileCardSupport.statusChip(server.discoveryStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection card = PiPageSection.card("mcp-server", new H3(server.name()), summary,
+                AdminMobileCardSupport.metadataDetails(server.metadata()));
+        card.addClassNames("pi-admin-card", "pi-admin-nested-card");
+        card.getElement().setAttribute("data-admin-card", "true");
+        card.getElement().setAttribute("data-admin-registry-section", "mcp");
+        card.getElement().setAttribute("data-mcp-server-card", server.serverId());
         card.getElement().setAttribute("data-governance-area", "mcp");
         card.getElement().setAttribute("data-mcp-server", server.serverId());
         card.getElement().setAttribute("data-mcp-connection", server.connectionStatus());
         card.getElement().setAttribute("data-mcp-discovery", server.discoveryStatus());
+        card.getElement().setAttribute("data-status-severity", abnormalRank(server) > 0 ? "abnormal" : "normal");
         card.getElement().setAttribute("data-read-only", "true");
-        add(card);
         for (McpToolDto tool : server.tools()) {
-            addMcpTool(tool);
+            card.add(addMcpTool(tool));
         }
+        add(card);
     }
 
-    private void addMcpTool(McpToolDto tool) {
+    private Component addMcpTool(McpToolDto tool) {
         String text = "MCP Tool: " + safe(tool.serverQualifiedToolId())
                 + " | name=" + safe(tool.mcpToolName())
                 + " | availability=" + safe(tool.availabilityStatus())
@@ -342,11 +365,27 @@ public class AdminRegistryStatusView extends Div {
                 + " | error=" + safe(tool.redactedError())
                 + " | " + metadata(tool.metadata());
         renderedLines.add(text);
-        Div row = new Div(new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("toolId", tool.serverQualifiedToolId()),
+                AdminMobileCardSupport.labelValue("name", tool.mcpToolName()),
+                AdminMobileCardSupport.labelValue("availability", tool.availabilityStatus()),
+                AdminMobileCardSupport.labelValue("readOnly", String.valueOf(tool.readOnly())),
+                AdminMobileCardSupport.labelValue("destructive", String.valueOf(tool.destructive())),
+                AdminMobileCardSupport.labelValue("openWorld", String.valueOf(tool.openWorld())),
+                AdminMobileCardSupport.labelValue("schema", tool.schemaSummary()),
+                AdminMobileCardSupport.labelValue("redactedError", tool.redactedError()),
+                AdminMobileCardSupport.statusChip(tool.availabilityStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection row = PiPageSection.card("mcp-tool", new H3(tool.mcpToolName()), summary,
+                AdminMobileCardSupport.metadataDetails(tool.metadata()));
+        row.addClassNames("pi-admin-card", "pi-admin-child-card");
+        row.getElement().setAttribute("data-admin-card", "true");
+        row.getElement().setAttribute("data-mcp-tool-card", tool.serverQualifiedToolId());
         row.getElement().setAttribute("data-mcp-tool", tool.serverQualifiedToolId());
         row.getElement().setAttribute("data-mcp-tool-availability", tool.availabilityStatus());
+        row.getElement().setAttribute("data-status-severity", abnormalRank(tool) > 0 ? "abnormal" : "normal");
         row.getElement().setAttribute("data-read-only", "true");
-        add(row);
+        return row;
     }
 
     private void addPlugin(PluginSourceDto plugin) {
@@ -367,13 +406,39 @@ public class AdminRegistryStatusView extends Div {
                 + " | lastUpdated=" + plugin.lastUpdatedAt()
                 + " | " + metadata(plugin.metadata());
         renderedLines.add(text);
-        Div card = new Div(new H3(plugin.name()), new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("pluginId", plugin.pluginId()),
+                AdminMobileCardSupport.labelValue("name", plugin.name()),
+                AdminMobileCardSupport.labelValue("version", plugin.version()),
+                AdminMobileCardSupport.labelValue("vendor", plugin.vendor()),
+                AdminMobileCardSupport.labelValue("sourceKind", plugin.sourceKind()),
+                AdminMobileCardSupport.labelValue("lifecycle", plugin.lifecycleStatus()),
+                AdminMobileCardSupport.labelValue("enabled", String.valueOf(plugin.enabled())),
+                AdminMobileCardSupport.labelValue("health", plugin.healthStatus()),
+                AdminMobileCardSupport.labelValue("compatibility", plugin.compatibilityStatus()),
+                AdminMobileCardSupport.labelValue("capabilities", String.valueOf(plugin.capabilityCount())),
+                AdminMobileCardSupport.labelValue("reason", plugin.reason()),
+                AdminMobileCardSupport.labelValue("error", plugin.redactedError()),
+                AdminMobileCardSupport.labelValue("lastUpdated", plugin.lastUpdatedAt() == null ? "unknown" : plugin.lastUpdatedAt().toString()),
+                AdminMobileCardSupport.statusChip(plugin.lifecycleStatus()),
+                AdminMobileCardSupport.statusChip(plugin.healthStatus()),
+                AdminMobileCardSupport.statusChip(plugin.compatibilityStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection card = PiPageSection.card("plugin", new H3(plugin.name()), summary,
+                AdminMobileCardSupport.details("Plugin diagnostics", "structured",
+                        AdminMobileCardSupport.labelValue("capabilityStatusCounts", metadata(plugin.capabilityStatusCounts())),
+                        AdminMobileCardSupport.labelValue("path", plugin.relativePathSummary()),
+                        AdminMobileCardSupport.metadataDetails(plugin.metadata())));
+        card.addClassNames("pi-admin-card", "pi-admin-nested-card");
+        card.getElement().setAttribute("data-admin-card", "true");
+        card.getElement().setAttribute("data-admin-registry-section", "plugins");
+        card.getElement().setAttribute("data-plugin-card", plugin.pluginId());
         card.getElement().setAttribute("data-governance-area", "plugins");
         card.getElement().setAttribute("data-plugin-id", plugin.pluginId());
         card.getElement().setAttribute("data-plugin-lifecycle", plugin.lifecycleStatus());
         card.getElement().setAttribute("data-plugin-health", plugin.healthStatus());
         card.getElement().setAttribute("data-plugin-compatibility", plugin.compatibilityStatus());
-        add(card);
+        card.getElement().setAttribute("data-status-severity", abnormalRank(plugin) > 0 ? "abnormal" : "normal");
 
         Button disable = new Button("Disable plugin");
         disable.getElement().setAttribute("data-action-plan", "POST");
@@ -381,7 +446,6 @@ public class AdminRegistryStatusView extends Div {
         disable.getElement().setAttribute("data-plugin-action", "disable");
         disable.getElement().setAttribute("data-confirmation-required", "true");
         disable.getElement().setAttribute("data-reason", "optional");
-        add(disable);
         renderedLines.add(pluginDisableActionText(plugin.pluginId()));
 
         Button quarantine = new Button("Quarantine plugin");
@@ -390,15 +454,16 @@ public class AdminRegistryStatusView extends Div {
         quarantine.getElement().setAttribute("data-plugin-action", "quarantine");
         quarantine.getElement().setAttribute("data-confirmation-required", "true");
         quarantine.getElement().setAttribute("data-reason", "optional");
-        add(quarantine);
         renderedLines.add(pluginQuarantineActionText(plugin.pluginId()));
+        card.add(AdminMobileCardSupport.actionRow(disable, quarantine));
 
         for (PluginCapabilityDto capability : plugin.capabilities()) {
-            addPluginCapability(capability);
+            card.add(addPluginCapability(capability));
         }
+        add(card);
     }
 
-    private void addPluginCapability(PluginCapabilityDto capability) {
+    private Component addPluginCapability(PluginCapabilityDto capability) {
         String text = "Plugin Capability: " + safe(capability.capabilityId())
                 + " | type=" + safe(capability.type())
                 + " | status=" + safe(capability.status())
@@ -409,11 +474,29 @@ public class AdminRegistryStatusView extends Div {
                 + " | health=" + safe(capability.healthStatus())
                 + " | " + metadata(capability.metadata());
         renderedLines.add(text);
-        Div row = new Div(new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("capabilityId", capability.capabilityId()),
+                AdminMobileCardSupport.labelValue("type", capability.type()),
+                AdminMobileCardSupport.labelValue("status", capability.status()),
+                AdminMobileCardSupport.labelValue("version", capability.version()),
+                AdminMobileCardSupport.labelValue("plugin", capability.pluginId()),
+                AdminMobileCardSupport.labelValue("enabled", String.valueOf(capability.enabled())),
+                AdminMobileCardSupport.labelValue("compatibility", capability.compatibilityStatus()),
+                AdminMobileCardSupport.labelValue("health", capability.healthStatus()),
+                AdminMobileCardSupport.statusChip(capability.status()),
+                AdminMobileCardSupport.statusChip(capability.healthStatus()),
+                AdminMobileCardSupport.statusChip(capability.compatibilityStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection row = PiPageSection.card("plugin-capability", new H3(capability.capabilityId()), summary,
+                AdminMobileCardSupport.metadataDetails(capability.metadata()));
+        row.addClassNames("pi-admin-card", "pi-admin-child-card");
+        row.getElement().setAttribute("data-admin-card", "true");
+        row.getElement().setAttribute("data-plugin-capability-card", capability.capabilityId());
         row.getElement().setAttribute("data-plugin-capability", capability.capabilityId());
         row.getElement().setAttribute("data-capability-type", capability.type());
         row.getElement().setAttribute("data-plugin-capability-status", capability.status());
-        add(row);
+        row.getElement().setAttribute("data-status-severity", abnormalRank(capability) > 0 ? "abnormal" : "normal");
+        return row;
     }
 
     private static String metadata(Map<String, String> metadata) {
@@ -445,6 +528,22 @@ public class AdminRegistryStatusView extends Div {
     }
 
     private static int abnormalRank(ExtensionCapabilityDto capability) {
+        return abnormalRank(capability.status(), capability.healthStatus(), capability.compatibilityStatus(), null, null);
+    }
+
+    private static int abnormalRank(McpServerDto server) {
+        return abnormalRank(server.connectionStatus(), server.discoveryStatus(), null, server.redactedError(), null);
+    }
+
+    private static int abnormalRank(McpToolDto tool) {
+        return abnormalRank(tool.availabilityStatus(), null, null, tool.redactedError(), null);
+    }
+
+    private static int abnormalRank(PluginSourceDto plugin) {
+        return abnormalRank(plugin.lifecycleStatus(), plugin.healthStatus(), plugin.compatibilityStatus(), plugin.redactedError(), plugin.reason());
+    }
+
+    private static int abnormalRank(PluginCapabilityDto capability) {
         return abnormalRank(capability.status(), capability.healthStatus(), capability.compatibilityStatus(), null, null);
     }
 
