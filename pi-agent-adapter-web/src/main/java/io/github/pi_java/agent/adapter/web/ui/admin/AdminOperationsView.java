@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 @PageTitle("Pi Admin Operations Metrics")
 public class AdminOperationsView extends Div {
 
+    private static final List<String> ABNORMAL_TOKENS = List.of(
+            "ERROR", "FAILED", "DOWN", "WARN", "WARNING", "UNHEALTHY");
+
     private final ConsoleHttpClient httpClient;
     private final List<String> renderedLines = new ArrayList<>();
     private OperationsSummaryResponse operations;
@@ -111,7 +114,7 @@ public class AdminOperationsView extends Div {
                         + " " + safe(metric.unit())
                         + " | " + metadata(metric.metadata());
                 renderedLines.add(text);
-                section.add(new Span(text));
+                section.add(metricCard(label, metric));
             });
         }
         add(section);
@@ -132,10 +135,84 @@ public class AdminOperationsView extends Div {
                         + " | message=" + safe(warning.message())
                         + " | " + metadata(warning.metadata());
                 renderedLines.add(text);
-                section.add(new Span(text));
+                section.add(warningCard(warning));
             });
         }
         add(section);
+    }
+
+    private Div metricCard(String sectionLabel, OperationMetricDto metric) {
+        String area = safe(metric.area());
+        String status = safe(metric.status());
+        String severity = metricSeverity(sectionLabel, metric);
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("area", area),
+                AdminMobileCardSupport.labelValue("name", safe(metric.name())),
+                AdminMobileCardSupport.labelValue("status", status),
+                AdminMobileCardSupport.labelValue("value", String.valueOf(metric.value())),
+                AdminMobileCardSupport.labelValue("unit", safe(metric.unit())),
+                severityChip(status, severity));
+        summary.addClassName("pi-admin-card-summary");
+        Div card = AdminMobileCardSupport.metricCard(
+                normalizeSection(sectionLabel),
+                safe(metric.name()),
+                String.valueOf(metric.value()),
+                area + " " + status,
+                summary,
+                AdminMobileCardSupport.metadataDetails(metric.metadata()));
+        card.getElement().setAttribute("data-operations-card", normalizeSection(sectionLabel));
+        card.getElement().setAttribute("data-operations-area", area);
+        card.getElement().setAttribute("data-operations-status", status);
+        card.getElement().setAttribute("data-status-severity", severity);
+        return card;
+    }
+
+    private Div warningCard(OperationalWarningDto warning) {
+        String area = safe(warning.area());
+        String severity = warningSeverity(warning.severity());
+        String status = safe(warning.severity());
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("severity", status),
+                AdminMobileCardSupport.labelValue("area", area),
+                AdminMobileCardSupport.labelValue("message", safe(warning.message())),
+                severityChip(status, severity));
+        summary.addClassName("pi-admin-card-summary");
+        Div card = AdminMobileCardSupport.metricCard(
+                "warnings",
+                area + " warning",
+                status,
+                safe(warning.message()),
+                summary,
+                AdminMobileCardSupport.metadataDetails(warning.metadata()));
+        card.getElement().setAttribute("data-operations-warning-card", area);
+        card.getElement().setAttribute("data-operations-area", area);
+        card.getElement().setAttribute("data-operations-status", status);
+        card.getElement().setAttribute("data-status-severity", severity);
+        return card;
+    }
+
+    private Span severityChip(String label, String severity) {
+        Span chip = AdminMobileCardSupport.statusChip(label);
+        chip.getElement().setAttribute("data-status-severity", severity);
+        return chip;
+    }
+
+    private static String metricSeverity(String sectionLabel, OperationMetricDto metric) {
+        if (containsAbnormalToken(metric.status())
+                || containsAbnormalToken(metric.name())
+                || ("errors".equals(normalizeSection(sectionLabel)) && metric.value() != 0.0d)) {
+            return "abnormal";
+        }
+        return "normal";
+    }
+
+    private static String warningSeverity(String value) {
+        return containsAbnormalToken(value) ? "abnormal" : "normal";
+    }
+
+    private static boolean containsAbnormalToken(String value) {
+        String normalized = value == null ? "" : value.toUpperCase();
+        return ABNORMAL_TOKENS.stream().anyMatch(normalized::contains);
     }
 
     private static String metadata(Map<String, String> metadata) {
@@ -150,5 +227,9 @@ public class AdminOperationsView extends Div {
 
     private static String safe(String value) {
         return value == null || value.isBlank() ? "unknown" : value.trim();
+    }
+
+    private static String normalizeSection(String value) {
+        return safe(value).toLowerCase().replace(' ', '-');
     }
 }

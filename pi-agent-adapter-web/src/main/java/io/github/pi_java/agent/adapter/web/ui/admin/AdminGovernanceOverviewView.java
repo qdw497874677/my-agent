@@ -61,6 +61,7 @@ public class AdminGovernanceOverviewView extends Div {
         addStatus("Extensions", overview.extensions());
         addStatus("MCP", overview.mcp());
         addStatus("Plugins", overview.plugins());
+        addOperationsLink();
         addMetric("Policy decisions", overview.policyDecisions().size(), "/admin/governance/policy-decisions");
         addMetric("Audit summaries", overview.audits().size(), "/admin/governance/audits");
         add(new Span("Generated at: " + overview.generatedAt()));
