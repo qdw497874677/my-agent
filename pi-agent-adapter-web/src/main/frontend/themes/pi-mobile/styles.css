@@ -146,6 +146,10 @@ body {
   font-weight: 700;
 }
 
+.pi-shell-nav-item[aria-current="page"] {
+  box-shadow: inset 4px 0 0 var(--pi-mobile-focus-color);
+}
+
 .pi-page,
 .pi-content {
   width: 100%;
