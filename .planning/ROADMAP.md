@@ -134,7 +134,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 15-cross-browser-orientation-accessibility-and-release-hardening-01-PLAN.md — All-route portrait, landscape, and tablet orientation smoke gate
-- [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md — Critical Console/Admin flow and desktop regression release gate
+- [x] 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md — Critical Console/Admin flow and desktop regression release gate
 - [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md — Accessibility, keyboard, reduced-motion, no-hover, and tablet bridge hardening
 - [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md — Release hardening documentation and real-device UAT checklist
 **UI hint**: yes
@@ -151,7 +151,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete    | 2026-06-24 |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete    | 2026-06-25 |
-| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 1/4 | In Progress|  |
+| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 2/4 | In Progress|  |
 
 ## Coverage Validation
 
