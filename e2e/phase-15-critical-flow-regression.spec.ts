@@ -3,7 +3,10 @@ import {
   expectNoPageHorizontalOverflow,
   expectTapTargetAtLeast,
 } from './fixtures/mobile-smoke';
-import { phase15ConsoleReleasePrompt } from './fixtures/phase-15-missing-red-helper';
+import {
+  mobileToolApprovalHint,
+  phase13RuntimeCardMatrixHint,
+} from './fixtures/fake-runtime';
 
 test.describe('Phase 15 Console critical-flow release gate', () => {
   test('mobile console covers run, session, cancel, and runtime inspection surfaces', async ({ page }) => {
@@ -20,7 +23,7 @@ test.describe('Phase 15 Console critical-flow release gate', () => {
     await generalAgent.locator('[data-primary-action^="general-agent-"]').first().click();
 
     const input = page.locator('[data-role="chat-input"]').first();
-    await input.fill(phase15ConsoleReleasePrompt());
+    await input.fill(`Phase 15 critical Console release gate\n${mobileToolApprovalHint()}\n${phase13RuntimeCardMatrixHint()}`);
     const send = page.locator('[data-action="send-chat"]').first();
     await expectTapTargetAtLeast(send, 44, 'Phase 15 send chat action');
     await send.click();
