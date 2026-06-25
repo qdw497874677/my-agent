@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-01-PLAN.md
-last_updated: "2026-06-25T04:39:40.719Z"
+stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
+last_updated: "2026-06-25T04:56:30.537Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 14 (admin-governance-full-site-mobile-coverage) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-25
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P04 | 9m08s | 3 tasks | 5 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P05 | 9m38s | 2 tasks | 9 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P01 | 9min | 3 tasks | 6 files |
+| Phase 14-admin-governance-full-site-mobile-coverage P03 | 4m55s | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Keep Admin mobile primitives package-local inside adapter-web/admin so Vaadin/mobile concerns do not leak into App/Domain/client DTO contracts.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Render Governance Overview summaries as label/value card fields plus status chips while preserving renderedText() semantic compatibility for existing tests.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Treat metadata as structured collapsed Details and redact sensitive keys and values before rendering.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Operations metrics use AdminMobileCardSupport metric/detail primitives while preserving renderedText() semantic compatibility.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Operations warning and error discoverability is represented through data-status-severity hooks for abnormal values.
 
 ### Pending Todos
 
@@ -139,8 +142,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T04:39:40.714Z
-Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-01-PLAN.md
+Last session: 2026-06-25T04:56:30.530Z
+Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
 Resume file: None
 
 ---
