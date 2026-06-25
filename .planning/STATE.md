@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
-status: verifying
-stopped_at: Phase 15 context gathered
-last_updated: "2026-06-25T07:09:36.234Z"
+status: executing
+stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-01-PLAN.md
+last_updated: "2026-06-25T11:18:23.597Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 26
+  completed_plans: 23
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 14 — admin-governance-full-site-mobile-coverage
+**Current focus:** Phase 15 — cross-browser-orientation-accessibility-and-release-hardening
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 15 (cross-browser-orientation-accessibility-and-release-hardening) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-06-25
 
 Progress: [██████████] 100%
@@ -78,6 +78,7 @@ Progress: [██████████] 100%
 | Phase 14-admin-governance-full-site-mobile-coverage P02 | 16m36s | 2 tasks | 4 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P04 | 17m02s | 2 tasks | 3 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P05 | 5min | 2 tasks | 2 files |
+| Phase 15-cross-browser-orientation-accessibility-and-release-hardening P01 | 4m30s | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Keep MVER-04 deterministic by using Playwright --list as the local no-key browser gate.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Use existing Admin public routes and stable data-* hooks for coverage rather than adding mobile-only routes or screenshot assertions.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Document real-device/UAT, cross-browser/orientation hardening, and broader regression expansion as Phase 15 handoffs.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use reusable named viewport cases in mobile-smoke.ts so future Phase 15 gates share portrait, landscape, and tablet dimensions.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep landscape coverage inside the existing Playwright project matrix with page.setViewportSize rather than adding dedicated landscape projects.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Assert structural shell, route, nav, critical control, and no-overflow contracts instead of screenshot visual baselines.
 
 ### Pending Todos
 
@@ -154,9 +158,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T07:09:36.229Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-cross-browser-orientation-accessibility-and-release-hardening/15-CONTEXT.md
+Last session: 2026-06-25T11:18:23.593Z
+Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-20 after v1.1 roadmap creation*
