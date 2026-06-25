@@ -3,10 +3,12 @@ package io.github.pi_java.agent.adapter.web.ui.admin;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiPageSection;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.PolicyDecisionSummaryDto;
 import java.util.ArrayList;
@@ -99,16 +101,54 @@ public class AdminPolicyDecisionsView extends Div {
                 + " | decidedAt=" + decision.decidedAt()
                 + " | summary=" + redactedMap(decision.redactedSummary());
         renderedLines.add(text);
-        Div row = new Div(new Span(text));
-        row.getElement().setAttribute("data-policy-decision-id", decision.id());
-        row.getElement().setAttribute("data-read-only", "true");
+
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("decision", decision.decision()),
+                AdminMobileCardSupport.labelValue("reason", decision.reason()),
+                AdminMobileCardSupport.labelValue("tool", decision.toolId()),
+                AdminMobileCardSupport.labelValue("toolCall", decision.toolCallId()),
+                AdminMobileCardSupport.labelValue("session", decision.sessionId()),
+                AdminMobileCardSupport.labelValue("run", decision.runId()),
+                AdminMobileCardSupport.labelValue("decidedAt", String.valueOf(decision.decidedAt())),
+                AdminMobileCardSupport.statusChip(decision.decision()));
+        summary.addClassName("pi-admin-card-summary");
+
+        Div actions = new Div();
         if (!sessionLink.isBlank()) {
-            row.add(new Anchor(sessionLink, "Session"));
+            actions.add(new Anchor(sessionLink, "Session"));
         }
         if (!runLink.isBlank()) {
-            row.add(new Anchor(runLink, "Run"));
+            actions.add(new Anchor(runLink, "Run"));
         }
-        add(row);
+        actions.addClassName("pi-admin-action-row");
+        actions.getElement().setAttribute("data-admin-actions", "true");
+
+        PiPageSection card = PiPageSection.card(
+                "policy-decision-" + safe(decision.id()),
+                new H3("Policy decision " + safe(decision.id())),
+                summary,
+                actions,
+                redactedContextDetails(decision.redactedSummary()));
+        card.addClassName("pi-admin-card");
+        card.getElement().setAttribute("data-policy-decision-card", "true");
+        card.getElement().setAttribute("data-policy-decision-id", safe(decision.id()));
+        card.getElement().setAttribute("data-read-only", "true");
+        add(card);
+    }
+
+    private static com.vaadin.flow.component.details.Details redactedContextDetails(Map<String, String> values) {
+        Div fields = new Div();
+        fields.addClassName("pi-admin-card-grid");
+        if (values == null || values.isEmpty()) {
+            fields.add(AdminMobileCardSupport.labelValue("context", "none"));
+        } else {
+            values.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> fields.add(AdminMobileCardSupport.labelValue(detailKey(entry.getKey()), detailValue(entry.getValue()))));
+        }
+        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details("Redacted context", "structured", fields);
+        details.getElement().setAttribute("data-admin-details", "policy-context");
+        return details;
     }
 
     private void maybeAddLink(String link) {
@@ -134,8 +174,24 @@ public class AdminPolicyDecisionsView extends Div {
         }
         return values.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .map(entry -> safe(entry.getKey()) + "=" + safe(entry.getValue()))
+                .map(entry -> detailKey(entry.getKey()) + "=" + safe(entry.getValue()))
                 .collect(Collectors.joining(", ", "{", "}"));
+    }
+
+    private static String detailValue(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String sanitized = AdminMobileRedactor.redact(value.trim());
+        return containsSensitiveTerms(sanitized) ? AdminMobileRedactor.REDACTED : sanitized;
+    }
+
+    private static String detailKey(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String sanitized = AdminMobileRedactor.redact(value.trim());
+        return looksSensitive(sanitized) || containsSensitiveTerms(sanitized) ? AdminMobileRedactor.REDACTED : sanitized;
     }
 
     private static String safe(String value) {
@@ -152,5 +208,14 @@ public class AdminPolicyDecisionsView extends Div {
     private static boolean looksSensitive(String value) {
         String lower = value.toLowerCase();
         return lower.contains("sk-") || lower.contains("rawsecret") || lower.contains("apikey") || lower.contains("password") || lower.contains("token=");
+    }
+
+    private static boolean containsSensitiveTerms(String value) {
+        String lower = value.toLowerCase();
+        return lower.contains("api")
+                || lower.contains("password")
+                || lower.contains("secret")
+                || lower.contains("token")
+                || lower.contains("authorization");
     }
 }
