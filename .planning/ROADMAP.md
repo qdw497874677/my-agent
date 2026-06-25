@@ -131,7 +131,12 @@ Plans:
   2. Desktop user can still complete existing Web Console and Admin browser regression paths after mobile-first changes.
   3. Keyboard/tablet user can complete final focus, drawer/dialog, visible label, and no-hover-only interaction checks across converted surfaces.
   4. Maintainer can review release documentation that records Android Chrome, iOS Safari, Edge mobile, and Firefox mobile UAT expectations plus any CI/emulation gaps.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-01-PLAN.md — All-route portrait, landscape, and tablet orientation smoke gate
+- [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md — Critical Console/Admin flow and desktop regression release gate
+- [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md — Accessibility, keyboard, reduced-motion, no-hover, and tablet bridge hardening
+- [ ] 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md — Release hardening documentation and real-device UAT checklist
 **UI hint**: yes
 
 ## Progress
@@ -146,7 +151,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete    | 2026-06-24 |
 | 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete    | 2026-06-25 |
-| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
+| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/4 | Planned | - |
 
 ## Coverage Validation
 
