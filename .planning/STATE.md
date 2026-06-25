@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
-status: verifying
-stopped_at: Phase 14 context gathered
-last_updated: "2026-06-24T14:02:13.216Z"
-last_activity: 2026-06-24
+status: executing
+stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-01-PLAN.md
+last_updated: "2026-06-25T04:39:40.719Z"
+last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 22
+  completed_plans: 18
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 13 — runtime-cards-timeline-tool-and-approval-ux
+**Current focus:** Phase 14 — admin-governance-full-site-mobile-coverage
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-24
+Phase: 14 (admin-governance-full-site-mobile-coverage) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-06-25
 
 Progress: [██████████] 100%
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P03 | 5min | 2 tasks | 2 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P04 | 9m08s | 3 tasks | 5 files |
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P05 | 9m38s | 2 tasks | 9 files |
+| Phase 14-admin-governance-full-site-mobile-coverage P01 | 9min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Document full runtime/tool/approval selector and redaction contracts for Phase 14/15 handoff rather than introducing new mobile-only APIs or modal primitives.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Keep approval decision execution in adapter-web via ApprovalDecisionHandler/AppApprovalDecisionHandler instead of adding mobile-only REST DTOs or Vaadin dependencies outside the adapter layer.
 - [Phase 13-runtime-cards-timeline-tool-and-approval-ux]: Preserve deterministic demo constructors with ApprovalDecisionHandler.demo() while Spring constructors bridge to ApprovalCommandService for live Console/Admin cards.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Keep Admin mobile primitives package-local inside adapter-web/admin so Vaadin/mobile concerns do not leak into App/Domain/client DTO contracts.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Render Governance Overview summaries as label/value card fields plus status chips while preserving renderedText() semantic compatibility for existing tests.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Treat metadata as structured collapsed Details and redact sensitive keys and values before rendering.
 
 ### Pending Todos
 
@@ -135,9 +139,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-24T14:02:13.210Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-admin-governance-full-site-mobile-coverage/14-CONTEXT.md
+Last session: 2026-06-25T04:39:40.714Z
+Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-20 after v1.1 roadmap creation*

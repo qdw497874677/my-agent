@@ -34,7 +34,7 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 
 ### Admin Governance Mobile Coverage
 
-- [ ] **MADM-01**: Mobile admin can read Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links.
+- [x] **MADM-01**: Mobile admin can read Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links.
 - [ ] **MADM-02**: Mobile admin can inspect Registry and Operations data as cards or responsive row details without relying on page-level horizontal table scrolling.
 - [ ] **MADM-03**: Mobile admin can inspect MCP server/tool status, refresh/status metadata where already supported, and unhealthy/disconnected states.
 - [ ] **MADM-04**: Mobile admin can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in stacked card/detail layouts.
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCARD-03 | Phase 13 | Complete |
 | MCARD-04 | Phase 13 | Complete |
 | MCARD-05 | Phase 13 | Complete |
-| MADM-01 | Phase 14 | Pending |
+| MADM-01 | Phase 14 | Complete |
 | MADM-02 | Phase 14 | Pending |
 | MADM-03 | Phase 14 | Pending |
 | MADM-04 | Phase 14 | Pending |
