@@ -1,5 +1,6 @@
 package io.github.pi_java.agent.adapter.web.ui.admin;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -8,6 +9,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiPageSection;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
@@ -215,7 +217,14 @@ public class AdminRegistryStatusView extends Div {
                 + " | " + status.message()
                 + " | " + metadata(status.metadata());
         renderedLines.add(text);
-        Div card = new Div(new H3(label), new Span(text));
+        PiPageSection card = AdminMobileCardSupport.statusCard(
+                registrySection(status.area()),
+                label,
+                status.status(),
+                String.valueOf(status.count()),
+                status.message(),
+                AdminMobileCardSupport.metadataDetails(status.metadata()));
+        card.getElement().setAttribute("data-admin-registry-section", registrySection(status.area()));
         card.getElement().setAttribute("data-governance-area", status.area());
         card.getElement().setAttribute("data-governance-status", status.status());
         card.getElement().setAttribute("data-read-only", "true");
@@ -233,18 +242,39 @@ public class AdminRegistryStatusView extends Div {
                 + " | capabilities=" + source.capabilities().size()
                 + " | error=" + safe(source.redactedError());
         renderedLines.add(text);
-        Div card = new Div(new H3(source.name()), new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("sourceId", source.sourceId()),
+                AdminMobileCardSupport.labelValue("name", source.name()),
+                AdminMobileCardSupport.labelValue("kind", source.kind()),
+                AdminMobileCardSupport.labelValue("lifecycleStatus", source.lifecycleStatus()),
+                AdminMobileCardSupport.labelValue("healthStatus", source.healthStatus()),
+                AdminMobileCardSupport.labelValue("compatibilityStatus", source.compatibilityStatus()),
+                AdminMobileCardSupport.labelValue("enabled", String.valueOf(source.enabled())),
+                AdminMobileCardSupport.labelValue("capabilities", String.valueOf(source.capabilities().size())),
+                AdminMobileCardSupport.statusChip(source.lifecycleStatus()),
+                AdminMobileCardSupport.statusChip(source.healthStatus()),
+                AdminMobileCardSupport.statusChip(source.compatibilityStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection card = PiPageSection.card("extension-source", new H3(source.name()), summary,
+                AdminMobileCardSupport.details("Source diagnostics", "structured",
+                        AdminMobileCardSupport.labelValue("redactedError", source.redactedError()),
+                        AdminMobileCardSupport.labelValue("capabilityCount", String.valueOf(source.capabilities().size()))));
+        card.addClassNames("pi-admin-card", "pi-admin-nested-card");
+        card.getElement().setAttribute("data-admin-card", "true");
+        card.getElement().setAttribute("data-admin-registry-section", "extensions");
+        card.getElement().setAttribute("data-extension-source-card", source.sourceId());
         card.getElement().setAttribute("data-governance-area", "extensions");
         card.getElement().setAttribute("data-extension-source", source.sourceId());
         card.getElement().setAttribute("data-extension-kind", source.kind());
+        card.getElement().setAttribute("data-status-severity", abnormalRank(source) > 0 ? "abnormal" : "normal");
         card.getElement().setAttribute("data-read-only", "true");
-        add(card);
         for (ExtensionCapabilityDto capability : source.capabilities()) {
-            addExtensionCapability(capability);
+            card.add(addExtensionCapability(capability));
         }
+        add(card);
     }
 
-    private void addExtensionCapability(ExtensionCapabilityDto capability) {
+    private Component addExtensionCapability(ExtensionCapabilityDto capability) {
         String text = "Capability: " + safe(capability.capabilityId())
                 + " | type=" + safe(capability.type())
                 + " | status=" + safe(capability.status())
@@ -253,11 +283,27 @@ public class AdminRegistryStatusView extends Div {
                 + " | enabled=" + capability.enabled()
                 + " | " + metadata(capability.metadata());
         renderedLines.add(text);
-        Div row = new Div(new Span(text));
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("capabilityId", capability.capabilityId()),
+                AdminMobileCardSupport.labelValue("type", capability.type()),
+                AdminMobileCardSupport.labelValue("status", capability.status()),
+                AdminMobileCardSupport.labelValue("health", capability.healthStatus()),
+                AdminMobileCardSupport.labelValue("compatibility", capability.compatibilityStatus()),
+                AdminMobileCardSupport.labelValue("enabled", String.valueOf(capability.enabled())),
+                AdminMobileCardSupport.statusChip(capability.status()),
+                AdminMobileCardSupport.statusChip(capability.healthStatus()),
+                AdminMobileCardSupport.statusChip(capability.compatibilityStatus()));
+        summary.addClassName("pi-admin-card-summary");
+        PiPageSection row = PiPageSection.card("extension-capability", new H3(capability.capabilityId()), summary,
+                AdminMobileCardSupport.metadataDetails(capability.metadata()));
+        row.addClassNames("pi-admin-card", "pi-admin-child-card");
+        row.getElement().setAttribute("data-admin-card", "true");
+        row.getElement().setAttribute("data-extension-capability-card", capability.capabilityId());
         row.getElement().setAttribute("data-extension-capability", capability.capabilityId());
         row.getElement().setAttribute("data-capability-type", capability.type());
+        row.getElement().setAttribute("data-status-severity", abnormalRank(capability) > 0 ? "abnormal" : "normal");
         row.getElement().setAttribute("data-read-only", "true");
-        add(row);
+        return row;
     }
 
     private void addMcpServer(McpServerDto server) {
@@ -378,6 +424,43 @@ public class AdminRegistryStatusView extends Div {
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> safe(entry.getKey()) + "=" + safe(entry.getValue()))
                 .collect(Collectors.joining(", "));
+    }
+
+    private static String registrySection(String area) {
+        String normalized = safe(area).toLowerCase();
+        if (normalized.contains("extension")) {
+            return "extensions";
+        }
+        if (normalized.contains("mcp")) {
+            return "mcp";
+        }
+        if (normalized.contains("plugin")) {
+            return "plugins";
+        }
+        return "registry";
+    }
+
+    private static int abnormalRank(ExtensionSourceDto source) {
+        return abnormalRank(source.lifecycleStatus(), source.healthStatus(), source.compatibilityStatus(), source.redactedError(), null);
+    }
+
+    private static int abnormalRank(ExtensionCapabilityDto capability) {
+        return abnormalRank(capability.status(), capability.healthStatus(), capability.compatibilityStatus(), null, null);
+    }
+
+    private static int abnormalRank(String status, String health, String compatibility, String redactedError, String reason) {
+        String joined = String.join(" ", safe(status), safe(health), safe(compatibility), safe(redactedError), safe(reason)).toUpperCase();
+        if (!safe(redactedError).equals("unknown") || !safe(reason).equals("unknown")) {
+            return 2;
+        }
+        return joined.contains("UNHEALTHY")
+                || joined.contains("FAILED")
+                || joined.contains("DOWN")
+                || joined.contains("WARN")
+                || joined.contains("DISCONNECTED")
+                || joined.contains("DISABLED")
+                || joined.contains("QUARANTINED")
+                || joined.contains("INCOMPATIBLE") ? 1 : 0;
     }
 
     private static String safe(String value) {
