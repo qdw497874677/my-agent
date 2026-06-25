@@ -148,6 +148,12 @@ class AdminGovernanceViewsTest {
                 .contains("Plugins: FUTURE_ENABLED")
                 .contains("mutation=disabled")
                 .contains("surface=placeholder");
+        assertThat(countElementsWithAttribute(view, "data-admin-registry-section")).isEqualTo(5);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-registry-section", "registry")).isEqualTo(2);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-registry-section", "extensions")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-registry-section", "mcp")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-registry-section", "plugins")).isEqualTo(1);
+        assertThat(visibleSpanTexts(view)).noneMatch(text -> text.contains(" | "));
         assertThat(view.mutationControlsPresent()).isFalse();
         assertThat(view.mutationActionText().toLowerCase())
                 .doesNotContain("enable button")
@@ -176,6 +182,13 @@ class AdminGovernanceViewsTest {
                 .doesNotContain("enable button")
                 .doesNotContain("disable button")
                 .doesNotContain("delete");
+        assertThat(countElementsWithAttribute(view, "data-extension-source-card")).isEqualTo(1);
+        assertThat(countElementsWithAttribute(view, "data-extension-capability-card")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-extension-capability", "listener.audit")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-capability-type", "EVENT_LISTENER")).isEqualTo(1);
+        assertThat(countElementsWithAttribute(view, "data-admin-details")).isGreaterThanOrEqualTo(2);
+        assertThat(renderedComponentText(view)).contains("[REDACTED]").doesNotContain("sk-test-secret");
+        assertThat(visibleSpanTexts(view)).noneMatch(text -> text.contains(" | "));
         assertThat(view.mutationControlsPresent()).isFalse();
     }
 
@@ -197,6 +210,44 @@ class AdminGovernanceViewsTest {
                 .doesNotContain("rawSecret");
         assertThat(view.contextLinks()).contains("/console/sessions/session-1", "/console/sessions/session-1/runs/run-1");
         assertThat(view.phaseFiveDeferredControlsPresent()).isFalse();
+    }
+
+    @Test
+    void policyDecisionViewRendersMobileCardsWithCollapsedRedactedContext() {
+        AdminPolicyDecisionsView view = new AdminPolicyDecisionsView(new ConsoleHttpClient());
+        view.showPolicyDecisions(List.of(new PolicyDecisionSummaryDto(
+                "decision-1",
+                "REQUIRE_APPROVAL",
+                "needs review",
+                "builtin.info",
+                "call-1",
+                "session-1",
+                "run-1",
+                Instant.parse("2026-06-15T00:00:00Z"),
+                Map.of("apiKey", "sk-test-secret", "rawSecret", "password=abc123", "safe", "visible"))));
+
+        assertThat(countElementsWithAttribute(view, "data-policy-decision-card")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-policy-decision-id", "decision-1")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-details", "policy-context")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-detail-layer", "structured")).isGreaterThanOrEqualTo(1);
+        assertThat(view.getChildren().filter(Details.class::isInstance).map(Details.class::cast)).allMatch(details -> !details.isOpened());
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "decision")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "reason")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "tool")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "toolcall")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "session")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "run")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "decidedat")).isEqualTo(1);
+        assertThat(countElementsWithAttribute(view, "data-status-chip")).isEqualTo(1);
+        assertThat(renderedComponentText(view))
+                .contains("[REDACTED]")
+                .contains("visible")
+                .doesNotContain("sk-test-secret")
+                .doesNotContain("rawSecret")
+                .doesNotContain("apiKey")
+                .doesNotContain("password")
+                .doesNotContain("abc123");
+        assertThat(view.contextLinks()).contains("/console/sessions/session-1", "/console/sessions/session-1/runs/run-1");
     }
 
     @Test
