@@ -293,6 +293,121 @@ div {
   word-break: break-word;
 }
 
+.pi-admin-card,
+[data-admin-card] {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: var(--pi-mobile-space-md);
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 1rem;
+  background: var(--pi-mobile-shell-surface);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-admin-card-grid,
+.pi-admin-card-summary,
+.pi-admin-field,
+.pi-admin-field-label,
+.pi-admin-field-value,
+.pi-admin-details,
+.pi-admin-nested-card,
+.pi-admin-action-row,
+[data-admin-details],
+[data-admin-field],
+[data-status-chip] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pi-admin-card-grid,
+.pi-admin-card-summary,
+.pi-admin-nested-card {
+  display: grid;
+  gap: var(--pi-mobile-space-sm);
+}
+
+.pi-admin-card-summary {
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  align-items: start;
+}
+
+.pi-admin-field {
+  display: grid;
+  gap: var(--pi-mobile-space-xs);
+  padding: var(--pi-mobile-space-sm);
+  border-radius: 0.75rem;
+  background: #fbfcfe;
+}
+
+.pi-admin-field-label {
+  color: #536176;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pi-admin-field-value {
+  color: #172033;
+  font-weight: 600;
+}
+
+.pi-admin-details,
+[data-admin-details] {
+  display: block;
+}
+
+.pi-admin-details::part(summary),
+[data-admin-details]::part(summary) {
+  min-height: var(--pi-mobile-tap-target);
+}
+
+.pi-admin-nested-card {
+  padding: var(--pi-mobile-space-sm);
+  border: 1px solid var(--pi-mobile-shell-border);
+  border-radius: 0.75rem;
+  background: #fbfcfe;
+}
+
+.pi-admin-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pi-mobile-space-sm);
+  align-items: center;
+}
+
+.pi-admin-action-row > *,
+.pi-admin-action-row a,
+[data-admin-action-link] {
+  min-width: var(--pi-mobile-tap-target);
+  min-height: var(--pi-mobile-tap-target);
+}
+
+[data-status-severity="normal"] {
+  border-color: color-mix(in srgb, #15803d 45%, var(--pi-mobile-shell-border));
+  background: #ecfdf5;
+  color: #14532d;
+}
+
+[data-status-severity="warning"] {
+  border-color: color-mix(in srgb, #b45309 45%, var(--pi-mobile-shell-border));
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+[data-status-severity="abnormal"] {
+  border-color: color-mix(in srgb, #b91c1c 45%, var(--pi-mobile-shell-border));
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
 .pi-runtime-card-summary,
 .pi-runtime-card-meta,
 .pi-tool-call-card__summary,

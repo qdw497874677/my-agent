@@ -55,6 +55,19 @@ class WebMobileBaselineContractTest {
         assertThat(css).contains("overflow-wrap");
     }
 
+    @Test
+    void projectMobileThemeContainsAdminCardDetailContract() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+
+        assertThat(css).contains(".pi-admin-card");
+        assertThat(css).contains(".pi-admin-field");
+        assertThat(css).contains(".pi-admin-details");
+        assertThat(css).contains(".pi-admin-nested-card");
+        assertThat(css).contains("[data-admin-details]");
+        assertThat(css).contains("data-status-severity");
+        assertThat(css).contains("overflow-wrap: anywhere");
+    }
+
     private static void assertAttribute(Component component, String attribute, String expected) {
         assertThat(component.getElement().getAttribute(attribute))
                 .as("%s on %s", attribute, component.getClass().getSimpleName())
