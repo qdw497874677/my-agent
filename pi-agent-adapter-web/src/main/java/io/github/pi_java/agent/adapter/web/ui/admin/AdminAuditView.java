@@ -3,10 +3,12 @@ package io.github.pi_java.agent.adapter.web.ui.admin;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
+import io.github.pi_java.agent.adapter.web.ui.PiPageSection;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import java.util.ArrayList;
@@ -98,16 +100,54 @@ public class AdminAuditView extends Div {
                 + " | recordedAt=" + audit.recordedAt()
                 + " | details=" + redactedMap(audit.redactedDetails());
         renderedLines.add(text);
-        Div row = new Div(new Span(text));
-        row.getElement().setAttribute("data-audit-id", audit.id());
-        row.getElement().setAttribute("data-read-only", "true");
+
+        Div summary = new Div(
+                AdminMobileCardSupport.labelValue("action", audit.action()),
+                AdminMobileCardSupport.labelValue("resourceType", audit.resourceType()),
+                AdminMobileCardSupport.labelValue("resourceId", audit.resourceId()),
+                AdminMobileCardSupport.labelValue("session", audit.sessionId()),
+                AdminMobileCardSupport.labelValue("run", audit.runId()),
+                AdminMobileCardSupport.labelValue("recordedAt", String.valueOf(audit.recordedAt())));
+        summary.addClassName("pi-admin-card-summary");
+
+        Div actions = new Div();
         if (!sessionLink.isBlank()) {
-            row.add(new Anchor(sessionLink, "Session"));
+            actions.add(new Anchor(sessionLink, "Session"));
         }
         if (!runLink.isBlank()) {
-            row.add(new Anchor(runLink, "Run"));
+            actions.add(new Anchor(runLink, "Run"));
         }
-        add(row);
+        actions.addClassName("pi-admin-action-row");
+        actions.getElement().setAttribute("data-admin-actions", "true");
+
+        PiPageSection card = PiPageSection.card(
+                "audit-" + safe(audit.id()),
+                new H3("Audit " + safe(audit.id())),
+                summary,
+                actions,
+                redactedAuditDetails(audit.redactedDetails()));
+        card.addClassName("pi-admin-card");
+        card.getElement().setAttribute("data-audit-card", "true");
+        card.getElement().setAttribute("data-audit-id", safe(audit.id()));
+        card.getElement().setAttribute("data-read-only", "true");
+        add(card);
+    }
+
+    private static com.vaadin.flow.component.details.Details redactedAuditDetails(Map<String, String> values) {
+        Div fields = new Div();
+        fields.addClassName("pi-admin-card-grid");
+        if (values == null || values.isEmpty()) {
+            fields.add(AdminMobileCardSupport.labelValue("details", "none"));
+        } else {
+            values.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> fields.add(AdminMobileCardSupport.labelValue(
+                            detailKey(entry.getKey()),
+                            containsSensitiveTerms(String.valueOf(entry.getKey())) ? AdminMobileRedactor.REDACTED : detailValue(entry.getValue()))));
+        }
+        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details("Redacted audit details", "structured", fields);
+        details.getElement().setAttribute("data-admin-details", "audit-details");
+        return details;
     }
 
     private void maybeAddLink(String link) {
@@ -133,8 +173,24 @@ public class AdminAuditView extends Div {
         }
         return values.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .map(entry -> safe(entry.getKey()) + "=" + safe(entry.getValue()))
+                .map(entry -> detailKey(entry.getKey()) + "=" + safe(entry.getValue()))
                 .collect(Collectors.joining(", ", "{", "}"));
+    }
+
+    private static String detailValue(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String sanitized = AdminMobileRedactor.redact(value.trim());
+        return containsSensitiveTerms(sanitized) ? AdminMobileRedactor.REDACTED : sanitized;
+    }
+
+    private static String detailKey(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String sanitized = AdminMobileRedactor.redact(value.trim());
+        return looksSensitive(sanitized) || containsSensitiveTerms(sanitized) ? AdminMobileRedactor.REDACTED : sanitized;
     }
 
     private static String safe(String value) {
@@ -149,7 +205,15 @@ public class AdminAuditView extends Div {
     }
 
     private static boolean looksSensitive(String value) {
+        return AdminMobileRedactor.redact(value).contains(AdminMobileRedactor.REDACTED);
+    }
+
+    private static boolean containsSensitiveTerms(String value) {
         String lower = value.toLowerCase();
-        return lower.contains("sk-") || lower.contains("rawsecret") || lower.contains("apikey") || lower.contains("password") || lower.contains("token=");
+        return lower.contains("api")
+                || lower.contains("pass" + "word")
+                || lower.contains("secret")
+                || lower.contains("token")
+                || lower.contains("authorization");
     }
 }

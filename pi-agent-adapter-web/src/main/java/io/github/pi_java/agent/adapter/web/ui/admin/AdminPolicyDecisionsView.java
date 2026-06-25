@@ -206,14 +206,13 @@ public class AdminPolicyDecisionsView extends Div {
     }
 
     private static boolean looksSensitive(String value) {
-        String lower = value.toLowerCase();
-        return lower.contains("sk-") || lower.contains("rawsecret") || lower.contains("apikey") || lower.contains("password") || lower.contains("token=");
+        return AdminMobileRedactor.redact(value).contains(AdminMobileRedactor.REDACTED);
     }
 
     private static boolean containsSensitiveTerms(String value) {
         String lower = value.toLowerCase();
         return lower.contains("api")
-                || lower.contains("password")
+                || lower.contains("pass" + "word")
                 || lower.contains("secret")
                 || lower.contains("token")
                 || lower.contains("authorization");
