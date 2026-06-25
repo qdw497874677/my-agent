@@ -37,7 +37,7 @@ body {
   text-size-adjust: 100%;
 }
 
-:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [data-action], [data-action-plan], [data-primary-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item], [data-read-only-refresh], [data-plugin-action]):not(.pi-compact-control) {
+:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [data-action], [data-action-plan], [data-primary-action], [data-risk-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item], [data-read-only-refresh], [data-plugin-action]):not(.pi-compact-control) {
   min-width: var(--pi-mobile-tap-target);
   min-height: var(--pi-mobile-tap-target);
 }
@@ -48,7 +48,7 @@ body {
   min-height: auto;
 }
 
-:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [tabindex], [data-action], [data-action-plan], [data-primary-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item]):focus-visible {
+:where(a, button, vaadin-button, vaadin-details, summary, [role="button"], [tabindex], [data-action], [data-action-plan], [data-primary-action], [data-risk-action], [data-read-only-refresh], [data-plugin-action], [data-shell-drawer-trigger], [data-shell-drawer-close], [data-nav-item]):focus-visible {
   outline: 2px solid var(--pi-mobile-focus-color);
   outline-offset: 2px;
   box-shadow: var(--pi-mobile-focus-ring);
@@ -576,6 +576,105 @@ vaadin-text-area[data-role="chat-input"] {
   max-width: 100%;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* Phase 15 D-10/D-12: critical actions expose non-hover affordances on touch-first surfaces. */
+:where([data-action], [data-primary-action], [data-risk-action], [data-read-only-refresh], [data-admin-action-link], .pi-shell-nav-item, vaadin-details, summary) {
+  border-radius: 0.75rem;
+  touch-action: manipulation;
+}
+
+:where([data-action], [data-primary-action], [data-risk-action], [data-read-only-refresh], [data-admin-action-link]):not(vaadin-button, button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pi-mobile-space-xs);
+  padding-inline: var(--pi-mobile-space-sm);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+[data-risk-action] {
+  border: 1px solid color-mix(in srgb, #b45309 45%, var(--pi-mobile-shell-border));
+  background: #fff7ed;
+  color: #7c2d12;
+  font-weight: 700;
+}
+
+@media (hover: none) {
+  :where([data-action], [data-primary-action], [data-risk-action], [data-read-only-refresh], [data-admin-action-link], .pi-shell-nav-item, vaadin-details, summary) {
+    -webkit-tap-highlight-color: color-mix(in srgb, var(--pi-mobile-focus-color) 18%, transparent);
+  }
+
+  :where([data-action], [data-primary-action], [data-risk-action], [data-read-only-refresh], [data-admin-action-link]):not(vaadin-button, button) {
+    border: 1px solid var(--pi-mobile-shell-border);
+    background: var(--pi-mobile-shell-surface);
+  }
+
+  [data-risk-action] {
+    border-color: color-mix(in srgb, #b45309 45%, var(--pi-mobile-shell-border));
+    background: #fff7ed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+
+  .pi-shell-drawer {
+    transition: none !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 899px) {
+  .pi-shell-drawer {
+    width: min(22rem, 58vw);
+  }
+
+  .pi-page,
+  .pi-content {
+    max-width: min(100%, 56rem);
+    padding-inline: clamp(var(--pi-mobile-space-md), 4vw, 2rem);
+  }
+
+  .pi-console-workbench {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.85fr) minmax(0, 1.4fr);
+    gap: var(--pi-mobile-space-md);
+    align-items: start;
+  }
+
+  .pi-console-panel-switcher {
+    grid-column: 1 / -1;
+  }
+
+  .pi-console-workbench [data-console-panel="context"] {
+    grid-column: 1 / -1;
+  }
+
+  .pi-admin-card-grid,
+  .pi-admin-governance-overview,
+  .pi-admin-registry-status,
+  .pi-admin-operations-summary,
+  .pi-admin-policy-decisions,
+  .pi-admin-audit-summaries,
+  .pi-admin-approval-queue {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    gap: var(--pi-mobile-space-md);
+    align-items: start;
+  }
 }
 
 @media (max-width: 640px) {
