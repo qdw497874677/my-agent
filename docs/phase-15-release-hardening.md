@@ -86,6 +86,8 @@ True-device coverage is tracked in [15-HUMAN-UAT.md](../.planning/phases/15-cros
 
 ## Known Playwright Proxy Limitations
 
+The release vocabulary is intentionally consistent with the manual checklist: Playwright `Mobile Safari` is a WebKit proxy and Playwright `Mobile Firefox` is a Firefox-engine mobile viewport/user-agent proxy. Neither is true-device proof, and both must be supplemented by [15-HUMAN-UAT.md](../.planning/phases/15-cross-browser-orientation-accessibility-and-release-hardening/15-HUMAN-UAT.md) before final device sign-off.
+
 - **Mobile Safari/WebKit proxy:** Playwright `Mobile Safari` covers WebKit layout pressure with an iPhone-like descriptor, but it is not a physical iPhone. It cannot prove OS-level keyboard interaction, iOS browser chrome viewport shifts, device memory/performance quirks, or all Safari version differences.
 - **Mobile Firefox proxy:** Playwright `Mobile Firefox` uses the Firefox engine with mobile viewport/touch/user-agent settings. It is a Firefox-engine mobile proxy, not true Firefox for Android or iOS.
 - **Edge mobile:** Phase 15 does not define a dedicated Playwright Edge mobile project. Edge mobile true-device validation must be recorded manually.

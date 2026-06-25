@@ -16,6 +16,8 @@ This checklist captures true-device release validation for the v1.1 mobile H5 mi
 - `known limitation` — acceptable for release only if impact and release-note wording are explicit.
 - `follow-up` — non-blocking improvement tracked after release.
 
+Use the same proxy language as the release guide: Playwright `Mobile Safari` is a WebKit proxy, and Playwright `Mobile Firefox` is a Firefox-engine mobile viewport/user-agent proxy. These automated projects are useful release signals, but the true-device rows below remain pending until humans test real devices and classify any unrun or failed items as `blocker`, `known limitation`, or `follow-up`.
+
 ## How to Record Results
 
 For each target browser/device:
