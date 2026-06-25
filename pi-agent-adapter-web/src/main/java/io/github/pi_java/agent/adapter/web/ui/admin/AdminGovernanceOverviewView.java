@@ -3,7 +3,6 @@ package io.github.pi_java.agent.adapter.web.ui.admin;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -56,8 +55,6 @@ public class AdminGovernanceOverviewView extends Div {
         removeAll();
         add(new H2("Admin Governance Overview"));
         add(new Span("Inspect-only runtime, registry, policy, and audit visibility."));
-        add(new Anchor(registryStatusPath(), "Registry status details"));
-        addOperationsLink();
         addStatus("Runtime", overview.runtime());
         addStatus("Model Providers", overview.providers());
         addStatus("Tool Registry", overview.toolRegistry());
@@ -92,7 +89,20 @@ public class AdminGovernanceOverviewView extends Div {
                 + " | " + status.message()
                 + " | " + metadata(status.metadata());
         renderedLines.add(text);
-        Div card = new Div(new H3(label), new Span(text));
+        Div actions = AdminMobileCardSupport.actionRow(
+                AdminMobileCardSupport.actionLink(registryStatusPath(), "Registry"),
+                AdminMobileCardSupport.actionLink(operationsPath(), "Operations"),
+                AdminMobileCardSupport.actionLink("/admin/governance/policy-decisions", "Policy decisions"),
+                AdminMobileCardSupport.actionLink("/admin/governance/audits", "Audit summaries"));
+        Div card = AdminMobileCardSupport.statusCard(
+                status.area(),
+                label,
+                status.status(),
+                String.valueOf(status.count()),
+                status.message(),
+                actions,
+                AdminMobileCardSupport.metadataDetails(status.metadata()));
+        card.getElement().setAttribute("data-admin-overview-card", status.area());
         card.getElement().setAttribute("data-governance-area", status.area());
         card.getElement().setAttribute("data-governance-status", status.status());
         add(card);

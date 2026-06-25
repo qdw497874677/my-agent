@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Span;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminGovernanceOverviewView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminAuditView;
@@ -98,6 +100,37 @@ class AdminGovernanceViewsTest {
                 .contains("Policy decisions")
                 .contains("Audit summaries");
         assertThat(view.getElement().getAttribute("data-admin-surface")).isEqualTo("inspect-only");
+    }
+
+    @Test
+    void overviewRendersSixStackedStatusCardsWithoutPipeSeparatedSummaries() {
+        AdminGovernanceOverviewView view = new AdminGovernanceOverviewView(new ConsoleHttpClient());
+        view.showOverview(sampleOverviewWithSensitiveMetadata());
+
+        assertThat(countElementsWithAttribute(view, "data-admin-overview-card")).isEqualTo(6);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "runtime")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "providers")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "toolRegistry")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "extensions")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "mcp")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-overview-card", "plugins")).isEqualTo(1);
+        assertThat(countElementsWithAttribute(view, "data-admin-field")).isGreaterThanOrEqualTo(18);
+        assertThat(visibleSpanTexts(view)).noneMatch(text -> text.contains(" | "));
+    }
+
+    @Test
+    void overviewMetadataIsCollapsedRedactedDetailsAndKeepsRouteLinks() {
+        AdminGovernanceOverviewView view = new AdminGovernanceOverviewView(new ConsoleHttpClient());
+        view.showOverview(sampleOverviewWithSensitiveMetadata());
+
+        assertThat(countElementsWithAttribute(view, "data-admin-details")).isGreaterThanOrEqualTo(6);
+        assertThat(view.getChildren().filter(Details.class::isInstance).map(Details.class::cast)).allMatch(details -> !details.isOpened());
+        assertThat(renderedComponentText(view)).contains("[REDACTED]").doesNotContain("sk-test-secret").doesNotContain("abc123");
+        assertThat(anchorHrefs(view)).contains(
+                "/admin/governance/registry",
+                "/admin/governance/operations",
+                "/admin/governance/policy-decisions",
+                "/admin/governance/audits");
     }
 
     @Test
@@ -203,6 +236,19 @@ class AdminGovernanceViewsTest {
                 Instant.parse("2026-06-15T00:02:00Z"));
     }
 
+    static GovernanceOverviewResponse sampleOverviewWithSensitiveMetadata() {
+        return new GovernanceOverviewResponse(
+                new GovernanceStatusDto("runtime", "HEALTHY", "Runtime query API available", 1, Map.of("mode", "cloud", "apiKey", "abc123")),
+                new GovernanceStatusDto("providers", "HEALTHY", "Model provider registry available", 1, Map.of("defaultProvider", "openai-compatible", "token", "sk-test-secret")),
+                new GovernanceStatusDto("toolRegistry", "HEALTHY", "Governed tool registry available", 2, Map.of("surface", "read-only")),
+                new GovernanceStatusDto("extensions", "FUTURE_ENABLED", "SPI and Spring extension governance arrives in Phase 6", 0, Map.of("surface", "placeholder", "mutation", "disabled")),
+                new GovernanceStatusDto("mcp", "UNCONFIGURED", "Remote MCP governance arrives in Phase 7", 0, Map.of("surface", "placeholder", "authorization", "bearer abc123")),
+                new GovernanceStatusDto("plugins", "FUTURE_ENABLED", "Dynamic plugin governance arrives in Phase 8", 0, Map.of("surface", "placeholder", "rawSecret", "abc123")),
+                sampleOverview().policyDecisions(),
+                sampleOverview().audits(),
+                Instant.parse("2026-06-15T00:02:00Z"));
+    }
+
     static ExtensionGovernanceResponse sampleExtensions() {
         return new ExtensionGovernanceResponse(List.of(new ExtensionSourceDto(
                 "test-spring-extension",
@@ -232,6 +278,44 @@ class AdminGovernanceViewsTest {
                 component.getElement().getChildren().flatMap(AdminGovernanceViewsTest::descendants))
                 .filter(element -> element.hasAttribute(attribute))
                 .count();
+    }
+
+    private static long countElementsWithAttributeValue(Component component, String attribute, String value) {
+        return elementStream(component)
+                .filter(element -> value.equals(element.getAttribute(attribute)))
+                .count();
+    }
+
+    private static java.util.stream.Stream<String> visibleSpanTexts(Component component) {
+        return componentTree(component)
+                .filter(Span.class::isInstance)
+                .map(Span.class::cast)
+                .map(Span::getText);
+    }
+
+    private static String renderedComponentText(Component component) {
+        return elementStream(component)
+                .map(com.vaadin.flow.dom.Element::getText)
+                .collect(java.util.stream.Collectors.joining("\n"));
+    }
+
+    private static java.util.List<String> anchorHrefs(Component component) {
+        return component.getChildren()
+                .flatMap(AdminGovernanceViewsTest::componentTree)
+                .filter(Anchor.class::isInstance)
+                .map(Anchor.class::cast)
+                .map(anchor -> anchor.getHref())
+                .toList();
+    }
+
+    private static java.util.stream.Stream<Component> componentTree(Component component) {
+        return java.util.stream.Stream.concat(java.util.stream.Stream.of(component), component.getChildren().flatMap(AdminGovernanceViewsTest::componentTree));
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> elementStream(Component component) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(component.getElement()),
+                component.getElement().getChildren().flatMap(AdminGovernanceViewsTest::descendants));
     }
 
     private static java.util.stream.Stream<com.vaadin.flow.dom.Element> descendants(com.vaadin.flow.dom.Element element) {

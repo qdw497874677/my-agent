@@ -51,7 +51,7 @@ final class AdminMobileCardSupport {
     static Div labelValue(String label, String value) {
         Span labelSpan = new Span(safeText(label));
         labelSpan.addClassName("pi-admin-field-label");
-        Span valueSpan = new Span(AdminMobileRedactor.boundedStringify(value));
+        Span valueSpan = new Span(isSensitiveLabel(label) ? AdminMobileRedactor.REDACTED : AdminMobileRedactor.boundedStringify(value));
         valueSpan.addClassName("pi-admin-field-value");
         Div row = new Div(labelSpan, valueSpan);
         row.addClassName("pi-admin-field");
@@ -141,6 +141,15 @@ final class AdminMobileCardSupport {
 
     private static String safeText(String value) {
         return value == null || value.isBlank() ? "unknown" : AdminMobileRedactor.redact(value.trim());
+    }
+
+    private static boolean isSensitiveLabel(String value) {
+        String normalized = value == null ? "" : value.toLowerCase();
+        return normalized.contains("api")
+                || normalized.contains("password")
+                || normalized.contains("secret")
+                || normalized.contains("token")
+                || normalized.contains("authorization");
     }
 
     private static String requireText(String value, String name) {
