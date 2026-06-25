@@ -123,7 +123,7 @@ const routes: Phase15OrientationRoute[] = [
   },
 ];
 
-test.describe('Phase 15 all-route orientation release smoke', () => {
+test.describe('Phase 15 layered browser all-route orientation release smoke', () => {
   for (const route of routes) {
     for (const viewport of phase15ViewportCases) {
       test(`${route.path} keeps shell, primary content, and no overflow in ${viewport.name}`, async ({ page }) => {
