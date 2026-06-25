@@ -113,7 +113,13 @@ Plans:
   3. Mobile admin can inspect MCP, Plugin, and Extension status/metadata, including unhealthy, disconnected, selected, disabled, quarantined, and load-error states where already supported.
   4. Mobile admin can inspect Policy decisions and Audit summaries with key IDs, actors/sources/actions/statuses/timestamps, and expandable redacted context.
   5. Automated mobile Admin E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies mobile card/detail content.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 14-admin-governance-full-site-mobile-coverage-01-PLAN.md — Shared Admin mobile card/detail foundation and Overview status cards
+- [ ] 14-admin-governance-full-site-mobile-coverage-02-PLAN.md — Registry, MCP, Plugin, and Extension sectioned mobile cards
+- [ ] 14-admin-governance-full-site-mobile-coverage-03-PLAN.md — Operations metric and warning cards
+- [ ] 14-admin-governance-full-site-mobile-coverage-04-PLAN.md — Policy and Audit redacted card/detail views
+- [ ] 14-admin-governance-full-site-mobile-coverage-05-PLAN.md — MVER-04 Admin mobile Playwright gate and documentation
 **UI hint**: yes
 
 ### Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening
