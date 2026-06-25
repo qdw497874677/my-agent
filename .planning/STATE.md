@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md
-last_updated: "2026-06-25T11:30:29.818Z"
+stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md
+last_updated: "2026-06-25T11:31:39.552Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 15 (cross-browser-orientation-accessibility-and-release-hardening) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-25
 
@@ -80,6 +80,7 @@ Progress: [██████████] 100%
 | Phase 14-admin-governance-full-site-mobile-coverage P05 | 5min | 2 tasks | 2 files |
 | Phase 15-cross-browser-orientation-accessibility-and-release-hardening P01 | 4m30s | 3 tasks | 2 files |
 | Phase 15-cross-browser-orientation-accessibility-and-release-hardening P02 | 6m59s | 3 tasks | 1 files |
+| Phase 15-cross-browser-orientation-accessibility-and-release-hardening P03 | 9m | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep Phase 15 critical-flow coverage in a new release spec rather than modifying Phase 05 desktop baseline or prior mobile phase specs.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use stable data-* selectors and fake-runtime hints for Console run/runtime coverage; no screenshots or backend/API changes were introduced.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Represent desktop release confidence as a compact Console plus Admin route summary under chromium while preserving detailed desktop Phase 05 tests unchanged.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep Phase 15 accessibility checks representative and deterministic instead of introducing mandatory axe-core audits.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep accessibility hardening in the pi-mobile presentation layer and static/browser tests, with no backend DTO or API changes.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use a bounded 641px-899px tablet bridge media query before the existing 900px desktop shell breakpoint.
 
 ### Pending Todos
 
@@ -162,8 +166,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T11:30:29.813Z
-Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md
+Last session: 2026-06-25T11:31:39.548Z
+Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md
 Resume file: None
 
 ---
