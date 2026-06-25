@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
-stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
-last_updated: "2026-06-25T05:01:15.328Z"
+stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-04-PLAN.md
+last_updated: "2026-06-25T05:03:46.151Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 14 (admin-governance-full-site-mobile-coverage) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-06-25
 
@@ -76,6 +76,7 @@ Progress: [██████████] 100%
 | Phase 14-admin-governance-full-site-mobile-coverage P01 | 9min | 3 tasks | 6 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P03 | 4m55s | 1 tasks | 3 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P02 | 16m36s | 2 tasks | 4 files |
+| Phase 14-admin-governance-full-site-mobile-coverage P04 | 17m02s | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Keep Registry/MCP/Plugin/Extension mobile conversion inside adapter-web Vaadin components with no public Admin DTO or route changes.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Prioritize operator-relevant MCP and Plugin entries by abnormal status/error/reason before normal cards.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Preserve renderedText() semantic compatibility while moving visible summaries to label rows, chips, cards, and collapsed Details.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Preserve Policy/Audit renderedText and contextLinks semantics while converting visible Vaadin content to mobile card/detail layouts.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Keep Policy/Audit redacted context collapsed by default with data-admin-details values policy-context and audit-details.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Use AdminMobileRedactor plus sensitive-key handling for Policy/Audit detail keys and values before rendering.
 
 ### Pending Todos
 
@@ -146,8 +150,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T05:01:15.323Z
-Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
+Last session: 2026-06-25T05:03:46.146Z
+Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-04-PLAN.md
 Resume file: None
 
 ---

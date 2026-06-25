@@ -39,8 +39,8 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 - [x] **MADM-03**: Mobile admin can inspect MCP server/tool status, refresh/status metadata where already supported, and unhealthy/disconnected states.
 - [x] **MADM-04**: Mobile admin can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in stacked card/detail layouts.
 - [x] **MADM-05**: Mobile admin can inspect Extension sources, contributions, providers, tools, listeners, status, and expandable metadata.
-- [ ] **MADM-06**: Mobile admin can inspect Policy decisions with decision, reason, tool/run/session IDs, timestamp, and expandable redacted context.
-- [ ] **MADM-07**: Mobile admin can inspect Audit summaries with actor/source/action/status/timestamp and expandable redacted details.
+- [x] **MADM-06**: Mobile admin can inspect Policy decisions with decision, reason, tool/run/session IDs, timestamp, and expandable redacted context.
+- [x] **MADM-07**: Mobile admin can inspect Audit summaries with actor/source/action/status/timestamp and expandable redacted details.
 
 ### Mobile Verification and Release Gates
 
@@ -104,8 +104,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MADM-03 | Phase 14 | Complete |
 | MADM-04 | Phase 14 | Complete |
 | MADM-05 | Phase 14 | Complete |
-| MADM-06 | Phase 14 | Pending |
-| MADM-07 | Phase 14 | Pending |
+| MADM-06 | Phase 14 | Complete |
+| MADM-07 | Phase 14 | Complete |
 | MVER-01 | Phase 10 | Complete |
 | MVER-02 | Phase 10 | Complete |
 | MVER-03 | Phase 12 | Complete |
