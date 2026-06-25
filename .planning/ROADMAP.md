@@ -145,7 +145,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete    | 2026-06-24 |
-| 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete   | 2026-06-25 |
+| 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete    | 2026-06-25 |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
 
 ## Coverage Validation
