@@ -274,6 +274,44 @@ class AdminGovernanceViewsTest {
                 .doesNotContain("export");
     }
 
+    @Test
+    void auditViewRendersMobileCardsWithCollapsedRedactedDetails() {
+        AdminAuditView view = new AdminAuditView(new ConsoleHttpClient());
+        view.showAudits(List.of(new AuditSummaryDto(
+                "audit-1",
+                "tool.policy",
+                "tool",
+                "builtin.info",
+                "session-1",
+                "run-1",
+                Instant.parse("2026-06-15T00:00:01Z"),
+                Map.of("apiKey", "sk-test-secret", "password", "abc123", "safe", "visible"))));
+
+        assertThat(countElementsWithAttribute(view, "data-audit-card")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-audit-id", "audit-1")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-details", "audit-details")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-detail-layer", "structured")).isGreaterThanOrEqualTo(1);
+        assertThat(view.getChildren().filter(Details.class::isInstance).map(Details.class::cast)).allMatch(details -> !details.isOpened());
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "action")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "resourcetype")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "resourceid")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "session")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "run")).isEqualTo(1);
+        assertThat(countElementsWithAttributeValue(view, "data-admin-field", "recordedat")).isEqualTo(1);
+        assertThat(renderedComponentText(view))
+                .contains("[REDACTED]")
+                .contains("visible")
+                .doesNotContain("sk-test-secret")
+                .doesNotContain("apiKey")
+                .doesNotContain("password")
+                .doesNotContain("abc123");
+        assertThat(view.contextLinks()).contains("/console/sessions/session-1", "/console/sessions/session-1/runs/run-1");
+        assertThat(view.controlText().toLowerCase())
+                .doesNotContain("search")
+                .doesNotContain("filter")
+                .doesNotContain("export");
+    }
+
     static GovernanceOverviewResponse sampleOverview() {
         return new GovernanceOverviewResponse(
                 new GovernanceStatusDto("runtime", "HEALTHY", "Runtime query API available", 1, Map.of("mode", "cloud")),
