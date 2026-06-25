@@ -19,6 +19,24 @@ export type HorizontalOverflowSnapshot = {
   bodyScrollWidth: number;
 };
 
+export type Phase15ViewportCase = {
+  name: string;
+  width: number;
+  height: number;
+  kind: 'phone-portrait' | 'phone-landscape' | 'tablet-bridge';
+};
+
+export const phase15ViewportCases: Phase15ViewportCase[] = [
+  { name: 'phone portrait', width: 390, height: 844, kind: 'phone-portrait' },
+  { name: 'phone landscape', width: 844, height: 390, kind: 'phone-landscape' },
+  { name: 'tablet bridge', width: 834, height: 1194, kind: 'tablet-bridge' },
+];
+
+export type Phase15RouteViewportOptions = {
+  navigate?: boolean;
+  waitUntil?: 'load' | 'domcontentloaded' | 'networkidle' | 'commit';
+};
+
 export async function expectNoPageHorizontalOverflow(
   page: Page,
   tolerance = 1,
@@ -152,5 +170,22 @@ export async function expectMobileRouteBaseline(
   await expectStableSelectorVisible(page, `[data-route="${route.routeName}"]`);
   await expectPrimaryContentVisible(page, route);
   await expectPrimaryActionsVisible(page, route);
+  await expectNoPageHorizontalOverflow(page);
+}
+
+export async function expectPhase15RouteViewportBaseline(
+  page: Page,
+  route: MobileSmokeRoute,
+  viewport: Phase15ViewportCase,
+  options: Phase15RouteViewportOptions = {},
+): Promise<void> {
+  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  if (options.navigate ?? true) {
+    await page.goto(route.path, { waitUntil: options.waitUntil ?? 'domcontentloaded' });
+  }
+
+  await expectStableSelectorVisible(page, '[data-shell="pi-responsive-shell"]');
+  await expectStableSelectorVisible(page, `[data-route="${route.routeName}"]`);
+  await expectPrimaryContentOrActionVisible(page, route);
   await expectNoPageHorizontalOverflow(page);
 }
