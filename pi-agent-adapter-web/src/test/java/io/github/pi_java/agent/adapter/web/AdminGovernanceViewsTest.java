@@ -2,11 +2,15 @@ package io.github.pi_java.agent.adapter.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.html.Div;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminGovernanceOverviewView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminAuditView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminPolicyDecisionsView;
 import io.github.pi_java.agent.adapter.web.ui.admin.AdminRegistryStatusView;
+import java.lang.reflect.Method;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import io.github.pi_java.agent.client.admin.ExtensionCapabilityDto;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
@@ -20,6 +24,59 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AdminGovernanceViewsTest {
+
+    @Test
+    void adminMobileRedactorConservativelyRedactsSecretLikeValues() throws Exception {
+        Class<?> redactor = Class.forName("io.github.pi_java.agent.adapter.web.ui.admin.AdminMobileRedactor");
+        Method redact = redactor.getDeclaredMethod("redact", String.class);
+        redact.setAccessible(true);
+
+        assertThat((String) redact.invoke(null, "sk-test-secret")).isEqualTo("[REDACTED]");
+        assertThat((String) redact.invoke(null, "rawSecret=abc123")).contains("[REDACTED]").doesNotContain("abc123");
+        assertThat((String) redact.invoke(null, "apiKey=abc123")).contains("[REDACTED]").doesNotContain("abc123");
+        assertThat((String) redact.invoke(null, "password=abc123")).contains("[REDACTED]").doesNotContain("abc123");
+        assertThat((String) redact.invoke(null, "bearer abc123")).contains("[REDACTED]").doesNotContain("abc123");
+        assertThat((String) redact.invoke(null, "token=abc123")).contains("[REDACTED]").doesNotContain("abc123");
+    }
+
+    @Test
+    void adminMobileCardSupportCreatesStatusCardsWithStableFieldSelectors() throws Exception {
+        Class<?> support = Class.forName("io.github.pi_java.agent.adapter.web.ui.admin.AdminMobileCardSupport");
+        Method labelValue = support.getDeclaredMethod("labelValue", String.class, String.class);
+        labelValue.setAccessible(true);
+        Method statusCard = support.getDeclaredMethod(
+                "statusCard", String.class, String.class, String.class, String.class, String.class, Component[].class);
+        statusCard.setAccessible(true);
+
+        Component statusField = (Component) labelValue.invoke(null, "owner", "admin");
+        Component card = (Component) statusCard.invoke(
+                null,
+                "runtime",
+                "Runtime",
+                "HEALTHY",
+                "1",
+                "Runtime query API available",
+                new Component[] {statusField});
+
+        assertThat(card.getElement().getAttribute("data-admin-card")).isEqualTo("true");
+        assertThat(card.getElement().getAttribute("data-admin-section")).isEqualTo("runtime");
+        assertThat(card.getElement().getClassList()).contains("pi-admin-card");
+        assertThat(countElementsWithAttribute(card, "data-admin-field")).isGreaterThanOrEqualTo(4);
+    }
+
+    @Test
+    void adminMobileCardSupportCreatesCollapsedStructuredDetails() throws Exception {
+        Class<?> support = Class.forName("io.github.pi_java.agent.adapter.web.ui.admin.AdminMobileCardSupport");
+        Method details = support.getDeclaredMethod("details", String.class, String.class, Component[].class);
+        details.setAccessible(true);
+
+        Details component = (Details) details.invoke(null, "Metadata", "structured", new Component[] {new Div()});
+
+        assertThat(component.isOpened()).isFalse();
+        assertThat(component.getElement().getAttribute("data-expandable")).isEqualTo("true");
+        assertThat(component.getElement().getAttribute("data-admin-details")).isEqualTo("true");
+        assertThat(component.getElement().getAttribute("data-detail-layer")).isEqualTo("structured");
+    }
 
     @Test
     void overviewShowsRuntimeRegistryGovernanceAndFuturePlaceholders() {
@@ -167,5 +224,19 @@ class AdminGovernanceViewsTest {
                         "COMPATIBLE",
                         "UP",
                         Map.of("extension.sourceKind", "SPRING_BEAN", "error", "[REDACTED]"))))));
+    }
+
+    private static long countElementsWithAttribute(Component component, String attribute) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(component.getElement()),
+                component.getElement().getChildren().flatMap(AdminGovernanceViewsTest::descendants))
+                .filter(element -> element.hasAttribute(attribute))
+                .count();
+    }
+
+    private static java.util.stream.Stream<com.vaadin.flow.dom.Element> descendants(com.vaadin.flow.dom.Element element) {
+        return java.util.stream.Stream.concat(
+                java.util.stream.Stream.of(element),
+                element.getChildren().flatMap(AdminGovernanceViewsTest::descendants));
     }
 }
