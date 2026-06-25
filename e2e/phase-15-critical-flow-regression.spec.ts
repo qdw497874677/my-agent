@@ -69,7 +69,14 @@ const adminReleaseRoutes: AdminReleaseRouteCase[] = [
   },
 ];
 
-const desktopReleaseRoutes = phase15MissingDesktopReleaseRoutes();
+const desktopReleaseRoutes: AdminReleaseRouteCase[] = [
+  adminReleaseRoutes.find((route) => route.name === 'landing')!,
+  adminReleaseRoutes.find((route) => route.name === 'overview')!,
+  adminReleaseRoutes.find((route) => route.name === 'registry')!,
+  adminReleaseRoutes.find((route) => route.name === 'operations')!,
+  adminReleaseRoutes.find((route) => route.name === 'policy decisions')!,
+  adminReleaseRoutes.find((route) => route.name === 'audits')!,
+];
 
 test.describe('Phase 15 Console critical-flow release gate', () => {
   test('mobile console covers run, session, cancel, and runtime inspection surfaces', async ({ page }) => {
