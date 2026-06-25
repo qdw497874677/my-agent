@@ -36,9 +36,9 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 
 - [x] **MADM-01**: Mobile admin can read Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links.
 - [x] **MADM-02**: Mobile admin can inspect Registry and Operations data as cards or responsive row details without relying on page-level horizontal table scrolling.
-- [ ] **MADM-03**: Mobile admin can inspect MCP server/tool status, refresh/status metadata where already supported, and unhealthy/disconnected states.
-- [ ] **MADM-04**: Mobile admin can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in stacked card/detail layouts.
-- [ ] **MADM-05**: Mobile admin can inspect Extension sources, contributions, providers, tools, listeners, status, and expandable metadata.
+- [x] **MADM-03**: Mobile admin can inspect MCP server/tool status, refresh/status metadata where already supported, and unhealthy/disconnected states.
+- [x] **MADM-04**: Mobile admin can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in stacked card/detail layouts.
+- [x] **MADM-05**: Mobile admin can inspect Extension sources, contributions, providers, tools, listeners, status, and expandable metadata.
 - [ ] **MADM-06**: Mobile admin can inspect Policy decisions with decision, reason, tool/run/session IDs, timestamp, and expandable redacted context.
 - [ ] **MADM-07**: Mobile admin can inspect Audit summaries with actor/source/action/status/timestamp and expandable redacted details.
 
@@ -101,9 +101,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MCARD-05 | Phase 13 | Complete |
 | MADM-01 | Phase 14 | Complete |
 | MADM-02 | Phase 14 | Complete |
-| MADM-03 | Phase 14 | Pending |
-| MADM-04 | Phase 14 | Pending |
-| MADM-05 | Phase 14 | Pending |
+| MADM-03 | Phase 14 | Complete |
+| MADM-04 | Phase 14 | Complete |
+| MADM-05 | Phase 14 | Complete |
 | MADM-06 | Phase 14 | Pending |
 | MADM-07 | Phase 14 | Pending |
 | MVER-01 | Phase 10 | Complete |

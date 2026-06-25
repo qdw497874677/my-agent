@@ -4,13 +4,13 @@ milestone: v1.1
 milestone_name: 适配移动端web
 status: executing
 stopped_at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
-last_updated: "2026-06-25T04:56:30.537Z"
+last_updated: "2026-06-25T05:01:15.328Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 ## Current Position
 
 Phase: 14 (admin-governance-full-site-mobile-coverage) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-06-25
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100%
 | Phase 13-runtime-cards-timeline-tool-and-approval-ux P05 | 9m38s | 2 tasks | 9 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P01 | 9min | 3 tasks | 6 files |
 | Phase 14-admin-governance-full-site-mobile-coverage P03 | 4m55s | 1 tasks | 3 files |
+| Phase 14-admin-governance-full-site-mobile-coverage P02 | 16m36s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Treat metadata as structured collapsed Details and redact sensitive keys and values before rendering.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Operations metrics use AdminMobileCardSupport metric/detail primitives while preserving renderedText() semantic compatibility.
 - [Phase 14-admin-governance-full-site-mobile-coverage]: Operations warning and error discoverability is represented through data-status-severity hooks for abnormal values.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Keep Registry/MCP/Plugin/Extension mobile conversion inside adapter-web Vaadin components with no public Admin DTO or route changes.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Prioritize operator-relevant MCP and Plugin entries by abnormal status/error/reason before normal cards.
+- [Phase 14-admin-governance-full-site-mobile-coverage]: Preserve renderedText() semantic compatibility while moving visible summaries to label rows, chips, cards, and collapsed Details.
 
 ### Pending Todos
 
@@ -142,7 +146,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T04:56:30.530Z
+Last session: 2026-06-25T05:01:15.323Z
 Stopped at: Completed 14-admin-governance-full-site-mobile-coverage-03-PLAN.md
 Resume file: None
 
