@@ -27,7 +27,7 @@ Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Gov
 - [x] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives. (completed 2026-06-22)
 - [x] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow. (additional gap closure planned 2026-06-23) (completed 2026-06-24)
 - [x] **Phase 13: Runtime Cards, Timeline, Tool, and Approval UX** - Make run events, tool cards, dense details, approvals, dialogs, and confirmations safe and readable on mobile. (gap closure planned 2026-06-24)
-- [ ] **Phase 14: Admin Governance Full-Site Mobile Coverage** - Convert every existing Admin Governance surface to mobile card/detail layouts without relying on desktop tables.
+- [x] **Phase 14: Admin Governance Full-Site Mobile Coverage** - Convert every existing Admin Governance surface to mobile card/detail layouts without relying on desktop tables. (completed 2026-06-25)
 - [ ] **Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening** - Validate final mobile/tablet/browser/orientation/accessibility behavior and preserve desktop regression coverage.
 
 ## Phase Details
@@ -119,7 +119,7 @@ Plans:
 - [x] 14-admin-governance-full-site-mobile-coverage-02-PLAN.md — Registry, MCP, Plugin, and Extension sectioned mobile cards
 - [x] 14-admin-governance-full-site-mobile-coverage-03-PLAN.md — Operations metric and warning cards
 - [x] 14-admin-governance-full-site-mobile-coverage-04-PLAN.md — Policy and Audit redacted card/detail views
-- [ ] 14-admin-governance-full-site-mobile-coverage-05-PLAN.md — MVER-04 Admin mobile Playwright gate and documentation
+- [x] 14-admin-governance-full-site-mobile-coverage-05-PLAN.md — MVER-04 Admin mobile Playwright gate and documentation
 **UI hint**: yes
 
 ### Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening
@@ -145,7 +145,7 @@ Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
 | 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
 | 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
 | 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete    | 2026-06-24 |
-| 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 4/5 | In Progress|  |
+| 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete   | 2026-06-25 |
 | 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 0/TBD | Not started | - |
 
 ## Coverage Validation
