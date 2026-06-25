@@ -8,7 +8,13 @@ import {
   mobileToolApprovalHint,
   phase13RuntimeCardMatrixHint,
 } from './fixtures/fake-runtime';
-import { phase15AdminReleaseRoutes } from './fixtures/phase-15-missing-admin-routes';
+
+type AdminReleaseRouteCase = {
+  name: string;
+  path: string;
+  routeName: string;
+  selectors: string[];
+};
 
 const sensitiveMarkers = [
   'sk-test-secret',
@@ -16,6 +22,51 @@ const sensitiveMarkers = [
   'PI_PHASE8_FAKE_SECRET_DO_NOT_LEAK',
   'rawSecret',
   'raw-token-value',
+];
+
+const adminReleaseRoutes: AdminReleaseRouteCase[] = [
+  {
+    name: 'landing',
+    path: '/admin/governance',
+    routeName: 'admin-governance',
+    selectors: ['[data-surface="admin-governance"]', '[data-mobile-critical="true"]'],
+  },
+  {
+    name: 'overview',
+    path: '/admin/governance/overview',
+    routeName: 'admin-governance-overview',
+    selectors: ['[data-admin-overview-card]', '[data-admin-card]'],
+  },
+  {
+    name: 'registry',
+    path: '/admin/governance/registry',
+    routeName: 'admin-registry-status',
+    selectors: ['[data-admin-registry-section]', '[data-mcp-server-card], [data-plugin-card], [data-extension-source-card]'],
+  },
+  {
+    name: 'operations',
+    path: '/admin/governance/operations',
+    routeName: 'admin-operations',
+    selectors: ['[data-operations-card]', '[data-admin-card]'],
+  },
+  {
+    name: 'policy decisions',
+    path: '/admin/governance/policy-decisions',
+    routeName: 'admin-policy-decisions',
+    selectors: ['[data-policy-decision-card]', '[data-admin-details="policy-context"]'],
+  },
+  {
+    name: 'audits',
+    path: '/admin/governance/audits',
+    routeName: 'admin-audit-summaries',
+    selectors: ['[data-audit-card]', '[data-admin-details="audit-details"]'],
+  },
+  {
+    name: 'approvals',
+    path: '/admin/governance/approvals',
+    routeName: 'admin-approval-queue',
+    selectors: ['[data-admin-surface="separated-governance"]', '[data-event-category="approval"], [data-state="empty-admin-approvals"], .pi-approval-card'],
+  },
 ];
 
 test.describe('Phase 15 Console critical-flow release gate', () => {
@@ -63,7 +114,7 @@ test.describe('Phase 15 Console critical-flow release gate', () => {
 });
 
 test.describe('Phase 15 Admin critical inspection release gate', () => {
-  for (const route of phase15AdminReleaseRoutes()) {
+  for (const route of adminReleaseRoutes) {
     test(`${route.name} admin route supports card/detail inspection safely`, async ({ page }) => {
       await page.goto(route.path, { waitUntil: 'domcontentloaded' });
       await expect(page.locator(`[data-route="${route.routeName}"]`).first()).toBeVisible();
