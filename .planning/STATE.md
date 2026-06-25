@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: 适配移动端web
-status: executing
-stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md
-last_updated: "2026-06-25T11:31:39.552Z"
+status: verifying
+stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md
+last_updated: "2026-06-25T11:42:39.814Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 100
 ---
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-20)
 
 Phase: 15 (cross-browser-orientation-accessibility-and-release-hardening) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-25
 
 Progress: [██████████] 100%
@@ -81,6 +81,7 @@ Progress: [██████████] 100%
 | Phase 15-cross-browser-orientation-accessibility-and-release-hardening P01 | 4m30s | 3 tasks | 2 files |
 | Phase 15-cross-browser-orientation-accessibility-and-release-hardening P02 | 6m59s | 3 tasks | 1 files |
 | Phase 15-cross-browser-orientation-accessibility-and-release-hardening P03 | 9m | 3 tasks | 3 files |
+| Phase 15-cross-browser-orientation-accessibility-and-release-hardening P04 | 6m30s | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep Phase 15 accessibility checks representative and deterministic instead of introducing mandatory axe-core audits.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Keep accessibility hardening in the pi-mobile presentation layer and static/browser tests, with no backend DTO or API changes.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use a bounded 641px-899px tablet bridge media query before the existing 900px desktop shell breakpoint.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Treat Phase 15 automated Playwright Mobile Safari and Mobile Firefox projects as proxies, not proof of true-device Safari/Firefox mobile behavior.
+- [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use blocker, known limitation, and follow-up classifications as the release go/no-go vocabulary for unrun or failed true-device validation.
 
 ### Pending Todos
 
@@ -166,8 +169,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T11:31:39.548Z
-Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md
+Last session: 2026-06-25T11:42:39.809Z
+Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md
 Resume file: None
 
 ---

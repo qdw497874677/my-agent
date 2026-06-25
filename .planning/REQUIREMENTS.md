@@ -50,7 +50,7 @@ Scope: convert the existing Vaadin Web Console and Admin Governance from desktop
 - [x] **MVER-04**: Admin mobile E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies mobile card/detail content.
 - [x] **MVER-05**: Representative portrait, landscape, and tablet viewports pass mobile navigation and no-horizontal-overflow checks.
 - [x] **MVER-06**: Desktop Web Console/Admin browser regressions remain passing after mobile-first changes.
-- [ ] **MVER-07**: Release documentation records real-device/UAT expectations for Android Chrome, iOS Safari, Edge mobile, and Firefox mobile, including any CI/emulation gaps.
+- [x] **MVER-07**: Release documentation records real-device/UAT expectations for Android Chrome, iOS Safari, Edge mobile, and Firefox mobile, including any CI/emulation gaps.
 
 ## Future Requirements
 
@@ -112,7 +112,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MVER-04 | Phase 14 | Complete |
 | MVER-05 | Phase 15 | Complete |
 | MVER-06 | Phase 15 | Complete |
-| MVER-07 | Phase 15 | Pending |
+| MVER-07 | Phase 15 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 29 total
