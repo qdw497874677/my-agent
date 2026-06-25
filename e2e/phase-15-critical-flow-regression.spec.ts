@@ -69,6 +69,8 @@ const adminReleaseRoutes: AdminReleaseRouteCase[] = [
   },
 ];
 
+const desktopReleaseRoutes = phase15MissingDesktopReleaseRoutes();
+
 test.describe('Phase 15 Console critical-flow release gate', () => {
   test('mobile console covers run, session, cancel, and runtime inspection surfaces', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
@@ -130,6 +132,30 @@ test.describe('Phase 15 Admin critical inspection release gate', () => {
       const control = await firstVisibleAdminTouchControl(page);
       await expectTapTargetAtLeast(control, 44, `Phase 15 ${route.name} Admin control`);
       await expectFocusVisible(page, control, `Phase 15 ${route.name} Admin control`);
+    });
+  }
+});
+
+test.describe('Phase 15 desktop Console/Admin regression release summary', () => {
+  test('desktop Console keeps primary workbench content and actions without overflow', async ({ page }) => {
+    await page.goto('/console', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('[data-layout="three-column-workbench"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="sessions"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="chat-event-stream"]').first()).toBeVisible();
+    await expect(page.locator('[data-column="run-context"]').first()).toBeVisible();
+    await expect(page.locator('[data-role="chat-input"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="send-chat"]').first()).toBeVisible();
+    await expectNoPageHorizontalOverflow(page);
+  });
+
+  for (const route of desktopReleaseRoutes) {
+    test(`desktop Admin ${route.name} keeps primary content/actions without overflow`, async ({ page }) => {
+      await page.goto(route.path, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator(`[data-route="${route.routeName}"]`).first()).toBeVisible();
+      for (const selector of route.selectors) {
+        await expect(page.locator(selector).first(), `desktop ${route.name} selector ${selector}`).toBeVisible();
+      }
+      await expectNoPageHorizontalOverflow(page);
     });
   }
 });
