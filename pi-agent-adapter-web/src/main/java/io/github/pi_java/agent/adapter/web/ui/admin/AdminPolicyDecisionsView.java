@@ -47,10 +47,10 @@ public class AdminPolicyDecisionsView extends Div {
         renderedLines.clear();
         contextLinks.clear();
         removeAll();
-        add(new H2("Recent Policy Decisions"));
-        add(new Span("Redacted recent policy decisions. Full search, filtering, and export are deferred."));
+        add(new H2(getTranslation("admin.policy.title")));
+        add(new Span(getTranslation("admin.policy.description")));
         if (decisions == null || decisions.isEmpty()) {
-            Span empty = new Span("No recent policy decisions.");
+            Span empty = new Span(getTranslation("admin.policy.empty"));
             empty.getElement().setAttribute("data-state", "empty-policy-decisions");
             add(empty);
             return;
@@ -80,8 +80,8 @@ public class AdminPolicyDecisionsView extends Div {
         renderedLines.clear();
         contextLinks.clear();
         removeAll();
-        add(new H2("Recent Policy Decisions"));
-        Span empty = new Span("Policy decisions have not been loaded.");
+        add(new H2(getTranslation("admin.policy.title")));
+        Span empty = new Span(getTranslation("admin.policy.notLoaded"));
         empty.getElement().setAttribute("data-state", "empty-policy-decisions");
         add(empty);
     }
@@ -115,17 +115,17 @@ public class AdminPolicyDecisionsView extends Div {
 
         Div actions = new Div();
         if (!sessionLink.isBlank()) {
-            actions.add(new Anchor(sessionLink, "Session"));
+            actions.add(new Anchor(sessionLink, getTranslation("admin.policy.link.session")));
         }
         if (!runLink.isBlank()) {
-            actions.add(new Anchor(runLink, "Run"));
+            actions.add(new Anchor(runLink, getTranslation("admin.policy.link.run")));
         }
         actions.addClassName("pi-admin-action-row");
         actions.getElement().setAttribute("data-admin-actions", "true");
 
         PiPageSection card = PiPageSection.card(
                 "policy-decision-" + safe(decision.id()),
-                new H3("Policy decision " + safe(decision.id())),
+                new H3(getTranslation("admin.policy.cardTitle", safe(decision.id()))),
                 summary,
                 actions,
                 redactedContextDetails(decision.redactedSummary()));
@@ -136,7 +136,7 @@ public class AdminPolicyDecisionsView extends Div {
         add(card);
     }
 
-    private static com.vaadin.flow.component.details.Details redactedContextDetails(Map<String, String> values) {
+    private com.vaadin.flow.component.details.Details redactedContextDetails(Map<String, String> values) {
         Div fields = new Div();
         fields.addClassName("pi-admin-card-grid");
         if (values == null || values.isEmpty()) {
@@ -146,7 +146,7 @@ public class AdminPolicyDecisionsView extends Div {
                     .sorted(Map.Entry.comparingByKey())
                     .forEach(entry -> fields.add(AdminMobileCardSupport.labelValue(detailKey(entry.getKey()), detailValue(entry.getValue()))));
         }
-        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details("Redacted context", "structured", fields);
+        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details(getTranslation("admin.policy.details"), "structured", fields);
         details.getElement().setAttribute("data-admin-details", "policy-context");
         return details;
     }

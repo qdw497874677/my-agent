@@ -47,10 +47,10 @@ public class AdminAuditView extends Div {
         renderedLines.clear();
         contextLinks.clear();
         removeAll();
-        add(new H2("Recent Audit Summaries"));
-        add(new Span("Redacted recent audit summaries. Full search, filtering, and export are deferred."));
+        add(new H2(getTranslation("admin.audit.title")));
+        add(new Span(getTranslation("admin.audit.description")));
         if (audits == null || audits.isEmpty()) {
-            Span empty = new Span("No recent audit summaries.");
+            Span empty = new Span(getTranslation("admin.audit.empty"));
             empty.getElement().setAttribute("data-state", "empty-audit-summaries");
             add(empty);
             return;
@@ -80,8 +80,8 @@ public class AdminAuditView extends Div {
         renderedLines.clear();
         contextLinks.clear();
         removeAll();
-        add(new H2("Recent Audit Summaries"));
-        Span empty = new Span("Audit summaries have not been loaded.");
+        add(new H2(getTranslation("admin.audit.title")));
+        Span empty = new Span(getTranslation("admin.audit.notLoaded"));
         empty.getElement().setAttribute("data-state", "empty-audit-summaries");
         add(empty);
     }
@@ -112,17 +112,17 @@ public class AdminAuditView extends Div {
 
         Div actions = new Div();
         if (!sessionLink.isBlank()) {
-            actions.add(new Anchor(sessionLink, "Session"));
+            actions.add(new Anchor(sessionLink, getTranslation("admin.audit.link.session")));
         }
         if (!runLink.isBlank()) {
-            actions.add(new Anchor(runLink, "Run"));
+            actions.add(new Anchor(runLink, getTranslation("admin.audit.link.run")));
         }
         actions.addClassName("pi-admin-action-row");
         actions.getElement().setAttribute("data-admin-actions", "true");
 
         PiPageSection card = PiPageSection.card(
                 "audit-" + safe(audit.id()),
-                new H3("Audit " + safe(audit.id())),
+                new H3(getTranslation("admin.audit.cardTitle", safe(audit.id()))),
                 summary,
                 actions,
                 redactedAuditDetails(audit.redactedDetails()));
@@ -133,7 +133,7 @@ public class AdminAuditView extends Div {
         add(card);
     }
 
-    private static com.vaadin.flow.component.details.Details redactedAuditDetails(Map<String, String> values) {
+    private com.vaadin.flow.component.details.Details redactedAuditDetails(Map<String, String> values) {
         Div fields = new Div();
         fields.addClassName("pi-admin-card-grid");
         if (values == null || values.isEmpty()) {
@@ -145,7 +145,7 @@ public class AdminAuditView extends Div {
                             detailKey(entry.getKey()),
                             containsSensitiveTerms(String.valueOf(entry.getKey())) ? AdminMobileRedactor.REDACTED : detailValue(entry.getValue()))));
         }
-        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details("Redacted audit details", "structured", fields);
+        com.vaadin.flow.component.details.Details details = AdminMobileCardSupport.details(getTranslation("admin.audit.details"), "structured", fields);
         details.getElement().setAttribute("data-admin-details", "audit-details");
         return details;
     }

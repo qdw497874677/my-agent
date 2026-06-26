@@ -17,7 +17,7 @@ public class AdminGovernanceLandingView extends Main {
         getElement().setAttribute("data-surface", "admin-governance");
         getElement().setAttribute("data-mobile-critical", "true");
         add(
-                new H1("Pi Admin Governance"),
-                new Paragraph("Separated inspect-only Admin Governance surface for runtime and registry visibility."));
+                new H1(getTranslation("admin.landing.heading")),
+                new Paragraph(getTranslation("admin.landing.description")));
     }
 }

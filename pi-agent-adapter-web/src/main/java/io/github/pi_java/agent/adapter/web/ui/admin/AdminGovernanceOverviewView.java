@@ -53,18 +53,18 @@ public class AdminGovernanceOverviewView extends Div {
         this.overview = Objects.requireNonNull(overview, "overview must not be null");
         renderedLines.clear();
         removeAll();
-        add(new H2("Admin Governance Overview"));
-        add(new Span("Inspect-only runtime, registry, policy, and audit visibility."));
-        addStatus("Runtime", overview.runtime());
-        addStatus("Model Providers", overview.providers());
-        addStatus("Tool Registry", overview.toolRegistry());
-        addStatus("Extensions", overview.extensions());
-        addStatus("MCP", overview.mcp());
-        addStatus("Plugins", overview.plugins());
+        add(new H2(getTranslation("admin.overview.title")));
+        add(new Span(getTranslation("admin.overview.description")));
+        addStatus(getTranslation("admin.overview.runtime"), overview.runtime());
+        addStatus(getTranslation("admin.overview.modelProviders"), overview.providers());
+        addStatus(getTranslation("admin.overview.toolRegistry"), overview.toolRegistry());
+        addStatus(getTranslation("admin.overview.extensions"), overview.extensions());
+        addStatus(getTranslation("admin.overview.mcp"), overview.mcp());
+        addStatus(getTranslation("admin.overview.plugins"), overview.plugins());
         addOperationsLink();
-        addMetric("Policy decisions", overview.policyDecisions().size(), "/admin/governance/policy-decisions");
-        addMetric("Audit summaries", overview.audits().size(), "/admin/governance/audits");
-        add(new Span("Generated at: " + overview.generatedAt()));
+        addMetric(getTranslation("admin.overview.policyDecisions"), overview.policyDecisions().size(), "/admin/governance/policy-decisions");
+        addMetric(getTranslation("admin.overview.auditSummaries"), overview.audits().size(), "/admin/governance/audits");
+        add(new Span(getTranslation("admin.overview.generatedAt", overview.generatedAt())));
     }
 
     public String renderedText() {
@@ -78,8 +78,8 @@ public class AdminGovernanceOverviewView extends Div {
     private void renderEmpty() {
         renderedLines.clear();
         removeAll();
-        add(new H2("Admin Governance Overview"));
-        Span empty = new Span("Governance overview has not been loaded.");
+        add(new H2(getTranslation("admin.overview.title")));
+        Span empty = new Span(getTranslation("admin.overview.empty"));
         empty.getElement().setAttribute("data-state", "empty-governance-overview");
         add(empty);
     }
@@ -91,10 +91,10 @@ public class AdminGovernanceOverviewView extends Div {
                 + " | " + metadata(status.metadata());
         renderedLines.add(text);
         Div actions = AdminMobileCardSupport.actionRow(
-                AdminMobileCardSupport.actionLink(registryStatusPath(), "Registry"),
-                AdminMobileCardSupport.actionLink(operationsPath(), "Operations"),
-                AdminMobileCardSupport.actionLink("/admin/governance/policy-decisions", "Policy decisions"),
-                AdminMobileCardSupport.actionLink("/admin/governance/audits", "Audit summaries"));
+                AdminMobileCardSupport.actionLink(registryStatusPath(), getTranslation("admin.overview.link.registry")),
+                AdminMobileCardSupport.actionLink(operationsPath(), getTranslation("admin.overview.link.operations")),
+                AdminMobileCardSupport.actionLink("/admin/governance/policy-decisions", getTranslation("admin.overview.link.policyDecisions")),
+                AdminMobileCardSupport.actionLink("/admin/governance/audits", getTranslation("admin.overview.link.auditSummaries")));
         Div card = AdminMobileCardSupport.statusCard(
                 status.area(),
                 label,
@@ -116,8 +116,8 @@ public class AdminGovernanceOverviewView extends Div {
     }
 
     private void addOperationsLink() {
-        renderedLines.add("Operations metrics");
-        add(new Anchor(operationsPath(), "Operations metrics"));
+        renderedLines.add(getTranslation("admin.overview.link.operationsMetrics"));
+        add(new Anchor(operationsPath(), getTranslation("admin.overview.link.operationsMetrics")));
     }
 
     private static String metadata(Map<String, String> metadata) {

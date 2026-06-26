@@ -34,9 +34,6 @@ import java.util.stream.Collectors;
 @PageTitle("Pi Admin Registry Status")
 public class AdminRegistryStatusView extends Div {
 
-    private static final String PLUGIN_NON_SANDBOX_WARNING = "Plugin governance warning: JVM classloader isolation "
-            + "is dependency/lifecycle isolation only; it is not a sandbox for untrusted code.";
-
     private final ConsoleHttpClient httpClient;
     private final List<String> renderedLines = new ArrayList<>();
     private boolean pluginMutationControlsPresent;
@@ -101,13 +98,13 @@ public class AdminRegistryStatusView extends Div {
         renderedLines.clear();
         pluginMutationControlsPresent = false;
         removeAll();
-        add(new H2("Registry and Integration Status"));
-        add(new Span("Provider, tool, extension, MCP, and plugin status is inspect-only in Phase 5."));
-        addStatus("Model Providers", overview.providers());
-        addStatus("Tool Registry", overview.toolRegistry());
-        addStatus("Extensions", overview.extensions());
-        addStatus("MCP", overview.mcp());
-        addStatus("Plugins", overview.plugins());
+        add(new H2(getTranslation("admin.registry.title")));
+        add(new Span(getTranslation("admin.registry.description")));
+        addStatus(getTranslation("admin.registry.modelProviders"), overview.providers());
+        addStatus(getTranslation("admin.registry.toolRegistry"), overview.toolRegistry());
+        addStatus(getTranslation("admin.overview.extensions"), overview.extensions());
+        addStatus(getTranslation("admin.overview.mcp"), overview.mcp());
+        addStatus(getTranslation("admin.overview.plugins"), overview.plugins());
     }
 
     public void showExtensions(ExtensionGovernanceResponse extensions) {
@@ -115,12 +112,12 @@ public class AdminRegistryStatusView extends Div {
         renderedLines.clear();
         pluginMutationControlsPresent = false;
         removeAll();
-        add(new H2("Extension Governance"));
-        add(new Span("Extension sources and capabilities are inspect-only; enable/disable remains configuration-driven."));
+        add(new H2(getTranslation("admin.registry.extensionTitle")));
+        add(new Span(getTranslation("admin.registry.extensionDesc")));
         if (extensions.sources().isEmpty()) {
             String text = "Extensions: UNCONFIGURED | sources=0 | mutation=disabled";
             renderedLines.add(text);
-            Div empty = new Div(new H3("No extension sources"), new Span(text));
+            Div empty = new Div(new H3(getTranslation("admin.registry.noExtensions")), new Span(text));
             empty.getElement().setAttribute("data-governance-area", "extensions");
             empty.getElement().setAttribute("data-read-only", "true");
             add(empty);
@@ -136,9 +133,9 @@ public class AdminRegistryStatusView extends Div {
         renderedLines.clear();
         pluginMutationControlsPresent = false;
         removeAll();
-        add(new H2("MCP Governance"));
-        add(new Span("Remote MCP server and tool status is inspect-only; server configuration CRUD remains disabled."));
-        Button refresh = new Button("Refresh MCP discovery");
+        add(new H2(getTranslation("admin.registry.mcpTitle")));
+        add(new Span(getTranslation("admin.registry.mcpDesc")));
+        Button refresh = new Button(getTranslation("admin.registry.refreshMcp"));
         refresh.getElement().setAttribute("data-action-plan", "POST");
         refresh.getElement().setAttribute("data-action-path", mcpRefreshPath());
         refresh.getElement().setAttribute("data-read-only-refresh", "true");
@@ -147,7 +144,7 @@ public class AdminRegistryStatusView extends Div {
         if (governance.servers().isEmpty()) {
             String text = "MCP: UNCONFIGURED | servers=0 | mutation=disabled";
             renderedLines.add(text);
-            Div empty = new Div(new H3("No MCP servers"), new Span(text));
+            Div empty = new Div(new H3(getTranslation("admin.registry.noMcp")), new Span(text));
             empty.getElement().setAttribute("data-governance-area", "mcp");
             empty.getElement().setAttribute("data-read-only", "true");
             add(empty);
@@ -165,13 +162,14 @@ public class AdminRegistryStatusView extends Div {
         renderedLines.clear();
         pluginMutationControlsPresent = true;
         removeAll();
-        add(new H2("Plugin Governance"));
-        Span warning = new Span(PLUGIN_NON_SANDBOX_WARNING);
+        add(new H2(getTranslation("admin.registry.pluginTitle")));
+        String pluginWarning = getTranslation("admin.registry.pluginWarning");
+        Span warning = new Span(pluginWarning);
         warning.getElement().setAttribute("data-plugin-warning", "not-a-sandbox");
         add(warning);
-        renderedLines.add(PLUGIN_NON_SANDBOX_WARNING);
+        renderedLines.add(pluginWarning);
 
-        Button refresh = new Button("Refresh plugin discovery");
+        Button refresh = new Button(getTranslation("admin.registry.refreshPlugins"));
         refresh.getElement().setAttribute("data-action-plan", "POST");
         refresh.getElement().setAttribute("data-action-path", pluginRefreshPath());
         refresh.getElement().setAttribute("data-plugin-action", "refresh");
@@ -181,7 +179,7 @@ public class AdminRegistryStatusView extends Div {
         if (governance.plugins().isEmpty()) {
             String text = "Plugins: UNCONFIGURED | plugins=0 | mutation=refresh-only";
             renderedLines.add(text);
-            Div empty = new Div(new H3("No plugins"), new Span(text));
+            Div empty = new Div(new H3(getTranslation("admin.registry.noPlugins")), new Span(text));
             empty.getElement().setAttribute("data-governance-area", "plugins");
             empty.getElement().setAttribute("data-read-only", "true");
             add(empty);
@@ -210,8 +208,8 @@ public class AdminRegistryStatusView extends Div {
         renderedLines.clear();
         pluginMutationControlsPresent = false;
         removeAll();
-        add(new H2("Registry and Integration Status"));
-        Span empty = new Span("Registry status has not been loaded.");
+        add(new H2(getTranslation("admin.registry.title")));
+        Span empty = new Span(getTranslation("admin.registry.empty"));
         empty.getElement().setAttribute("data-state", "empty-registry-status");
         add(empty);
     }
@@ -261,7 +259,7 @@ public class AdminRegistryStatusView extends Div {
                 AdminMobileCardSupport.statusChip(source.compatibilityStatus()));
         summary.addClassName("pi-admin-card-summary");
         PiPageSection card = PiPageSection.card("extension-source", new H3(source.name()), summary,
-                AdminMobileCardSupport.details("Source diagnostics", "structured",
+                AdminMobileCardSupport.details(getTranslation("admin.registry.sourceDiagnostics"), "structured",
                         AdminMobileCardSupport.labelValue("redactedError", source.redactedError()),
                         AdminMobileCardSupport.labelValue("capabilityCount", String.valueOf(source.capabilities().size()))));
         card.addClassNames("pi-admin-card", "pi-admin-nested-card");
@@ -425,7 +423,7 @@ public class AdminRegistryStatusView extends Div {
                 AdminMobileCardSupport.statusChip(plugin.compatibilityStatus()));
         summary.addClassName("pi-admin-card-summary");
         PiPageSection card = PiPageSection.card("plugin", new H3(plugin.name()), summary,
-                AdminMobileCardSupport.details("Plugin diagnostics", "structured",
+                AdminMobileCardSupport.details(getTranslation("admin.registry.pluginDiagnostics"), "structured",
                         AdminMobileCardSupport.labelValue("capabilityStatusCounts", metadata(plugin.capabilityStatusCounts())),
                         AdminMobileCardSupport.labelValue("path", plugin.relativePathSummary()),
                         AdminMobileCardSupport.metadataDetails(plugin.metadata())));
@@ -440,7 +438,7 @@ public class AdminRegistryStatusView extends Div {
         card.getElement().setAttribute("data-plugin-compatibility", plugin.compatibilityStatus());
         card.getElement().setAttribute("data-status-severity", abnormalRank(plugin) > 0 ? "abnormal" : "normal");
 
-        Button disable = new Button("Disable plugin");
+        Button disable = new Button(getTranslation("admin.registry.disablePlugin"));
         disable.getElement().setAttribute("data-action-plan", "POST");
         disable.getElement().setAttribute("data-action-path", httpClient.adminPluginDisablePath(plugin.pluginId()));
         disable.getElement().setAttribute("data-plugin-action", "disable");
@@ -448,7 +446,7 @@ public class AdminRegistryStatusView extends Div {
         disable.getElement().setAttribute("data-reason", "optional");
         renderedLines.add(pluginDisableActionText(plugin.pluginId()));
 
-        Button quarantine = new Button("Quarantine plugin");
+        Button quarantine = new Button(getTranslation("admin.registry.quarantinePlugin"));
         quarantine.getElement().setAttribute("data-action-plan", "POST");
         quarantine.getElement().setAttribute("data-action-path", httpClient.adminPluginQuarantinePath(plugin.pluginId()));
         quarantine.getElement().setAttribute("data-plugin-action", "quarantine");

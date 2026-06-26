@@ -351,10 +351,10 @@ public class ConsoleView extends Div {
         Div switcher = new Div();
         switcher.addClassName("pi-console-panel-switcher");
         switcher.getElement().setAttribute("data-role", "console-panel-switcher");
-        switcher.add(panelButton("Chat", "chat"));
-        switcher.add(panelButton("Agents", "agents"));
-        switcher.add(panelButton("Sessions", "sessions"));
-        switcher.add(panelButton("Run", "run-context"));
+        switcher.add(panelButton(getTranslation("console.panel.chat"), "chat"));
+        switcher.add(panelButton(getTranslation("console.panel.agents"), "agents"));
+        switcher.add(panelButton(getTranslation("console.panel.sessions"), "sessions"));
+        switcher.add(panelButton(getTranslation("console.panel.run"), "run-context"));
         return switcher;
     }
 

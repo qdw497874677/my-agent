@@ -28,7 +28,7 @@ public class AgentCatalogPanel extends Div {
         addClassName("pi-agent-catalog-panel");
         getElement().setAttribute("data-secondary", "catalog-switcher");
         cards.getElement().setAttribute("data-role", "agent-catalog-cards");
-        add(new H2("Agent Catalog"), new Paragraph("Choose or switch the Agent for the next run."), cards);
+        add(new H2(getTranslation("agentCatalog.title")), new Paragraph(getTranslation("agentCatalog.description")), cards);
         showCatalog(new AgentCatalogResponse(List.of()));
     }
 
@@ -37,7 +37,7 @@ public class AgentCatalogPanel extends Div {
         renderedCards.clear();
         List<AgentCatalogItemDto> agents = response == null || response.agents() == null ? List.of() : response.agents();
         if (agents.isEmpty()) {
-            Paragraph empty = new Paragraph("No Agents are available from /api/agents yet.");
+            Paragraph empty = new Paragraph(getTranslation("agentCatalog.empty"));
             empty.getElement().setAttribute("data-state", "empty-agent-catalog");
             cards.add(empty);
             return;

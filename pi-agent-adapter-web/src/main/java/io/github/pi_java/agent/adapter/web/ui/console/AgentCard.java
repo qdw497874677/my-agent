@@ -38,13 +38,13 @@ public class AgentCard extends Div {
         add(
                 new H3(safe(agent.name())),
                 new Paragraph(safe(agent.description())),
-                line("Input modes", join(agent.supportedInputModes())),
-                line("Capabilities", join(agent.capabilities())),
-                line("Model", modelRef(agent.modelRef())),
-                line("Allowed tools", join(agent.allowedToolIds())),
-                line("Scopes", join(agent.allowedToolScopes())),
-                line("Risk", join(agent.riskLabels())),
-                line("Side effects", join(agent.sideEffectLabels())));
+                line(getTranslation("agent.inputModes"), join(agent.supportedInputModes())),
+                line(getTranslation("agent.capabilities"), join(agent.capabilities())),
+                line(getTranslation("agent.model"), modelRef(agent.modelRef())),
+                line(getTranslation("agent.allowedTools"), join(agent.allowedToolIds())),
+                line(getTranslation("agent.scopes"), join(agent.allowedToolScopes())),
+                line(getTranslation("agent.risk"), join(agent.riskLabels())),
+                line(getTranslation("agent.sideEffects"), join(agent.sideEffectLabels())));
         boolean primaryAssigned = false;
         for (AgentCatalogItemDto.EntryActionDto action : agent.entryActions()) {
             Button button = new Button(safe(action.label()));
@@ -83,7 +83,7 @@ public class AgentCard extends Div {
         return firstEntryAction;
     }
 
-    private static boolean isGeneralAgent(AgentCatalogItemDto agent) {
+    private boolean isGeneralAgent(AgentCatalogItemDto agent) {
         return "cloud-general-agent".equals(safe(agent.id()));
     }
 
@@ -95,13 +95,13 @@ public class AgentCard extends Div {
         return "general-agent-start";
     }
 
-    private static Span line(String label, String value) {
+    private Span line(String label, String value) {
         Span span = new Span(label + ": " + value);
         span.getElement().setAttribute("data-field", label.toLowerCase().replace(' ', '-'));
         return span;
     }
 
-    private static String buildSummary(AgentCatalogItemDto agent) {
+    private String buildSummary(AgentCatalogItemDto agent) {
         return String.join(" | ", List.of(
                 safe(agent.name()),
                 safe(agent.description()),
@@ -114,13 +114,13 @@ public class AgentCard extends Div {
                 "sideEffects=" + join(agent.sideEffectLabels()),
                 "actions=" + agent.entryActions().stream()
                         .map(AgentCatalogItemDto.EntryActionDto::label)
-                        .map(AgentCard::safe)
+                        .map(this::safe)
                         .collect(Collectors.joining(", "))));
     }
 
-    private static String modelRef(AgentCatalogItemDto.ModelRefDto modelRef) {
+    private String modelRef(AgentCatalogItemDto.ModelRefDto modelRef) {
         if (modelRef == null) {
-            return "not disclosed";
+            return getTranslation("agent.notDisclosed");
         }
         if (modelRef.safeRef() != null && !modelRef.safeRef().isBlank()) {
             return modelRef.safeRef();
@@ -128,14 +128,14 @@ public class AgentCard extends Div {
         return safe(modelRef.provider()) + ":" + safe(modelRef.model());
     }
 
-    private static String join(Collection<String> values) {
+    private String join(Collection<String> values) {
         if (values == null || values.isEmpty()) {
-            return "none";
+            return getTranslation("agent.none");
         }
-        return values.stream().map(AgentCard::safe).sorted().collect(Collectors.joining(", "));
+        return values.stream().map(this::safe).sorted().collect(Collectors.joining(", "));
     }
 
-    private static String safe(String value) {
-        return value == null || value.isBlank() ? "unknown" : value.trim();
+    private String safe(String value) {
+        return value == null || value.isBlank() ? getTranslation("agent.unknown") : value.trim();
     }
 }

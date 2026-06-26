@@ -13,14 +13,12 @@ import java.util.function.Consumer;
 /** Center workbench column that keeps chat messages and runtime events in one narrative. */
 public class ChatEventStreamPanel extends Div {
 
-    private static final String PLACEHOLDER = "Type a message for the selected Agent…";
-
     private final Div feed = new Div();
     private final Div composer = new Div();
-    private final Span composerRunStatus = new Span("No active run");
-    private final TextArea input = new TextArea("Message");
-    private final Button send = new Button("Send");
-    private final Button composerCancel = new Button("Cancel run");
+    private final Span composerRunStatus = new Span();
+    private final TextArea input = new TextArea();
+    private final Button send = new Button();
+    private final Button composerCancel = new Button();
     private final List<String> messages = new ArrayList<>();
     private final List<Component> eventComponents = new ArrayList<>();
     private Consumer<String> submitHandler;
@@ -34,8 +32,12 @@ public class ChatEventStreamPanel extends Div {
         feed.getElement().setAttribute("data-role", "event-feed");
         composer.addClassName("pi-console-composer");
         composer.getElement().setAttribute("data-role", "chat-composer");
+        composerRunStatus.setText(getTranslation("chat.noActiveRun"));
+        input.setLabel(getTranslation("chat.label.message"));
+        input.setPlaceholder(getTranslation("chat.placeholder"));
+        send.setText(getTranslation("chat.button.send"));
+        composerCancel.setText(getTranslation("chat.button.cancelRun"));
         composerRunStatus.getElement().setAttribute("data-role", "composer-run-status");
-        input.setPlaceholder(PLACEHOLDER);
         input.setMinRows(2);
         input.setMaxRows(6);
         input.getElement().setAttribute("data-role", "chat-input");
@@ -49,7 +51,7 @@ public class ChatEventStreamPanel extends Div {
         });
         composerCancel.setVisible(false);
         composer.add(composerRunStatus, input, send, composerCancel);
-        add(new H2("Chat"), feed, composer);
+        add(new H2(getTranslation("chat.title")), feed, composer);
         showEmptyState();
     }
 
@@ -62,7 +64,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public String inputPlaceholder() {
-        return PLACEHOLDER;
+        return getTranslation("chat.placeholder");
     }
 
     public int messageCount() {
@@ -92,7 +94,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public void showComposerCancelling() {
-        showComposerRunStatus("Cancelling run…", true);
+        showComposerRunStatus(getTranslation("console.run.cancelling"), true);
     }
 
     public String composerStatusText() {
@@ -123,7 +125,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     private void showEmptyState() {
-        Span empty = new Span("Start with a message or continue a session from the left.");
+        Span empty = new Span(getTranslation("chat.empty"));
         empty.getElement().setAttribute("data-state", "empty");
         feed.add(empty);
     }

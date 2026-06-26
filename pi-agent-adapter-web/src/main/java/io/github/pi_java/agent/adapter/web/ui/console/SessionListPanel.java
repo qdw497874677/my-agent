@@ -14,8 +14,6 @@ import java.util.function.Consumer;
 /** Left workbench column for recent sessions and continue-session selection. */
 public class SessionListPanel extends Div {
 
-    private static final String EMPTY = "No recent sessions yet. Start a chat to create one.";
-
     private final Div list = new Div();
     private final List<String> sessionIds = new ArrayList<>();
     private final List<String> renderedSessionText = new ArrayList<>();
@@ -28,7 +26,7 @@ public class SessionListPanel extends Div {
         addClassName("pi-console-sessions");
         getElement().setAttribute("data-column", "sessions");
         list.getElement().setAttribute("data-role", "session-list");
-        add(new H2("Sessions"), list);
+        add(new H2(getTranslation("sessions.title")), list);
         renderEmpty();
     }
 
@@ -43,9 +41,9 @@ public class SessionListPanel extends Div {
         }
         SessionMetadata existing = sessionMetadata.get(id);
         sessionMetadata.put(id, new SessionMetadata(
-                title == null || title.isBlank() ? existing == null ? "Recent session" : existing.title() : title,
-                status == null || status.isBlank() ? existing == null ? "ready" : existing.status() : status,
-                updatedAt == null ? existing == null ? "not yet updated" : existing.updatedAt() : updatedAt.toString()));
+                title == null || title.isBlank() ? existing == null ? getTranslation("sessions.defaultTitle") : existing.title() : title,
+                status == null || status.isBlank() ? existing == null ? getTranslation("sessions.defaultStatus") : existing.status() : status,
+                updatedAt == null ? existing == null ? getTranslation("sessions.defaultUpdated") : existing.updatedAt() : updatedAt.toString()));
         renderList();
     }
 
@@ -54,12 +52,12 @@ public class SessionListPanel extends Div {
         if (!sessionIds.contains(selectedSessionId)) {
             sessionIds.add(selectedSessionId);
         }
-        sessionMetadata.putIfAbsent(selectedSessionId, new SessionMetadata("Selected session", "ready", "not yet updated"));
+        sessionMetadata.putIfAbsent(selectedSessionId, new SessionMetadata(getTranslation("sessions.selected"), getTranslation("sessions.defaultStatus"), getTranslation("sessions.defaultUpdated")));
         renderList();
     }
 
     public String emptyStateText() {
-        return EMPTY;
+        return getTranslation("sessions.empty");
     }
 
     public int sessionCount() {
@@ -105,7 +103,7 @@ public class SessionListPanel extends Div {
     private void renderEmpty() {
         list.removeAll();
         sessionCards.clear();
-        Span empty = new Span(EMPTY);
+        Span empty = new Span(getTranslation("sessions.empty"));
         empty.getElement().setAttribute("data-state", "empty");
         list.add(empty);
     }
@@ -116,7 +114,7 @@ public class SessionListPanel extends Div {
         sessionCards.clear();
         for (String id : sessionIds) {
             SessionMetadata metadata = sessionMetadata.getOrDefault(
-                    id, new SessionMetadata("Recent session", "ready", "not yet updated"));
+                    id, new SessionMetadata(getTranslation("sessions.defaultTitle"), getTranslation("sessions.defaultStatus"), getTranslation("sessions.defaultUpdated")));
             String text = (Objects.equals(id, selectedSessionId) ? "▶ " : "")
                     + id
                     + " · "
@@ -154,17 +152,17 @@ public class SessionListPanel extends Div {
         selectSession(id);
     }
 
-    private static Span field(String name, String value) {
+    private Span field(String name, String value) {
         Span span = new Span(value == null || value.isBlank() ? fallbackFor(name) : value);
         span.getElement().setAttribute("data-field", name);
         return span;
     }
 
-    private static String fallbackFor(String name) {
+    private String fallbackFor(String name) {
         return switch (name) {
-            case "session-title" -> "Recent session";
-            case "session-updated-at" -> "not yet updated";
-            default -> "ready";
+            case "session-title" -> getTranslation("sessions.defaultTitle");
+            case "session-updated-at" -> getTranslation("sessions.defaultUpdated");
+            default -> getTranslation("sessions.defaultStatus");
         };
     }
 

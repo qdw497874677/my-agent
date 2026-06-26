@@ -3,6 +3,7 @@ package io.github.pi_java.agent.adapter.web.ui;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.Tag;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -14,16 +15,20 @@ import com.vaadin.flow.component.html.Section;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.router.RouterLayout;
+import com.vaadin.flow.server.VaadinSession;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /** Shared Vaadin RouterLayout for Console and Admin Governance responsive navigation. */
 @Tag("div")
 public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigationObserver {
 
-    private final Button drawerTrigger = new Button("Menu");
-    private final Button drawerClose = new Button("Close");
-    private final H2 pageTitle = new H2("Pi Agent Console");
+    private final Button drawerTrigger = new Button();
+    private final Button drawerClose = new Button();
+    private final Button languageSwitch = new Button();
+    private final H2 pageTitle = new H2();
     private final Div statusSlot = new Div();
     private final Div actionSlot = new Div();
     private final Main content = new Main();
@@ -34,6 +39,22 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         getElement().setAttribute("data-shell", "pi-responsive-shell");
         getElement().setAttribute("data-shell-drawer-open", "false");
         add(buildHeader(), buildDrawer(), content);
+        applyTranslations();
+    }
+
+    private void applyTranslations() {
+        Locale locale = currentLocale();
+        drawerTrigger.setText(getTranslation("shell.menu"));
+        drawerClose.setText(getTranslation("shell.close"));
+        pageTitle.setText(getTranslation("shell.defaultTitle"));
+        drawerTrigger.getElement().setAttribute("aria-label", getTranslation("shell.openNav"));
+        drawerClose.getElement().setAttribute("aria-label", getTranslation("shell.closeNav"));
+        languageSwitch.setText(getTranslation("lang.switch"));
+    }
+
+    private static Locale currentLocale() {
+        VaadinSession session = VaadinSession.getCurrent();
+        return session != null ? session.getLocale() : Locale.ENGLISH;
     }
 
     @Override
@@ -50,7 +71,7 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
     public void afterNavigation(AfterNavigationEvent event) {
         String route = event.getLocation().getPath();
         PiRouteNavItem active = PiRouteNavRegistry.activeForRoute(route);
-        pageTitle.setText(active.title());
+        pageTitle.setText(navTitle(active));
         pageTitle.getElement().setAttribute("data-page-title", active.routeName());
         for (Anchor link : navLinks) {
             boolean activeLink = active.route().equals(link.getElement().getAttribute("data-nav-item"));
@@ -59,13 +80,24 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         }
     }
 
+    private String navTitle(PiRouteNavItem item) {
+        return getTranslation("nav." + item.routeName() + ".title");
+    }
+
+    private String navLabel(PiRouteNavItem item) {
+        return getTranslation("nav." + item.routeName() + ".label");
+    }
+
+    private String navGroup(PiRouteNavItem item) {
+        return getTranslation("nav." + item.routeName() + ".group");
+    }
+
     private Header buildHeader() {
         Header header = new Header();
         header.addClassName("pi-shell-header");
         header.getElement().setAttribute("data-shell-header", "compact");
 
         drawerTrigger.addClassNames("pi-shell-drawer-trigger", "pi-tap-target");
-        drawerTrigger.getElement().setAttribute("aria-label", "Open navigation");
         drawerTrigger.getElement().setAttribute("data-shell-drawer-trigger", "true");
         drawerTrigger.addClickListener(event -> setDrawerOpen(true));
 
@@ -77,8 +109,26 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         actionSlot.addClassName("pi-page-actions");
         actionSlot.getElement().setAttribute("data-primary-action", "shell-action-slot");
 
-        header.add(drawerTrigger, pageTitle, statusSlot, actionSlot);
+        languageSwitch.addClassNames("pi-shell-lang-switch", "pi-tap-target");
+        languageSwitch.getElement().setAttribute("data-action", "switch-language");
+        languageSwitch.addClickListener(event -> toggleLanguage());
+
+        header.add(drawerTrigger, pageTitle, statusSlot, actionSlot, languageSwitch);
         return header;
+    }
+
+    private void toggleLanguage() {
+        Locale current = currentLocale();
+        Locale next = "zh".equals(current.getLanguage()) ? Locale.ENGLISH : Locale.SIMPLIFIED_CHINESE;
+        VaadinSession session = VaadinSession.getCurrent();
+        if (session != null) {
+            session.setLocale(next);
+        }
+        UI ui = UI.getCurrent();
+        if (ui != null) {
+            ui.setLocale(next);
+            ui.getPage().reload();
+        }
     }
 
     private Section buildDrawer() {
@@ -87,7 +137,6 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         drawer.getElement().setAttribute("data-shell-drawer", "primary");
 
         drawerClose.addClassNames("pi-shell-drawer-close", "pi-tap-target");
-        drawerClose.getElement().setAttribute("aria-label", "Close navigation");
         drawerClose.getElement().setAttribute("data-shell-drawer-close", "true");
         drawerClose.addClickListener(event -> {
             setDrawerOpen(false);
@@ -97,17 +146,21 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         Nav nav = new Nav();
         nav.addClassName("pi-shell-nav");
         nav.getElement().setAttribute("data-nav", "primary");
-        addGroup(nav, "Console", PiRouteNavRegistry.topLevelItems().stream()
+        addGroup(nav, PiRouteNavRegistry.topLevelItems().stream()
                 .filter(item -> "console".equals(item.productArea()))
                 .toList());
-        addGroup(nav, "Admin Governance", PiRouteNavRegistry.items().stream()
+        addGroup(nav, PiRouteNavRegistry.items().stream()
                 .filter(item -> "admin".equals(item.productArea()))
                 .toList());
         drawer.add(drawerClose, nav);
         return drawer;
     }
 
-    private void addGroup(Nav nav, String label, List<PiRouteNavItem> items) {
+    private void addGroup(Nav nav, List<PiRouteNavItem> items) {
+        if (items.isEmpty()) {
+            return;
+        }
+        String label = navGroup(items.get(0));
         Div group = new Div();
         group.addClassName("pi-shell-nav-group");
         group.getElement().setAttribute("data-nav-group", label);
@@ -115,7 +168,7 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         groupLabel.addClassName("pi-shell-nav-group-label");
         group.add(groupLabel);
         for (PiRouteNavItem item : items) {
-            Anchor link = new Anchor(item.href(), item.navLabel());
+            Anchor link = new Anchor(item.href(), navLabel(item));
             link.addClassNames("pi-shell-nav-item", "pi-tap-target");
             link.getElement().setAttribute("data-nav-item", item.route());
             link.getElement().setAttribute("data-nav-route-name", item.routeName());

@@ -50,14 +50,14 @@ public class AdminOperationsView extends Div {
         renderedLines.clear();
         removeAll();
         addHeader(response);
-        addMetricSection("Runs", response.runs());
-        addMetricSection("Models", response.models());
-        addMetricSection("Tools", response.tools());
-        addMetricSection("Policies", response.policies());
-        addMetricSection("MCP", response.mcp());
-        addMetricSection("Plugins", response.plugins());
-        addMetricSection("Errors", response.errors());
-        addWarningSection("Warnings", response.warnings());
+        addMetricSection(getTranslation("admin.ops.runs"), response.runs());
+        addMetricSection(getTranslation("admin.ops.models"), response.models());
+        addMetricSection(getTranslation("admin.ops.tools"), response.tools());
+        addMetricSection(getTranslation("admin.ops.policies"), response.policies());
+        addMetricSection(getTranslation("admin.ops.mcp"), response.mcp());
+        addMetricSection(getTranslation("admin.ops.plugins"), response.plugins());
+        addMetricSection(getTranslation("admin.ops.errors"), response.errors());
+        addWarningSection(getTranslation("admin.ops.warnings"), response.warnings());
     }
 
     public String renderedText() {
@@ -75,26 +75,26 @@ public class AdminOperationsView extends Div {
     private void renderEmpty() {
         renderedLines.clear();
         removeAll();
-        add(new H2("Operations metrics"));
-        Span empty = new Span("Operations summary has not been loaded.");
+        add(new H2(getTranslation("admin.ops.title")));
+        Span empty = new Span(getTranslation("admin.ops.empty"));
         empty.getElement().setAttribute("data-state", "empty-operations-summary");
         add(empty);
-        addMetricSection("Runs", List.of());
-        addMetricSection("Models", List.of());
-        addMetricSection("Tools", List.of());
-        addMetricSection("Policies", List.of());
-        addMetricSection("MCP", List.of());
-        addMetricSection("Plugins", List.of());
-        addMetricSection("Errors", List.of());
-        addWarningSection("Warnings", List.of());
+        addMetricSection(getTranslation("admin.ops.runs"), List.of());
+        addMetricSection(getTranslation("admin.ops.models"), List.of());
+        addMetricSection(getTranslation("admin.ops.tools"), List.of());
+        addMetricSection(getTranslation("admin.ops.policies"), List.of());
+        addMetricSection(getTranslation("admin.ops.mcp"), List.of());
+        addMetricSection(getTranslation("admin.ops.plugins"), List.of());
+        addMetricSection(getTranslation("admin.ops.errors"), List.of());
+        addWarningSection(getTranslation("admin.ops.warnings"), List.of());
     }
 
     private void addHeader(OperationsSummaryResponse response) {
-        renderedLines.add("Operations metrics");
+        renderedLines.add(getTranslation("admin.ops.title"));
         renderedLines.add("generatedAt=" + response.generatedAt());
-        add(new H2("Operations metrics"));
-        add(new Span("Read-only production operations summary from public Admin Governance APIs."));
-        add(new Span("Generated at: " + response.generatedAt()));
+        add(new H2(getTranslation("admin.ops.title")));
+        add(new Span(getTranslation("admin.ops.description")));
+        add(new Span(getTranslation("admin.ops.generatedAt", response.generatedAt())));
     }
 
     private void addMetricSection(String label, List<OperationMetricDto> metrics) {
@@ -102,7 +102,7 @@ public class AdminOperationsView extends Div {
         Div section = new Div(new H3(label));
         section.getElement().setAttribute("data-operations-section", label.toLowerCase().replace(' ', '-'));
         if (metrics.isEmpty()) {
-            String emptyText = label + ": none reported";
+            String emptyText = getTranslation("admin.ops.noneReported", label);
             renderedLines.add(emptyText);
             section.add(new Span(emptyText));
         } else {
@@ -125,7 +125,7 @@ public class AdminOperationsView extends Div {
         Div section = new Div(new H3(label));
         section.getElement().setAttribute("data-operations-section", "warnings");
         if (warnings.isEmpty()) {
-            String emptyText = "Warnings: none reported";
+            String emptyText = getTranslation("admin.ops.warningsNone");
             renderedLines.add(emptyText);
             section.add(new Span(emptyText));
         } else {

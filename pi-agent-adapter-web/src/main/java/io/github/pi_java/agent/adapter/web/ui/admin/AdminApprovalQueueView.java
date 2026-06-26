@@ -46,24 +46,22 @@ public class AdminApprovalQueueView extends Div {
         addClassName("pi-admin-approval-queue");
         getElement().setAttribute("data-route", "admin-approval-queue");
         getElement().setAttribute("data-admin-surface", "separated-governance");
-        add(new H2("Approval Queue"));
+        add(new H2(getTranslation("admin.approvals.title")));
         showPendingApprovals(List.of());
     }
 
     public void showPendingApprovals(List<ApprovalSummaryDto> approvals) {
         cards.clear();
         removeAll();
-        add(new H2("Approval Queue"));
+        add(new H2(getTranslation("admin.approvals.title")));
         if (approvals == null || approvals.isEmpty()) {
-            Span empty = new Span("No pending approvals.");
+            Span empty = new Span(getTranslation("admin.approvals.empty"));
             empty.getElement().setAttribute("data-state", "empty-admin-approvals");
             add(empty);
             return;
         }
         for (ApprovalSummaryDto approval : approvals) {
-            Div context = new Div("Session " + approval.sessionId()
-                    + " | Run " + approval.runId()
-                    + " | Tool call " + approval.toolCallId());
+            Div context = new Div(getTranslation("admin.approvals.context", approval.sessionId(), approval.runId(), approval.toolCallId()));
             context.getElement().setAttribute("data-approval-context", approval.approvalId());
             ApprovalCard card = new ApprovalCard(approval, httpClient, "ADMIN", approvalDecisionHandler);
             cards.add(card);
