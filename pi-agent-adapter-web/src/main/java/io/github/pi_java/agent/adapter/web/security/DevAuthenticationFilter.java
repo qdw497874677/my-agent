@@ -22,9 +22,11 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
     private static final String DEFAULT_USER = "dev-user";
 
     private final boolean testProfile;
+    private final boolean defaultsEnabled;
 
     public DevAuthenticationFilter(Environment environment) {
         this.testProfile = List.of(environment.getActiveProfiles()).contains("test");
+        this.defaultsEnabled = environment.getProperty("pi.security.dev-auth.enabled", Boolean.class, false);
     }
 
     @Override
@@ -41,7 +43,7 @@ public class DevAuthenticationFilter extends OncePerRequestFilter {
         String userId = textOrNull(request.getHeader(USER_HEADER));
         boolean defaultsDisabled = Boolean.parseBoolean(request.getHeader(DISABLE_DEFAULTS_HEADER));
 
-        if (testProfile && !defaultsDisabled) {
+        if ((testProfile || defaultsEnabled) && !defaultsDisabled) {
             tenantId = tenantId == null ? DEFAULT_TENANT : tenantId;
             userId = userId == null ? DEFAULT_USER : userId;
         }

@@ -40,6 +40,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,30 +63,35 @@ public class CloudRuntimeBeanConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!local")
     SessionRepository sessionRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcSessionRepository(jdbcTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!local")
     AuditRepository auditRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcAuditRepository(jdbcTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!local")
     RunEventStore runEventStore(JdbcTemplate jdbcTemplate) {
         return new JdbcRunEventStore(jdbcTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!local")
     RunProjectionRepository runProjectionRepository(JdbcTemplate jdbcTemplate) {
         return new JdbcRunProjectionRepository(jdbcTemplate);
     }
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!local")
     RunQueue runQueue(JdbcTemplate jdbcTemplate) {
         return new PostgresRunQueue(jdbcTemplate);
     }

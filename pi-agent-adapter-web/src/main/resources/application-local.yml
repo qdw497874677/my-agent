@@ -1,0 +1,19 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://issuer.invalid/pi-local
+
+server:
+  address: 0.0.0.0
+
+pi:
+  security:
+    dev-auth:
+      enabled: true
+  runtime:
+    worker:
+      id: local-worker
+      poll-delay-ms: 250
+    run-timeout-ms: 30000

@@ -33,7 +33,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("!dev & !test")
+    @Profile("local")
+    SecurityFilterChain localApiSecurity(HttpSecurity http, Environment environment) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .addFilterBefore(new DevAuthenticationFilter(environment), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+
+    @Bean
+    @Profile("!dev & !test & !local")
     SecurityFilterChain productionApiSecurity(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -47,7 +57,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile({"dev", "test"})
+    @Profile({"dev", "test", "local"})
     JwtDecoder devJwtDecoder() {
         return token -> {
             throw new JwtException("JWT decoding is not configured for dev/test authentication");
@@ -56,6 +66,7 @@ public class SecurityConfig {
 
     private static String[] vaadinPublicMatchers() {
         return new String[] {
+                "/",
                 "/console", "/console/**",
                 "/admin/governance", "/admin/governance/**",
                 "/admin/governance/approvals", "/admin/governance/approvals/**",
