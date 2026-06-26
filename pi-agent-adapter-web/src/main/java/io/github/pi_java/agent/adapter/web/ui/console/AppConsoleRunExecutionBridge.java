@@ -32,7 +32,7 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
     public SessionResponse createSession() {
         return sessionCommandService.createSession(
                 ConsoleView.consoleRequestContext(),
-                new CreateSessionRequest(null, Map.of("source", "vaadin-console")));
+                new CreateSessionRequest("console-default", Map.of("source", "vaadin-console")));
     }
 
     @Override
