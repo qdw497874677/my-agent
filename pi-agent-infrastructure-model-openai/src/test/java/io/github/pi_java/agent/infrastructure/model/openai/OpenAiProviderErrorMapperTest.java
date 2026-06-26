@@ -41,4 +41,64 @@ class OpenAiProviderErrorMapperTest {
         assertThat(OpenAiProviderErrorMapper.timeout(Duration.ofMillis(250)).providerCode()).isEqualTo("provider_timeout");
         assertThat(OpenAiProviderErrorMapper.cancelled("user cancelled").providerCode()).isEqualTo("provider_cancelled");
     }
+
+    @Test
+    void extractsHttpStatusFromCommonProviderExceptionShapesAndCauses() {
+        ProviderErrorSummary rawStatus = OpenAiProviderErrorMapper.fromThrowable(
+                new RawStatusException(429, "rate limit"), null, true);
+        assertThat(rawStatus.providerCode()).isEqualTo("provider_rate_limited");
+        assertThat(rawStatus.httpStatus()).isEqualTo(429);
+
+        ProviderErrorSummary statusCodeObject = OpenAiProviderErrorMapper.fromThrowable(
+                new StatusCodeException(new StatusCode(401), "unauthorized"), null, true);
+        assertThat(statusCodeObject.providerCode()).isEqualTo("provider_authentication_failed");
+        assertThat(statusCodeObject.httpStatus()).isEqualTo(401);
+
+        ProviderErrorSummary wrapped = OpenAiProviderErrorMapper.fromThrowable(
+                new RuntimeException("wrapper", new StatusMethodException(503, "unavailable")), null, true);
+        assertThat(wrapped.providerCode()).isEqualTo("provider_transient_failure");
+        assertThat(wrapped.httpStatus()).isEqualTo(503);
+    }
+
+    private static final class RawStatusException extends RuntimeException {
+        private final int status;
+
+        private RawStatusException(int status, String message) {
+            super(message);
+            this.status = status;
+        }
+
+        int getRawStatusCode() {
+            return status;
+        }
+    }
+
+    private static final class StatusCodeException extends RuntimeException {
+        private final StatusCode statusCode;
+
+        private StatusCodeException(StatusCode statusCode, String message) {
+            super(message);
+            this.statusCode = statusCode;
+        }
+
+        StatusCode getStatusCode() {
+            return statusCode;
+        }
+    }
+
+    private record StatusCode(int value) {
+    }
+
+    private static final class StatusMethodException extends RuntimeException {
+        private final int status;
+
+        private StatusMethodException(int status, String message) {
+            super(message);
+            this.status = status;
+        }
+
+        int status() {
+            return status;
+        }
+    }
 }

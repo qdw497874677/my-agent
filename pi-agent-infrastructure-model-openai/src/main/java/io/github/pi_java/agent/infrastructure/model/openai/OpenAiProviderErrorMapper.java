@@ -74,24 +74,67 @@ public final class OpenAiProviderErrorMapper {
     }
 
     private static Integer extractHttpStatus(Throwable throwable) {
-        Class<?> current = throwable.getClass();
+        Throwable current = throwable;
+        int depth = 0;
+        while (current != null && depth++ < 16) {
+            Integer status = extractHttpStatusFromSingleThrowable(current);
+            if (status != null) {
+                return status;
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    private static Integer extractHttpStatusFromSingleThrowable(Throwable throwable) {
+        Integer status = invokeStatusLikeMethod(throwable, "status");
+        if (status != null) {
+            return status;
+        }
+        status = invokeStatusLikeMethod(throwable, "getRawStatusCode");
+        if (status != null) {
+            return status;
+        }
+        Object statusCode = invokeNoArgMethod(throwable, "getStatusCode");
+        return extractStatusValue(statusCode);
+    }
+
+    private static Integer invokeStatusLikeMethod(Object target, String methodName) {
+        Object value = invokeNoArgMethod(target, methodName);
+        return extractStatusValue(value);
+    }
+
+    private static Object invokeNoArgMethod(Object target, String methodName) {
+        if (target == null) {
+            return null;
+        }
+        Class<?> current = target.getClass();
         while (current != null) {
             try {
-                java.lang.reflect.Method method = current.getDeclaredMethod("status");
+                java.lang.reflect.Method method = current.getDeclaredMethod(methodName);
                 method.setAccessible(true);
-                Object value = method.invoke(throwable);
-                if (value instanceof Number number) {
-                    int status = number.intValue();
-                    if (status >= 100 && status <= 599) {
-                        return status;
-                    }
-                }
-            } catch (ReflectiveOperationException ignored) {
+                return method.invoke(target);
+            } catch (ReflectiveOperationException | RuntimeException ignored) {
                 // Keep provider SDK details optional; most HTTP exceptions do not expose a common type.
             }
             current = current.getSuperclass();
         }
         return null;
+    }
+
+    private static Integer extractStatusValue(Object value) {
+        if (value instanceof Number number) {
+            return validStatus(number.intValue());
+        }
+        Object nestedValue = invokeNoArgMethod(value, "value");
+        if (nestedValue instanceof Number number) {
+            return validStatus(number.intValue());
+        }
+        return null;
+    }
+
+    private static Integer validStatus(int status) {
+        return status >= 100 && status <= 599 ? status : null;
     }
 
     static ProviderErrorSummary invalidToolCallArguments(String message) {

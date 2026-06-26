@@ -409,6 +409,33 @@ mvn verify -P e2e                 # headless E2E
 mvn verify -P browser-e2e         # Web Console browser E2E
 ```
 
+### 可选真实模型 Smoke 测试
+
+真实 OpenAI-compatible provider 测试默认跳过，不应在 CI 或普通 `mvn test` 中依赖真实密钥。需要本地验证时，复制 `.env.example` 为 `.env.local`，填入本地密钥后导出环境变量再运行：
+
+```bash
+set -a
+source .env.local
+set +a
+
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+  mvn -pl pi-agent-adapter-web -Dtest=OptionalRealProviderSmokeTest test
+```
+
+智谱 OpenAI-compatible 示例 base URL：
+
+```bash
+PI_OPENAI_COMPATIBLE_BASE_URL=https://open.bigmodel.cn/api/coding/paas/v4
+```
+
+如需验证认证失败等真实异常处理，可在 `.env.local` 中额外设置：
+
+```bash
+PI_OPENAI_COMPATIBLE_NEGATIVE_ENABLED=true
+```
+
+不要提交 `.env.local` 或任何真实 API Key。
+
 ### v1 最关键成功标准
 
 ```text
