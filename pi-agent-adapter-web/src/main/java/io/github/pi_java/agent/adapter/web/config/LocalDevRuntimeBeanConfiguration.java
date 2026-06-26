@@ -18,7 +18,6 @@ import io.github.pi_java.agent.client.session.SessionHistoryResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
 import io.github.pi_java.agent.domain.event.RunEvent;
 import io.github.pi_java.agent.domain.event.RunEventType;
-import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.RunContext;
 import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
@@ -81,29 +80,12 @@ public class LocalDevRuntimeBeanConfiguration {
         return stores::recordAudit;
     }
 
-    @Bean
-    @Primary
-    TransactionTemplate localTransactionTemplate() {
-        return new TransactionTemplate(new NoopTransactionManager());
-    }
+     @Bean
+     @Primary
+     TransactionTemplate localTransactionTemplate() {
+         return new TransactionTemplate(new NoopTransactionManager());
+     }
 
-    @Bean
-    @Primary
-    AgentRuntime localAgentRuntime() {
-        return new LocalAgentRuntime();
-    }
-
-    private static final class LocalAgentRuntime implements AgentRuntime {
-        @Override
-        public RunHandle start(RunContext context) {
-            return new RunHandle(context.workspaceScope().runId(), RunStatus.SUCCEEDED, Optional.empty());
-        }
-
-        @Override
-        public void cancel(String runId, String reason) {
-            // Local profile runtime completes synchronously; cancellation is handled by the dispatcher token path.
-        }
-    }
 
     private static final class NoopTransactionManager implements PlatformTransactionManager {
         @Override

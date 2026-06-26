@@ -14,7 +14,8 @@ public final class PiRouteNavRegistry {
             new PiRouteNavItem("admin", "Admin Governance", "admin/governance/operations", "Pi Admin Operations", "Operations", false, "admin-operations"),
             new PiRouteNavItem("admin", "Admin Governance", "admin/governance/policy-decisions", "Pi Admin Policy Decisions", "Policy Decisions", false, "admin-policy-decisions"),
             new PiRouteNavItem("admin", "Admin Governance", "admin/governance/audits", "Pi Admin Audit Summaries", "Audits", false, "admin-audit-summaries"),
-            new PiRouteNavItem("admin", "Admin Governance", "admin/governance/approvals", "Pi Admin Approval Queue", "Approvals", false, "admin-approval-queue"));
+            new PiRouteNavItem("admin", "Admin Governance", "admin/governance/approvals", "Pi Admin Approval Queue", "Approvals", false, "admin-approval-queue"),
+            new PiRouteNavItem("admin", "Admin Governance", "admin/governance/providers", "Pi Admin Provider Settings", "Providers", false, "admin-providers"));
 
     private PiRouteNavRegistry() {
     }
