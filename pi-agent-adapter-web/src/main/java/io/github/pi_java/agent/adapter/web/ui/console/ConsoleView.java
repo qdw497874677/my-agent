@@ -1,9 +1,14 @@
 package io.github.pi_java.agent.adapter.web.ui.console;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import io.github.pi_java.agent.adapter.web.provider.ProviderConfig;
+import io.github.pi_java.agent.adapter.web.provider.ProviderConfigController;
+import io.github.pi_java.agent.adapter.web.provider.ProviderConfigStore;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
@@ -53,6 +58,9 @@ public class ConsoleView extends Div {
     private final RunContextPanel runContextPanel;
     private final Map<String, Div> consolePanels;
     private final Map<String, Button> panelControls;
+    private ProviderConfigStore providerConfigStore;
+    private ProviderConfigController providerConfigController;
+    private ComboBox<String> modelSelector;
     private String selectedAgentId = DEFAULT_AGENT_ID;
     private String selectedSessionId;
     private String activeRunId;
@@ -69,13 +77,17 @@ public class ConsoleView extends Div {
             SessionCommandService sessionCommandService,
             RunCommandService runCommandService,
             RunQueryService runQueryService,
-            ApprovalCommandService approvalCommandService) {
+            ApprovalCommandService approvalCommandService,
+            ProviderConfigStore providerConfigStore,
+            ProviderConfigController providerConfigController) {
         this(
                 new ConsoleHttpClient(),
                 new EventStreamClient(),
                 agentCatalogQueryService,
                 new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService),
-                new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)));
+                new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)),
+                providerConfigStore,
+                providerConfigController);
     }
 
     public ConsoleView(AgentCatalogQueryService agentCatalogQueryService) {
@@ -104,11 +116,24 @@ public class ConsoleView extends Div {
             AgentCatalogQueryService agentCatalogQueryService,
             ConsoleRunExecutionBridge executionBridge,
             RunEventRenderer runEventRenderer) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer, null, null);
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer,
+            ProviderConfigStore providerConfigStore,
+            ProviderConfigController providerConfigController) {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
         this.agentCatalogQueryService = agentCatalogQueryService;
         this.executionBridge = executionBridge;
         this.runEventRenderer = runEventRenderer;
+        this.providerConfigStore = providerConfigStore;
+        this.providerConfigController = providerConfigController;
         this.sessionListPanel = new SessionListPanel();
         this.agentCatalogPanel = new AgentCatalogPanel(httpClient);
         this.chatPanel = new ChatEventStreamPanel();
@@ -133,7 +158,7 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "three-column-workbench");
         getElement().setAttribute("data-mobile-critical", "true");
-        add(switcher, sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
+        add(switcher, createModelBar(), sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
         addAttachListener(event -> {
             event.getUI().setPollInterval(750);
             event.getUI().addPollListener(poll -> refreshActiveRunEvents());
@@ -149,6 +174,60 @@ public class ConsoleView extends Div {
         Runnable cancel = () -> handleCancelRunningRun("mobile user requested cancellation");
         chatPanel.setCancelHandler(cancel);
         runContextPanel.setCancelHandler(cancel);
+    }
+
+    private void initModelSelector() {
+        if (providerConfigStore == null) return;
+        ProviderConfig config = providerConfigStore.current();
+        modelSelector.setItems(List.of());
+        modelSelector.setValue(config.modelId());
+    }
+
+    private Div createModelBar() {
+        modelSelector = new ComboBox<>();
+        if (providerConfigStore != null) {
+            modelSelector.setLabel(getTranslation("console.modelSelector.label"));
+            modelSelector.setAllowCustomValue(true);
+            modelSelector.setItems(List.of());
+            modelSelector.setValue(providerConfigStore.current().modelId());
+            modelSelector.setWidth("220px");
+            modelSelector.getElement().setAttribute("data-role", "model-selector");
+
+            Button refreshModels = new Button(getTranslation("console.modelSelector.refresh"));
+            refreshModels.getElement().setAttribute("data-action", "refresh-models");
+            refreshModels.addClickListener(event -> {
+                if (providerConfigController == null) return;
+                try {
+                    var response = providerConfigController.listModels();
+                    if (response.models() != null && !response.models().isEmpty()) {
+                        modelSelector.setItems(response.models());
+                    }
+                } catch (Exception ignored) { }
+            });
+
+            modelSelector.addValueChangeListener(event -> {
+                if (event.getValue() == null || event.getValue().isBlank()) return;
+                ProviderConfig current = providerConfigStore.current();
+                providerConfigStore.update(new ProviderConfig(
+                        current.enabled(), current.baseUrl(), current.apiKey(),
+                        event.getValue(), current.providerId(), current.completionsPath()));
+            });
+
+            Span status = new Span();
+            status.getElement().setAttribute("data-role", "provider-status");
+            status.setText(providerConfigStore.current().isReady()
+                    ? getTranslation("console.modelSelector.ready")
+                    : getTranslation("console.modelSelector.notConfigured"));
+
+            Div bar = new Div(modelSelector, refreshModels, status);
+            bar.addClassName("pi-console-model-bar");
+            bar.getStyle().set("display", "flex");
+            bar.getStyle().set("gap", "0.5rem");
+            bar.getStyle().set("align-items", "flex-end");
+            bar.setWidthFull();
+            return bar;
+        }
+        return new Div();
     }
 
     private void handleAgentAction(String agentId, String actionId) {
