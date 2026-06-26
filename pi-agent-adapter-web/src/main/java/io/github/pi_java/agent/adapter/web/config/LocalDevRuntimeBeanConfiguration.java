@@ -1,5 +1,9 @@
 package io.github.pi_java.agent.adapter.web.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.pi_java.agent.adapter.web.provider.SqliteLocalPersistence;
 import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.port.execution.QueuedRun;
 import io.github.pi_java.agent.app.port.execution.RunQueue;
@@ -18,9 +22,7 @@ import io.github.pi_java.agent.client.session.SessionHistoryResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
 import io.github.pi_java.agent.domain.event.RunEvent;
 import io.github.pi_java.agent.domain.event.RunEventType;
-import io.github.pi_java.agent.domain.runtime.RunContext;
-import io.github.pi_java.agent.domain.runtime.RunHandle;
-import io.github.pi_java.agent.domain.runtime.RunStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -32,6 +34,7 @@ import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,9 +48,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Configuration(proxyBeanMethods = false)
 public class LocalDevRuntimeBeanConfiguration {
 
+    private static final ObjectMapper JSON = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     @Bean
-    LocalDevStores localDevStores() {
-        return new LocalDevStores();
+    LocalDevStores localDevStores(
+            @Value("${pi.local.persist:true}") boolean persist,
+            @Value("${pi.local.db-path:data/pi-local.db}") String dbPath) {
+        SqliteLocalPersistence persistence = persist ? new SqliteLocalPersistence(dbPath) : null;
+        LocalDevStores stores = new LocalDevStores(persistence);
+        stores.loadAll();
+        return stores;
     }
 
     @Bean
@@ -80,12 +92,11 @@ public class LocalDevRuntimeBeanConfiguration {
         return stores::recordAudit;
     }
 
-     @Bean
-     @Primary
-     TransactionTemplate localTransactionTemplate() {
-         return new TransactionTemplate(new NoopTransactionManager());
-     }
-
+    @Bean
+    @Primary
+    TransactionTemplate localTransactionTemplate() {
+        return new TransactionTemplate(new NoopTransactionManager());
+    }
 
     private static final class NoopTransactionManager implements PlatformTransactionManager {
         @Override
@@ -107,11 +118,55 @@ public class LocalDevRuntimeBeanConfiguration {
         private final Map<String, RunRecord> runs = new ConcurrentHashMap<>();
         private final Map<String, List<RunEvent>> events = new ConcurrentHashMap<>();
         private final ConcurrentLinkedQueue<QueuedRun> queue = new ConcurrentLinkedQueue<>();
+        private final SqliteLocalPersistence persistence;
+
+        LocalDevStores(SqliteLocalPersistence persistence) {
+            this.persistence = persistence;
+        }
+
+        @SuppressWarnings("unchecked")
+        void loadAll() {
+            if (persistence == null) return;
+            for (Map<String, String> row : persistence.loadSessions()) {
+                String sessionId = row.get("session_id");
+                try {
+                    sessions.put(sessionId, new SessionResponse(
+                            row.get("tenant_id"), row.get("user_id"), sessionId,
+                            row.get("workspace_id"), row.getOrDefault("current_entry_id", "entry-" + sessionId),
+                            row.get("status"),
+                            Instant.parse(row.get("created_at")),
+                            Instant.parse(row.get("updated_at")),
+                            parseJsonMap(row.get("metadata_json"))));
+                } catch (Exception ignored) { }
+            }
+            for (Map<String, String> row : persistence.loadRuns()) {
+                String runId = row.get("run_id");
+                try {
+                    RunResponse resp = new RunResponse(
+                            row.get("tenant_id"), row.get("user_id"), row.get("session_id"), runId,
+                            row.get("workspace_id"), row.get("status"),
+                            row.get("trace_id"), row.get("correlation_id"),
+                            Instant.parse(row.get("created_at")), Instant.parse(row.get("updated_at")));
+                    runs.put(runId, new RunRecord(resp, parseJsonMap(row.get("result_json")), parseJsonMap(row.get("failure_json"))));
+                } catch (Exception ignored) { }
+            }
+            for (Map<String, String> row : persistence.loadEvents()) {
+                String runId = row.get("run_id");
+                try {
+                    RunEvent event = JSON.readValue(row.get("payload_json"), RunEvent.class);
+                    events.computeIfAbsent(runId, ignored -> new CopyOnWriteArrayList<>()).add(event);
+                } catch (Exception ignored) { }
+            }
+        }
 
         SessionResponse create(RequestContext context, CreateSessionRequest request, String sessionId, Instant now) {
             SessionResponse response = new SessionResponse(context.tenantId(), context.userId(), sessionId,
                     request.workspaceId(), "entry-" + sessionId, "ACTIVE", now, now, request.metadata());
             sessions.put(sessionId, response);
+            if (persistence != null) {
+                persistence.saveSession(sessionId, context.tenantId(), context.userId(), request.workspaceId(),
+                        "ACTIVE", now.toString(), now.toString(), toJson(request.metadata()));
+            }
             return response;
         }
 
@@ -128,6 +183,10 @@ public class LocalDevRuntimeBeanConfiguration {
             RunResponse response = new RunResponse(context.tenantId(), context.userId(), sessionId, runId,
                     request.workspaceId(), "QUEUED", context.traceId(), context.correlationId(), now, now);
             runs.put(runId, new RunRecord(response, Map.of(), Map.of()));
+            if (persistence != null) {
+                persistence.saveRun(runId, sessionId, context.tenantId(), context.userId(), request.workspaceId(),
+                        "QUEUED", now.toString(), now.toString(), null, null);
+            }
         }
 
         Optional<RunResponse> findRun(String runId) {
@@ -172,6 +231,10 @@ public class LocalDevRuntimeBeanConfiguration {
 
         void append(RunEvent event) {
             events.computeIfAbsent(event.runId().value(), ignored -> new CopyOnWriteArrayList<>()).add(event);
+            if (persistence != null) {
+                persistence.appendEvent(event.eventId(), event.runId().value(), event.sequence(),
+                        event.type().name(), event.timestamp().toString(), toJson(event));
+            }
         }
 
         List<RunEvent> listByRun(String runId, long afterSequence, int limit) {
@@ -222,6 +285,11 @@ public class LocalDevRuntimeBeanConfiguration {
                 RunResponse next = new RunResponse(current.tenantId(), current.userId(), current.sessionId(),
                         current.runId(), current.workspaceId(), status, current.traceId(), current.correlationId(),
                         current.createdAt(), updatedAt);
+                if (persistence != null) {
+                    persistence.saveRun(runId, current.sessionId(), current.tenantId(), current.userId(),
+                            current.workspaceId(), status, current.createdAt().toString(), updatedAt.toString(),
+                            toJson(nextResult), toJson(nextFailure));
+                }
                 return new RunRecord(next, nextResult, nextFailure);
             });
         }
@@ -233,6 +301,24 @@ public class LocalDevRuntimeBeanConfiguration {
         private static boolean isTerminalType(RunEventType type) {
             return List.of(RunEventType.RUN_COMPLETED, RunEventType.RUN_FAILED, RunEventType.RUN_CANCELLED,
                     RunEventType.RUN_POLICY_BLOCKED).contains(type);
+        }
+
+        private static String toJson(Object value) {
+            try {
+                return JSON.writeValueAsString(value == null ? Map.of() : value);
+            } catch (Exception e) {
+                return "{}";
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Map<String, Object> parseJsonMap(String json) {
+            if (json == null || json.isBlank()) return Map.of();
+            try {
+                return JSON.readValue(json, Map.class);
+            } catch (Exception e) {
+                return Map.of();
+            }
         }
 
         private record RunRecord(RunResponse response, Map<String, Object> result, Map<String, Object> failure) {
