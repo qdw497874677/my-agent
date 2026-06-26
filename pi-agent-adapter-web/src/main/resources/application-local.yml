@@ -11,6 +11,8 @@ server:
 pi:
   i18n:
     default-locale: zh
+  local:
+    db-path: data/pi-local.db
   security:
     dev-auth:
       enabled: true
