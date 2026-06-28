@@ -66,6 +66,14 @@ Plans:
 
 **Requirements:** CIA-01, CIA-02, CIA-03, CIA-04, SESS-02, SESS-03
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 17-console-session-restore-ux-01-PLAN.md — Compact recent-history card surface backed by Phase 16 session summaries.
+- [ ] 17-console-session-restore-ux-02-PLAN.md — Typed transcript bubble/card hydration API with stable message selectors.
+- [ ] 17-console-session-restore-ux-03-PLAN.md — Active-session banner, restore orchestration, and same-session continuation.
+- [ ] 17-console-session-restore-ux-04-PLAN.md — i18n, Playwright restore product-path gate, and selector/deferred-boundary docs.
+
 **Success Criteria:**
 1. Console defaults to a chat-first home with compact history and model/provider affordances.
 2. Selecting a historical session clears the current feed and hydrates typed transcript bubbles.
