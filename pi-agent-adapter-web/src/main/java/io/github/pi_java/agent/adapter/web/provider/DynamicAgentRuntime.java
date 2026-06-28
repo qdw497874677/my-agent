@@ -28,6 +28,7 @@ import io.github.pi_java.agent.domain.model.SecretRef;
 import io.github.pi_java.agent.domain.model.StreamingModelClient;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.RunContext;
+import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiCompatibleStreamingModelClient;
@@ -65,16 +66,37 @@ public class DynamicAgentRuntime implements AgentRuntime {
 
     @Override
     public RunHandle start(RunContext context) {
+        ModelDeltaPublishingSink sink = new ModelDeltaPublishingSink(context, eventSink);
         ProviderConfig config = configStore.current();
         if (!config.isReady()) {
+            sink.publishText(
+                    "我已收到：" + inputText(context) + "\n\n当前还没有配置可用模型提供商。请在“管理治理 → 提供商”里配置 base URL、API Key 和模型，配置后我会调用真实模型回复。",
+                    "local-dev",
+                    "not-configured",
+                    "local-dev:not-configured");
             return new RunHandle(context.workspaceScope().runId(), RunStatus.SUCCEEDED, Optional.empty());
         }
+        sink.publishText("收到，我正在调用 " + config.modelId() + " 处理。\n\n", config.providerId(), config.modelId(),
+                config.providerId() + ":" + config.modelId());
         StreamingModelClient client = resolveClient(config);
         AgentDefinition definition = context.agentDefinition();
         ProviderModelRef.parse(definition.modelRef());
-        client.stream(new ModelRequest(context, List.of()),
-                context.cancellationToken(), new ModelDeltaPublishingSink(context, eventSink));
+        client.stream(new ModelRequest(context, List.of()), context.cancellationToken(), sink);
         return new RunHandle(context.workspaceScope().runId(), RunStatus.SUCCEEDED, Optional.empty());
+    }
+
+    private static String inputText(RunContext context) {
+        RunInput input = context.input();
+        if (input instanceof RunInput.ChatInput chatInput) {
+            return chatInput.text();
+        }
+        if (input instanceof RunInput.TaskInput taskInput) {
+            return taskInput.objective();
+        }
+        if (input instanceof RunInput.WorkflowPlannerInput workflowPlannerInput) {
+            return workflowPlannerInput.planRequest();
+        }
+        return String.valueOf(input);
     }
 
     @Override
@@ -133,7 +155,14 @@ public class DynamicAgentRuntime implements AgentRuntime {
             } else if (chunk instanceof ModelStreamChunk.Finished finished) {
                 publish(new RunEventPayload.ModelDeltaPayload(finished.modelRef(), "", finished.providerId(),
                         finished.modelId(), finished.finishReason(), finished.usage(), finished.latency()));
+            } else if (chunk instanceof ModelStreamChunk.ProviderError providerError) {
+                publishText("模型调用失败：" + providerError.errorSummary().safeMessage(),
+                        providerError.providerId(), providerError.modelId(), providerError.modelRef());
             }
+        }
+
+        void publishText(String text, String providerId, String modelId, String modelRef) {
+            publish(new RunEventPayload.ModelDeltaPayload(modelRef, text, providerId, modelId, null, null, null));
         }
 
         private void publish(RunEventPayload.ModelDeltaPayload payload) {

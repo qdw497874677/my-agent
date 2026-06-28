@@ -110,6 +110,28 @@ public final class DefaultRunQueryService implements RunQueryService {
         if (payload instanceof RunEventPayload.ToolLifecyclePayload toolLifecyclePayload) {
             return toolLifecyclePayload(toolLifecyclePayload);
         }
+        if (payload instanceof RunEventPayload.ModelDeltaPayload modelDeltaPayload) {
+            Map<String, Object> values = new LinkedHashMap<>();
+            values.put("modelRef", modelDeltaPayload.modelRef());
+            values.put("textDelta", modelDeltaPayload.textDelta());
+            values.put("text", modelDeltaPayload.textDelta());
+            if (modelDeltaPayload.providerId() != null) {
+                values.put("providerId", modelDeltaPayload.providerId());
+            }
+            if (modelDeltaPayload.modelId() != null) {
+                values.put("modelId", modelDeltaPayload.modelId());
+            }
+            if (modelDeltaPayload.finishReason() != null) {
+                values.put("finishReason", modelDeltaPayload.finishReason().name());
+            }
+            if (modelDeltaPayload.usage() != null) {
+                values.put("usage", modelDeltaPayload.usage().toString());
+            }
+            if (modelDeltaPayload.latency() != null) {
+                values.put("latencyMs", modelDeltaPayload.latency().toMillis());
+            }
+            return Map.copyOf(values);
+        }
         return Map.of("kind", payload.getClass().getSimpleName());
     }
 

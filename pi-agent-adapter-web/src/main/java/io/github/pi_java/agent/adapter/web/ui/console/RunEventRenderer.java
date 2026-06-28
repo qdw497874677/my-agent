@@ -31,8 +31,10 @@ public class RunEventRenderer {
         Map<String, Object> payload = event.payload() == null ? Map.of() : event.payload();
         String lower = type.toLowerCase();
         if (lower.contains("model.delta")) {
-            String text = value(payload, "text", "delta", "content");
-            return runtimeEvent(event, "model", text, false, value(payload, "status", "state"));
+            String text = value(payload, "text", "textDelta", "delta", "content");
+            return text.isBlank()
+                    ? new RenderedEvent("model", "", false)
+                    : new RenderedEvent("assistant", text, false);
         }
         if (lower.contains("approval_required") || "APPROVAL_REQUIRED".equalsIgnoreCase(value(payload, "status"))) {
             ApprovalCard card = new ApprovalCard(toApprovalSummary(event, payload), httpClient, "USER", approvalDecisionHandler);
@@ -47,12 +49,14 @@ public class RunEventRenderer {
             return runtimeEvent(event, "policy", text, terminal(lower, payload), value(payload, "status", "decision"));
         }
         if (lower.contains("completed") || lower.contains("failed") || lower.contains("cancelled")) {
+            if (lower.contains("completed")) {
+                return new RenderedEvent("terminal", "", true);
+            }
             String text = "Run terminal: " + value(payload, "status", "reason", "message");
             return runtimeEvent(event, "terminal", text, true, value(payload, "status", "state"));
         }
         if (lower.contains("status")) {
-            String text = "Run status: " + value(payload, "status", "state", "message");
-            return runtimeEvent(event, "status", text, terminal(lower, payload), value(payload, "status", "state"));
+            return new RenderedEvent("status", "", terminal(lower, payload));
         }
         String text = type + ": " + payload;
         return runtimeEvent(event, "event", text, terminal(lower, payload), value(payload, "status", "state"));

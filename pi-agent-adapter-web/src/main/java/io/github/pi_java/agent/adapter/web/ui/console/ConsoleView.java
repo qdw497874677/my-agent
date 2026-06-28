@@ -3,12 +3,16 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfig;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfigController;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfigStore;
+import io.github.pi_java.agent.adapter.web.controller.RunController.RunActivationTrigger;
+import io.github.pi_java.agent.app.port.execution.RunDispatcher;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
 import io.github.pi_java.agent.adapter.web.ui.PiResponsiveShell;
@@ -78,13 +82,15 @@ public class ConsoleView extends Div {
             RunCommandService runCommandService,
             RunQueryService runQueryService,
             ApprovalCommandService approvalCommandService,
+            RunActivationTrigger runActivationTrigger,
+            RunDispatcher runDispatcher,
             ProviderConfigStore providerConfigStore,
             ProviderConfigController providerConfigController) {
         this(
                 new ConsoleHttpClient(),
                 new EventStreamClient(),
                 agentCatalogQueryService,
-                new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService),
+                new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService, runActivationTrigger, runDispatcher),
                 new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)),
                 providerConfigStore,
                 providerConfigController);
@@ -155,16 +161,48 @@ public class ConsoleView extends Div {
                 "sessions", panelControl(switcher, "sessions"),
                 "run-context", panelControl(switcher, "run-context"));
         addClassName("pi-console-workbench");
+        addClassName("pi-console-home");
         getElement().setAttribute("data-route", "console");
-        getElement().setAttribute("data-layout", "three-column-workbench");
+        getElement().setAttribute("data-layout", "chat-home");
         getElement().setAttribute("data-mobile-critical", "true");
-        add(switcher, createModelBar(), sessionsPanel, chatPanelWrapper, runContextPanelWrapper, agentsPanel);
+        switcher.setVisible(false);
+        Div hero = createConversationHero();
+        Div modelBar = createModelBar();
+        Div advancedPanels = new Div(sessionsPanel, runContextPanelWrapper, agentsPanel);
+        advancedPanels.setVisible(false);
+        advancedPanels.getElement().setAttribute("data-role", "advanced-console-panels");
+        add(hero, modelBar, chatPanelWrapper, advancedPanels);
         addAttachListener(event -> {
             event.getUI().setPollInterval(750);
             event.getUI().addPollListener(poll -> refreshActiveRunEvents());
         });
         loadInitialAgentCatalog();
         applyPanelState();
+    }
+
+    private Div createConversationHero() {
+        H1 title = new H1(getTranslation("console.home.title"));
+        Paragraph subtitle = new Paragraph(getTranslation("console.home.subtitle"));
+        Span badge = new Span(getTranslation("console.home.badge"));
+        Div hero = new Div(badge, title, subtitle);
+        hero.addClassName("pi-console-hero");
+        hero.getElement().setAttribute("data-role", "conversation-hero");
+        hero.getStyle().set("max-width", "820px");
+        hero.getStyle().set("margin", "2.5rem auto 1rem");
+        hero.getStyle().set("text-align", "center");
+        badge.getStyle().set("display", "inline-block");
+        badge.getStyle().set("padding", "0.25rem 0.7rem");
+        badge.getStyle().set("border-radius", "999px");
+        badge.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        badge.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        title.getStyle().set("margin", "0.8rem 0 0.5rem");
+        title.getStyle().set("font-size", "clamp(2rem, 6vw, 4.5rem)");
+        title.getStyle().set("letter-spacing", "-0.08em");
+        subtitle.getStyle().set("margin", "0 auto");
+        subtitle.getStyle().set("max-width", "620px");
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        subtitle.getStyle().set("font-size", "1.05rem");
+        return hero;
     }
 
     private void wireActionHandlers() {
@@ -224,6 +262,9 @@ public class ConsoleView extends Div {
             bar.getStyle().set("display", "flex");
             bar.getStyle().set("gap", "0.5rem");
             bar.getStyle().set("align-items", "flex-end");
+            bar.getStyle().set("justify-content", "center");
+            bar.getStyle().set("max-width", "820px");
+            bar.getStyle().set("margin", "0 auto 1rem");
             bar.setWidthFull();
             return bar;
         }
@@ -242,7 +283,7 @@ public class ConsoleView extends Div {
     static RequestContext consoleRequestContext() {
         return new RequestContext(
                 new SecurityPrincipalContext("console", "vaadin-console", Set.of("ROLE_USER")),
-                new CorrelationContext("vaadin-console", "vaadin-console", null));
+                new CorrelationContext("00000000000000000000000000000001", "vaadin-console", null));
     }
 
     public RunSubmissionPlan planChatSubmission(String text) {
@@ -255,7 +296,7 @@ public class ConsoleView extends Div {
                 selectedAgentId,
                 "chat",
                 Map.of("text", message),
-                null,
+                "console-default",
                 Map.of("source", "vaadin-console"));
         RunResponse run = executionBridge.createRun(sessionId, request);
         String runId = run.runId();
@@ -405,7 +446,6 @@ public class ConsoleView extends Div {
                 continue;
             }
             RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
-            chatPanel.appendEvent(rendered);
             activeRunNextAfterSequence = Math.max(activeRunNextAfterSequence, event.sequence());
             appended++;
             boolean statusApplied = false;
@@ -419,6 +459,10 @@ public class ConsoleView extends Div {
             if (rendered.terminal() && !statusApplied) {
                 applyRunStatus("terminal", true);
             }
+            if (rendered.component() == null && (rendered.text() == null || rendered.text().isBlank())) {
+                continue;
+            }
+            chatPanel.appendEvent(rendered);
         }
         if (history.nextAfterSequence() > activeRunNextAfterSequence) {
             activeRunNextAfterSequence = history.nextAfterSequence();
@@ -466,6 +510,7 @@ public class ConsoleView extends Div {
     private void applyPanelState() {
         consolePanels.forEach((panel, wrapper) -> wrapper.getElement()
                 .setAttribute("data-console-panel-active", Boolean.toString(panel.equals(activeConsolePanel))));
+        consolePanels.forEach((panel, wrapper) -> wrapper.setVisible(panel.equals("chat") || panel.equals(activeConsolePanel)));
         panelControls.forEach((panel, button) -> button.getElement()
                 .setAttribute("aria-pressed", Boolean.toString(panel.equals(activeConsolePanel))));
     }

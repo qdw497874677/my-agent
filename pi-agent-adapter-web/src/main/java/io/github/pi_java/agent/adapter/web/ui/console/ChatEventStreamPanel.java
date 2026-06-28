@@ -3,7 +3,6 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import java.util.ArrayList;
@@ -21,18 +20,26 @@ public class ChatEventStreamPanel extends Div {
     private final Button composerCancel = new Button();
     private final List<String> messages = new ArrayList<>();
     private final List<Component> eventComponents = new ArrayList<>();
+    private Div activeAssistantLine;
     private Consumer<String> submitHandler;
     private Runnable cancelHandler;
 
     public ChatEventStreamPanel() {
         addClassName("pi-console-chat");
+        addClassName("pi-chat-home-card");
         getElement().setAttribute("data-column", "chat-event-stream");
         getElement().setAttribute("data-primary", "chat-first");
         feed.addClassName("pi-console-event-feed");
         feed.getElement().setAttribute("data-role", "event-feed");
+        feed.getStyle().set("min-height", "220px");
+        feed.getStyle().set("padding", "1rem");
+        feed.getStyle().set("display", "flex");
+        feed.getStyle().set("flex-direction", "column");
+        feed.getStyle().set("gap", "0.75rem");
         composer.addClassName("pi-console-composer");
         composer.getElement().setAttribute("data-role", "chat-composer");
         composerRunStatus.setText(getTranslation("chat.noActiveRun"));
+        composerRunStatus.setVisible(false);
         input.setLabel(getTranslation("chat.label.message"));
         input.setPlaceholder(getTranslation("chat.placeholder"));
         send.setText(getTranslation("chat.button.send"));
@@ -40,6 +47,7 @@ public class ChatEventStreamPanel extends Div {
         composerRunStatus.getElement().setAttribute("data-role", "composer-run-status");
         input.setMinRows(2);
         input.setMaxRows(6);
+        input.setWidthFull();
         input.getElement().setAttribute("data-role", "chat-input");
         send.getElement().setAttribute("data-action", "send-chat");
         send.addClickListener(event -> submitCurrentInput());
@@ -50,12 +58,26 @@ public class ChatEventStreamPanel extends Div {
             }
         });
         composerCancel.setVisible(false);
+        composer.getStyle().set("display", "grid");
+        composer.getStyle().set("grid-template-columns", "1fr auto auto");
+        composer.getStyle().set("gap", "0.75rem");
+        composer.getStyle().set("align-items", "end");
+        composer.getStyle().set("padding", "0.9rem");
+        composerRunStatus.getStyle().set("grid-column", "1 / -1");
         composer.add(composerRunStatus, input, send, composerCancel);
-        add(new H2(getTranslation("chat.title")), feed, composer);
+        add(feed, composer);
+        getStyle().set("max-width", "820px");
+        getStyle().set("margin", "0 auto");
+        getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+        getStyle().set("border-radius", "28px");
+        getStyle().set("background", "var(--lumo-base-color)");
+        getStyle().set("box-shadow", "0 24px 80px color-mix(in srgb, var(--lumo-contrast) 12%, transparent)");
+        getStyle().set("overflow", "hidden");
         showEmptyState();
     }
 
     public void appendUserMessage(String text) {
+        activeAssistantLine = null;
         append("user", requireText(text, "text"));
     }
 
@@ -89,6 +111,7 @@ public class ChatEventStreamPanel extends Div {
 
     public void showComposerRunStatus(String status, boolean cancellable) {
         composerRunStatus.setText(requireText(status, "status"));
+        composerRunStatus.setVisible(cancellable);
         composerCancel.setVisible(cancellable);
         composerCancel.getElement().setAttribute("data-prominent", Boolean.toString(cancellable));
     }
@@ -139,6 +162,10 @@ public class ChatEventStreamPanel extends Div {
             feed.removeAll();
         }
         messages.add(text);
+        if ("assistant".equals(category) && activeAssistantLine != null) {
+            activeAssistantLine.setText(activeAssistantLine.getText() + text);
+            return;
+        }
         if (component != null) {
             eventComponents.add(component);
             feed.add(component);
@@ -146,6 +173,20 @@ public class ChatEventStreamPanel extends Div {
         }
         Div line = new Div(text);
         line.getElement().setAttribute("data-event-category", category);
+        line.getStyle().set("max-width", "78%");
+        line.getStyle().set("padding", "0.75rem 0.95rem");
+        line.getStyle().set("border-radius", "18px");
+        if ("user".equals(category)) {
+            line.getStyle().set("align-self", "flex-end");
+            line.getStyle().set("background", "var(--lumo-primary-color)");
+            line.getStyle().set("color", "var(--lumo-primary-contrast-color)");
+        } else {
+            line.getStyle().set("align-self", "flex-start");
+            line.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        }
+        if ("assistant".equals(category)) {
+            activeAssistantLine = line;
+        }
         feed.add(line);
     }
 
