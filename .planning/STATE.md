@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: roadmap ready
-stopped_at: Roadmap created for milestone v1.2 Console 对话产品化
-last_updated: "2026-06-28T00:00:00.000Z"
-last_activity: 2026-06-28
+status: planning
+stopped_at: Phase 16 context gathered
+last_updated: "2026-06-28T08:50:25.968Z"
+last_activity: 2026-06-28 — Milestone v1.2 roadmap created
 progress:
   total_phases: 6
   completed_phases: 0
@@ -184,9 +184,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-28
-Stopped at: Roadmap created for milestone v1.2 Console 对话产品化
-Resume file: None
+Last session: 2026-06-28T08:50:25.964Z
+Stopped at: Phase 16 context gathered
+Resume file: .planning/phases/16-conversation-read-model-and-recent-sessions/16-CONTEXT.md
 
 ---
 *State reset: 2026-06-28 after v1.2 roadmap creation*
