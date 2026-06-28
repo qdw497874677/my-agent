@@ -2,6 +2,7 @@ package io.github.pi_java.agent.infrastructure.jdbc;
 
 import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
+import io.github.pi_java.agent.app.usecase.ConversationRunView;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -150,6 +152,38 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
                         """,
                 (rs, rowNum) -> new RunResultResponse(rs.getString("run_id"), rs.getString("status"), JdbcJson.readMap(rs.getObject("terminal_result")), JdbcJson.readMap(rs.getObject("failure"))),
                 context.tenantId(), context.userId(), sessionId, runId);
+    }
+
+    /**
+     * Ownership-aware, session-scoped run query for the conversation transcript
+     * assembler (decisions D-09, D-15, D-16; requirement SESS-04).
+     *
+     * <p>Filters by tenant/user/session at SQL level and orders by run creation
+     * ascending for stable transcript assembly. Each {@link ConversationRunView}
+     * carries the persisted input map (source of the USER message text) and run
+     * status; this path does not require Vaadin or in-memory state and does not
+     * touch the diagnostic {@code SessionHistoryResponse} entries (D-13, D-14).
+     */
+    @Override
+    public PageResponse<ConversationRunView> listRunsBySession(RequestContext context, String sessionId, int limit, String cursor) {
+        int pageSize = limit > 0 ? limit : 20;
+        int fetchSize = pageSize + 1;
+        List<ConversationRunView> rows = jdbcTemplate.query("""
+                        SELECT run_id, created_at, input, status FROM runs
+                        WHERE tenant_id = ? AND user_id = ? AND session_id = ?
+                        ORDER BY created_at ASC, run_id ASC
+                        LIMIT ?
+                        """,
+                (rs, rowNum) -> new ConversationRunView(
+                        rs.getString("run_id"),
+                        rs.getTimestamp("created_at").toInstant(),
+                        JdbcJson.readMap(rs.getObject("input")),
+                        rs.getString("status")),
+                context.tenantId(), context.userId(), sessionId, fetchSize);
+
+        boolean hasMore = rows.size() > pageSize;
+        List<ConversationRunView> page = hasMore ? new ArrayList<>(rows.subList(0, pageSize)) : rows;
+        return new PageResponse<>(page, pageSize, null, null, hasMore);
     }
 
     private static PageResponse<Map<String, Object>> page(List<Map<String, Object>> items, int limit) {

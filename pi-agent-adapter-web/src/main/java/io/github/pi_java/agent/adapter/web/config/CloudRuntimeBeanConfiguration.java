@@ -15,6 +15,9 @@ import io.github.pi_java.agent.app.usecase.DefaultRunQueryService;
 import io.github.pi_java.agent.app.usecase.DefaultRunTerminalEventPublisher;
 import io.github.pi_java.agent.app.usecase.DefaultSessionCommandService;
 import io.github.pi_java.agent.app.usecase.DefaultSessionQueryService;
+import io.github.pi_java.agent.app.usecase.ConversationQueryService;
+import io.github.pi_java.agent.app.usecase.ConversationTranscriptAssembler;
+import io.github.pi_java.agent.app.usecase.DefaultConversationQueryService;
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
 import io.github.pi_java.agent.app.usecase.SessionCommandService;
@@ -156,6 +159,20 @@ public class CloudRuntimeBeanConfiguration {
     @Bean
     RunQueryService runQueryService(RunProjectionRepository runProjectionRepository, RunEventStore runEventStore) {
         return new DefaultRunQueryService(runProjectionRepository, runEventStore);
+    }
+
+    @Bean
+    ConversationTranscriptAssembler conversationTranscriptAssembler() {
+        return new ConversationTranscriptAssembler();
+    }
+
+    @Bean
+    ConversationQueryService conversationQueryService(
+            SessionRepository sessionRepository,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            ConversationTranscriptAssembler assembler) {
+        return new DefaultConversationQueryService(sessionRepository, runProjectionRepository, runEventStore, assembler);
     }
 
     @Bean

@@ -24,7 +24,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 
 **Phase Numbering:** Continue from previous milestone. v1.1 ended at Phase 15; v1.2 starts at Phase 16.
 
-- [ ] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
+- [x] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
 - [ ] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session.
 - [ ] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states.
 - [ ] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries.
@@ -44,10 +44,10 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 **Plans:** 4 plans
 
 Plans:
-- [ ] 16-conversation-read-model-and-recent-sessions-01-PLAN.md — Public typed conversation DTO contracts for recent sessions and transcripts.
-- [ ] 16-conversation-read-model-and-recent-sessions-02-PLAN.md — App-layer conversation query service, transcript assembler, and ownership-aware ports.
-- [ ] 16-conversation-read-model-and-recent-sessions-03-PLAN.md — JDBC/local persistence implementations for recent-session and transcript read-model queries.
-- [ ] 16-conversation-read-model-and-recent-sessions-04-PLAN.md — Session-centric REST endpoints and minimal Console proof hooks.
+- [x] 16-conversation-read-model-and-recent-sessions-01-PLAN.md — Public typed conversation DTO contracts for recent sessions and transcripts.
+- [x] 16-conversation-read-model-and-recent-sessions-02-PLAN.md — App-layer conversation query service, transcript assembler, and ownership-aware ports.
+- [x] 16-conversation-read-model-and-recent-sessions-03-PLAN.md — JDBC/local persistence implementations for recent-session and transcript read-model queries.
+- [x] 16-conversation-read-model-and-recent-sessions-04-PLAN.md — Session-centric REST endpoints and minimal Console proof hooks.
 
 **Success Criteria:**
 1. App/client exposes typed session summary and transcript DTOs with roles, text, session/run refs, status, timestamps, and metadata.
@@ -150,7 +150,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 16. Conversation Read Model and Recent Sessions | v1.2 | 0/4 | Planned | — |
+| 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
 | 17. Console Session Restore UX | v1.2 | 0/TBD | Not started | — |
 | 18. Streaming Bubble Lifecycle | v1.2 | 0/TBD | Not started | — |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |

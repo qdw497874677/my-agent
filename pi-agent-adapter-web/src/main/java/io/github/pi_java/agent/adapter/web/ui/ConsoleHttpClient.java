@@ -2,6 +2,9 @@ package io.github.pi_java.agent.adapter.web.ui;
 
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.api.PageResponse;
+import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.admin.AuditSummaryDto;
 import io.github.pi_java.agent.client.admin.ExtensionGovernanceResponse;
 import io.github.pi_java.agent.client.admin.GovernanceOverviewResponse;
@@ -59,6 +62,25 @@ public class ConsoleHttpClient {
 
     public Class<SessionHistoryResponse> sessionHistoryResponseType() {
         return SessionHistoryResponse.class;
+    }
+
+    public String recentSessionsPath(int limit, String cursor) {
+        String path = "/api/sessions/recent?limit=" + Math.max(1, limit);
+        return cursor == null || cursor.isBlank() ? path : path + "&cursor=" + segment(cursor);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Class<PageResponse<SessionSummaryDto>> recentSessionsResponseType() {
+        return (Class<PageResponse<SessionSummaryDto>>) (Class<?>) PageResponse.class;
+    }
+
+    public String sessionTranscriptPath(String sessionId, int limit, String cursor) {
+        String path = sessionPath(sessionId) + "/transcript?limit=" + Math.max(1, limit);
+        return cursor == null || cursor.isBlank() ? path : path + "&cursor=" + segment(cursor);
+    }
+
+    public Class<ConversationTranscriptResponse> sessionTranscriptResponseType() {
+        return ConversationTranscriptResponse.class;
     }
 
     public String createRunPath(String sessionId) {

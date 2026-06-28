@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
+import io.github.pi_java.agent.client.conversation.ConversationMessageDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -95,6 +96,26 @@ public class ChatEventStreamPanel extends Div {
 
     public List<String> messages() {
         return List.copyOf(messages);
+    }
+
+    public void replaceTranscriptForProof(List<ConversationMessageDto> transcriptMessages) {
+        feed.removeAll();
+        messages.clear();
+        eventComponents.clear();
+        activeAssistantLine = null;
+        if (transcriptMessages == null || transcriptMessages.isEmpty()) {
+            showEmptyState();
+            return;
+        }
+        for (ConversationMessageDto message : transcriptMessages) {
+            if (message == null || message.text() == null || message.text().isBlank()) {
+                continue;
+            }
+            append(message.role() == null ? "conversation" : message.role().wireValue(), message.text());
+        }
+        if (messages.isEmpty()) {
+            showEmptyState();
+        }
     }
 
     public int componentCount() {

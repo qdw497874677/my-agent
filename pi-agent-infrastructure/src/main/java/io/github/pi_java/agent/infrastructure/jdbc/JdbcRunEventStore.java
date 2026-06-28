@@ -1,5 +1,6 @@
 package io.github.pi_java.agent.infrastructure.jdbc;
 
+import io.github.pi_java.agent.app.context.RequestContext;
 import io.github.pi_java.agent.app.port.persistence.RunEventStore;
 import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
 import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
@@ -76,6 +77,28 @@ public class JdbcRunEventStore implements RunEventStore {
                         LIMIT ?
                         """,
                 rowMapper(), runId, afterSequence, limit);
+    }
+
+    /**
+     * Ownership-safe transcript event read path (decisions D-05, D-14, D-15;
+     * requirement SESS-04).
+     *
+     * <p>Unlike the diagnostic {@link #listByRun(String, long, int)}, this
+     * method carries the {@link RequestContext} plus both session and run
+     * identifiers so tenant/user/session/run ownership filters are enforced at
+     * the SQL layer before audit/replay events are returned to the conversation
+     * assembler. Events arrive in ascending sequence order.
+     */
+    @Override
+    public List<RunEvent> listBySessionRun(RequestContext context, String sessionId, String runId, long afterSequence, int limit) {
+        return jdbcTemplate.query("""
+                        SELECT * FROM run_events
+                        WHERE tenant_id = ? AND user_id = ? AND session_id = ? AND run_id = ? AND sequence > ?
+                        ORDER BY sequence ASC
+                        LIMIT ?
+                        """,
+                rowMapper(),
+                context.tenantId(), context.userId(), sessionId, runId, afterSequence, limit);
     }
 
     @Override

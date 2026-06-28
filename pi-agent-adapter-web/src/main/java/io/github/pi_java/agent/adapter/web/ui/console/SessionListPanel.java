@@ -3,6 +3,7 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -45,6 +46,29 @@ public class SessionListPanel extends Div {
                 status == null || status.isBlank() ? existing == null ? getTranslation("sessions.defaultStatus") : existing.status() : status,
                 updatedAt == null ? existing == null ? getTranslation("sessions.defaultUpdated") : existing.updatedAt() : updatedAt.toString()));
         renderList();
+    }
+
+    public void showRecentSessionsForProof(List<SessionSummaryDto> summaries) {
+        if (summaries == null || summaries.isEmpty()) {
+            return;
+        }
+        sessionIds.clear();
+        sessionMetadata.clear();
+        for (SessionSummaryDto summary : summaries) {
+            if (summary == null || summary.sessionId() == null || summary.sessionId().isBlank()) {
+                continue;
+            }
+            sessionIds.add(summary.sessionId());
+            sessionMetadata.put(summary.sessionId(), new SessionMetadata(
+                    summary.title(),
+                    summary.status(),
+                    summary.lastActivityAt() == null ? getTranslation("sessions.defaultUpdated") : summary.lastActivityAt().toString()));
+        }
+        if (sessionIds.isEmpty()) {
+            renderEmpty();
+        } else {
+            renderList();
+        }
     }
 
     public void selectSession(String sessionId) {

@@ -11,7 +11,9 @@ import io.github.pi_java.agent.app.port.persistence.AuditRepository;
 import io.github.pi_java.agent.app.port.persistence.RunEventStore;
 import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
 import io.github.pi_java.agent.app.port.persistence.SessionRepository;
+import io.github.pi_java.agent.app.usecase.ConversationRunView;
 import io.github.pi_java.agent.client.api.PageResponse;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
 import io.github.pi_java.agent.client.run.RunResponse;
@@ -113,19 +115,20 @@ public class LocalDevRuntimeBeanConfiguration {
         }
     }
 
-    static final class LocalDevStores {
+    public static final class LocalDevStores {
+
         private final Map<String, SessionResponse> sessions = new ConcurrentHashMap<>();
         private final Map<String, RunRecord> runs = new ConcurrentHashMap<>();
         private final Map<String, List<RunEvent>> events = new ConcurrentHashMap<>();
         private final ConcurrentLinkedQueue<QueuedRun> queue = new ConcurrentLinkedQueue<>();
         private final SqliteLocalPersistence persistence;
 
-        LocalDevStores(SqliteLocalPersistence persistence) {
+        public LocalDevStores(SqliteLocalPersistence persistence) {
             this.persistence = persistence;
         }
 
         @SuppressWarnings("unchecked")
-        void loadAll() {
+        public void loadAll() {
             if (persistence == null) return;
             for (Map<String, String> row : persistence.loadSessions()) {
                 String sessionId = row.get("session_id");
@@ -147,7 +150,8 @@ public class LocalDevRuntimeBeanConfiguration {
                             row.get("workspace_id"), row.get("status"),
                             row.get("trace_id"), row.get("correlation_id"),
                             Instant.parse(row.get("created_at")), Instant.parse(row.get("updated_at")));
-                    runs.put(runId, new RunRecord(resp, parseJsonMap(row.get("result_json")), parseJsonMap(row.get("failure_json"))));
+                    runs.put(runId, new RunRecord(resp, parseJsonMap(row.get("input_json")),
+                            parseJsonMap(row.get("result_json")), parseJsonMap(row.get("failure_json"))));
                 } catch (Exception ignored) { }
             }
             for (Map<String, String> row : persistence.loadEvents()) {
@@ -182,10 +186,12 @@ public class LocalDevRuntimeBeanConfiguration {
             Instant now = Instant.now();
             RunResponse response = new RunResponse(context.tenantId(), context.userId(), sessionId, runId,
                     request.workspaceId(), "QUEUED", context.traceId(), context.correlationId(), now, now);
-            runs.put(runId, new RunRecord(response, Map.of(), Map.of()));
+            Map<String, Object> input = request.input() == null ? Map.of() : request.input();
+            runs.put(runId, new RunRecord(response, input, Map.of(), Map.of()));
             if (persistence != null) {
                 persistence.saveRun(runId, sessionId, context.tenantId(), context.userId(), request.workspaceId(),
-                        "QUEUED", now.toString(), now.toString(), null, null);
+                        "QUEUED", now.toString(), now.toString(), null, null,
+                        toJson(input), context.traceId(), context.correlationId());
             }
         }
 
@@ -232,8 +238,9 @@ public class LocalDevRuntimeBeanConfiguration {
         void append(RunEvent event) {
             events.computeIfAbsent(event.runId().value(), ignored -> new CopyOnWriteArrayList<>()).add(event);
             if (persistence != null) {
-                persistence.appendEvent(event.eventId(), event.runId().value(), event.sequence(),
-                        event.type().name(), event.timestamp().toString(), toJson(event));
+                persistence.appendEvent(event.eventId(), event.runId().value(),
+                        event.tenantId().value(), event.userId().value(), event.sessionId().value(),
+                        event.sequence(), event.type().name(), event.timestamp().toString(), toJson(event));
             }
         }
 
@@ -251,6 +258,101 @@ public class LocalDevRuntimeBeanConfiguration {
 
         boolean hasTerminalEvent(String runId) {
             return events.getOrDefault(runId, List.of()).stream().anyMatch(event -> isTerminalType(event.type()));
+        }
+
+        /**
+         * Phase 16 Plan 03: in-memory recent-session summary for the local
+         * profile, mirroring the JDBC {@code SessionRepository.listRecent}
+         * contract (D-09, D-10, D-11, D-15). Filters by tenant/user and orders
+         * by latest activity descending. Title/preview are derived from the
+         * earliest/latest run input (D-10, D-11) without Vaadin state.
+         */
+        PageResponse<SessionSummaryDto> listRecent(RequestContext context, int limit, String cursor) {
+            int pageSize = limit > 0 ? limit : 20;
+            List<SessionSummaryDto> summaries = sessions.values().stream()
+                    .filter(session -> context.tenantId().equals(session.tenantId())
+                            && context.userId().equals(session.userId()))
+                    .sorted(Comparator.comparing(SessionResponse::updatedAt).reversed()
+                            .thenComparing(SessionResponse::sessionId, Comparator.reverseOrder()))
+                    .limit(pageSize)
+                    .map(session -> {
+                        List<RunRecord> sessionRuns = runsForSession(session.sessionId(), context);
+                        RunRecord first = sessionRuns.isEmpty() ? null : sessionRuns.get(0);
+                        RunRecord latest = sessionRuns.isEmpty() ? null : sessionRuns.get(sessionRuns.size() - 1);
+                        String title = firstUserText(first != null ? first.input() : Map.of());
+                        if (title == null || title.isBlank()) {
+                            title = "New conversation";
+                        }
+                        String preview = firstUserText(latest != null ? latest.input() : Map.of());
+                        return new SessionSummaryDto(
+                                session.sessionId(),
+                                title,
+                                session.status(),
+                                preview == null ? "" : preview,
+                                latest != null ? latest.response().updatedAt() : session.updatedAt(),
+                                session.createdAt(),
+                                latest != null ? latest.response().runId() : null,
+                                latest != null ? latest.response().status() : null,
+                                session.metadata());
+                    })
+                    .toList();
+            return new PageResponse<>(summaries, pageSize, null, null, false);
+        }
+
+        private List<RunRecord> runsForSession(String sessionId, RequestContext context) {
+            return runs.values().stream()
+                    .filter(record -> sessionId.equals(record.response().sessionId())
+                            && context.tenantId().equals(record.response().tenantId())
+                            && context.userId().equals(record.response().userId()))
+                    .sorted(Comparator.comparing(record -> record.response().createdAt()))
+                    .toList();
+        }
+
+        /**
+         * Phase 16 Plan 03: in-memory session-owned run query for the local
+         * profile, mirroring JDBC {@code listRunsBySession} (D-09, D-15, D-16).
+         * Returns {@link ConversationRunView} carrying the run input map needed
+         * for USER transcript messages.
+         */
+        PageResponse<ConversationRunView> listRunsBySession(RequestContext context, String sessionId, int limit, String cursor) {
+            int pageSize = limit > 0 ? limit : 20;
+            List<ConversationRunView> views = runsForSession(sessionId, context).stream()
+                    .limit(pageSize)
+                    .map(record -> new ConversationRunView(
+                            record.response().runId(),
+                            record.response().createdAt(),
+                            record.input(),
+                            record.response().status()))
+                    .toList();
+            return new PageResponse<>(views, pageSize, null, null, false);
+        }
+
+        /**
+         * Phase 16 Plan 03: in-memory ownership-safe event read path for the
+         * local profile, mirroring JDBC {@code listBySessionRun} (D-05, D-15).
+         * Unlike {@link #listByRun}, it carries the request context plus both
+         * session and run identifiers so events are filtered by ownership.
+         */
+        List<RunEvent> listBySessionRun(RequestContext context, String sessionId, String runId, long afterSequence, int limit) {
+            return events.getOrDefault(runId, List.of()).stream()
+                    .filter(event -> context.tenantId().equals(event.tenantId().value())
+                            && context.userId().equals(event.userId().value())
+                            && sessionId.equals(event.sessionId().value()))
+                    .sorted(Comparator.comparingLong(RunEvent::sequence))
+                    .filter(event -> event.sequence() > afterSequence)
+                    .limit(limit > 0 ? limit : 100)
+                    .toList();
+        }
+
+        private static String firstUserText(Map<String, Object> input) {
+            if (input == null || input.isEmpty()) {
+                return null;
+            }
+            Object value = input.get("text");
+            if (value == null) {
+                value = input.get("prompt");
+            }
+            return value == null ? null : value.toString();
         }
 
         void enqueue(QueuedRun run) {
@@ -288,9 +390,10 @@ public class LocalDevRuntimeBeanConfiguration {
                 if (persistence != null) {
                     persistence.saveRun(runId, current.sessionId(), current.tenantId(), current.userId(),
                             current.workspaceId(), status, current.createdAt().toString(), updatedAt.toString(),
-                            toJson(nextResult), toJson(nextFailure));
+                            toJson(nextResult), toJson(nextFailure),
+                            toJson(existing.input()), current.traceId(), current.correlationId());
                 }
-                return new RunRecord(next, nextResult, nextFailure);
+                return new RunRecord(next, existing.input(), nextResult, nextFailure);
             });
         }
 
@@ -321,17 +424,21 @@ public class LocalDevRuntimeBeanConfiguration {
             }
         }
 
-        private record RunRecord(RunResponse response, Map<String, Object> result, Map<String, Object> failure) {
+        private record RunRecord(RunResponse response, Map<String, Object> input, Map<String, Object> result, Map<String, Object> failure) {
         }
     }
 
-    private record LocalSessionRepository(LocalDevStores stores) implements SessionRepository {
+    public record LocalSessionRepository(LocalDevStores stores) implements SessionRepository {
         public SessionResponse create(RequestContext context, CreateSessionRequest request, String sessionId, Instant now) { return stores.create(context, request, sessionId, now); }
         public Optional<SessionResponse> findById(RequestContext context, String sessionId) { return stores.findById(sessionId); }
         public SessionHistoryResponse history(RequestContext context, String sessionId) { return stores.history(sessionId); }
+        @Override
+        public PageResponse<SessionSummaryDto> listRecent(RequestContext context, int limit, String cursor) {
+            return stores.listRecent(context, limit, cursor);
+        }
     }
 
-    private record LocalRunProjectionRepository(LocalDevStores stores) implements RunProjectionRepository {
+    public record LocalRunProjectionRepository(LocalDevStores stores) implements RunProjectionRepository {
         public void createRun(RequestContext context, String sessionId, String runId, CreateRunRequest request) { stores.createRun(context, sessionId, runId, request); }
         public Optional<RunResponse> findRun(RequestContext context, String sessionId, String runId) { return stores.findRun(runId); }
         public RunStatusResponse getStatus(RequestContext context, String sessionId, String runId) { return stores.getStatus(sessionId, runId); }
@@ -343,13 +450,21 @@ public class LocalDevRuntimeBeanConfiguration {
         public PageResponse<Map<String, Object>> listMessages(RequestContext context, String sessionId, String runId, int limit) { return new PageResponse<>(List.of(), limit, null, null, false); }
         public PageResponse<Map<String, Object>> listToolCalls(RequestContext context, String sessionId, String runId, int limit) { return new PageResponse<>(List.of(), limit, null, null, false); }
         public RunResultResponse getRunResult(RequestContext context, String sessionId, String runId) { return stores.getRunResult(runId); }
+        @Override
+        public PageResponse<ConversationRunView> listRunsBySession(RequestContext context, String sessionId, int limit, String cursor) {
+            return stores.listRunsBySession(context, sessionId, limit, cursor);
+        }
     }
 
-    private record LocalRunEventStore(LocalDevStores stores) implements RunEventStore {
+    public record LocalRunEventStore(LocalDevStores stores) implements RunEventStore {
         public void append(RunEvent event) { stores.append(event); }
         public List<RunEvent> listByRun(String runId, long afterSequence, int limit) { return stores.listByRun(runId, afterSequence, limit); }
         public Optional<RunEvent> findLastByRun(String runId) { return stores.findLastByRun(runId); }
         public boolean hasTerminalEvent(String runId) { return stores.hasTerminalEvent(runId); }
+        @Override
+        public List<RunEvent> listBySessionRun(RequestContext context, String sessionId, String runId, long afterSequence, int limit) {
+            return stores.listBySessionRun(context, sessionId, runId, afterSequence, limit);
+        }
     }
 
     private record LocalRunQueue(LocalDevStores stores) implements RunQueue {

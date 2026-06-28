@@ -22,11 +22,18 @@ import io.github.pi_java.agent.app.context.SecurityPrincipalContext;
 import io.github.pi_java.agent.app.usecase.AgentCatalogQueryService;
 import io.github.pi_java.agent.app.usecase.ApprovalCommandService;
 import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
+import io.github.pi_java.agent.app.usecase.ConversationQueryService;
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
 import io.github.pi_java.agent.app.usecase.SessionCommandService;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.event.RunEventDto;
+import io.github.pi_java.agent.client.api.PageResponse;
+import io.github.pi_java.agent.client.conversation.ConversationMessageDto;
+import io.github.pi_java.agent.client.conversation.ConversationMessageRole;
+import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
+import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
@@ -81,6 +88,7 @@ public class ConsoleView extends Div {
             SessionCommandService sessionCommandService,
             RunCommandService runCommandService,
             RunQueryService runQueryService,
+            ConversationQueryService conversationQueryService,
             ApprovalCommandService approvalCommandService,
             RunActivationTrigger runActivationTrigger,
             RunDispatcher runDispatcher,
@@ -90,7 +98,7 @@ public class ConsoleView extends Div {
                 new ConsoleHttpClient(),
                 new EventStreamClient(),
                 agentCatalogQueryService,
-                new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService, runActivationTrigger, runDispatcher),
+                new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService, conversationQueryService, runActivationTrigger, runDispatcher),
                 new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)),
                 providerConfigStore,
                 providerConfigController);
@@ -175,6 +183,7 @@ public class ConsoleView extends Div {
         addAttachListener(event -> {
             event.getUI().setPollInterval(750);
             event.getUI().addPollListener(poll -> refreshActiveRunEvents());
+            loadRecentSessionsForProof();
         });
         loadInitialAgentCatalog();
         applyPanelState();
@@ -319,8 +328,18 @@ public class ConsoleView extends Div {
     public SessionSelectionPlan selectSession(String sessionId) {
         selectedSessionId = requireText(sessionId, "sessionId");
         sessionListPanel.selectSession(selectedSessionId);
+        ConversationTranscriptResponse transcript = executionBridge.getTranscript(selectedSessionId, 100, null);
+        chatPanel.replaceTranscriptForProof(transcript.messages());
         showConsolePanel("chat");
         return new SessionSelectionPlan(selectedSessionId, httpClient.sessionHistoryPath(selectedSessionId));
+    }
+
+    public void loadRecentSessionsForProof() {
+        PageResponse<SessionSummaryDto> recent = executionBridge.listRecentSessions(20, null);
+        if (recent == null || recent.items() == null) {
+            return;
+        }
+        sessionListPanel.showRecentSessionsForProof(recent.items());
     }
 
     public void showConsolePanel(String target) {
@@ -560,6 +579,21 @@ public class ConsoleView extends Div {
         @Override
         public RunStatusResponse cancelRun(String sessionId, String runId, CancelRunRequest request) {
             return new RunStatusResponse(sessionId, runId, "cancelled", true, Instant.now(), "trace", "correlation");
+        }
+
+        @Override
+        public PageResponse<SessionSummaryDto> listRecentSessions(int limit, String cursor) {
+            SessionSummaryDto summary = new SessionSummaryDto(
+                    "session-mobile-1", "Demo conversation", "ACTIVE", "hello", Instant.now(), Instant.now(), null, null, Map.of("source", "demo"));
+            return new PageResponse<>(List.of(summary), limit, null, null, false);
+        }
+
+        @Override
+        public ConversationTranscriptResponse getTranscript(String sessionId, int limit, String cursor) {
+            ConversationMessageDto message = new ConversationMessageDto(
+                    "message-demo-1", sessionId, null, null, ConversationMessageRole.USER, "hello", ConversationMessageStatus.COMPLETED,
+                    Instant.now(), Instant.now(), null, null, Map.of("source", "demo"), true, false);
+            return new ConversationTranscriptResponse(sessionId, List.of(message), null, null, null, false, Map.of("source", "demo"));
         }
 
         private static RunEventDto event(String sessionId, String runId, long sequence, String type, Map<String, Object> payload) {

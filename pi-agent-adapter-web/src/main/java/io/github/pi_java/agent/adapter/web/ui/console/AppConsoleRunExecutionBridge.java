@@ -3,9 +3,13 @@ package io.github.pi_java.agent.adapter.web.ui.console;
 import io.github.pi_java.agent.app.usecase.RunCommandService;
 import io.github.pi_java.agent.app.usecase.RunQueryService;
 import io.github.pi_java.agent.app.usecase.SessionCommandService;
+import io.github.pi_java.agent.app.usecase.ConversationQueryService;
 import io.github.pi_java.agent.adapter.web.controller.RunController.RunActivationTrigger;
 import io.github.pi_java.agent.app.port.execution.RunDispatcher;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
+import io.github.pi_java.agent.client.api.PageResponse;
+import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
@@ -20,6 +24,7 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
     private final SessionCommandService sessionCommandService;
     private final RunCommandService runCommandService;
     private final RunQueryService runQueryService;
+    private final ConversationQueryService conversationQueryService;
     private final RunActivationTrigger runActivationTrigger;
     private final RunDispatcher runDispatcher;
 
@@ -27,11 +32,13 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
             SessionCommandService sessionCommandService,
             RunCommandService runCommandService,
             RunQueryService runQueryService,
+            ConversationQueryService conversationQueryService,
             RunActivationTrigger runActivationTrigger,
             RunDispatcher runDispatcher) {
         this.sessionCommandService = sessionCommandService;
         this.runCommandService = runCommandService;
         this.runQueryService = runQueryService;
+        this.conversationQueryService = conversationQueryService;
         this.runActivationTrigger = runActivationTrigger;
         this.runDispatcher = runDispatcher;
     }
@@ -59,5 +66,15 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
     @Override
     public RunStatusResponse cancelRun(String sessionId, String runId, CancelRunRequest request) {
         return runCommandService.cancelRun(ConsoleView.consoleRequestContext(), sessionId, runId, request);
+    }
+
+    @Override
+    public PageResponse<SessionSummaryDto> listRecentSessions(int limit, String cursor) {
+        return conversationQueryService.listRecentSessions(ConsoleView.consoleRequestContext(), limit, cursor);
+    }
+
+    @Override
+    public ConversationTranscriptResponse getTranscript(String sessionId, int limit, String cursor) {
+        return conversationQueryService.getTranscript(ConsoleView.consoleRequestContext(), sessionId, limit, cursor);
     }
 }
