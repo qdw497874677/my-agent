@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: 适配移动端web
-status: verifying
-stopped_at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md
-last_updated: "2026-06-25T11:50:13.169Z"
-last_activity: 2026-06-25
+milestone: v1.2
+milestone_name: Console 对话产品化
+status: defining requirements
+stopped_at: Started milestone v1.2 Console 对话产品化
+last_updated: "2026-06-28T00:00:00.000Z"
+last_activity: 2026-06-28
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Pi Java Agent Platform
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-20)
+See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 15 — cross-browser-orientation-accessibility-and-release-hardening
+**Current focus:** Milestone v1.2 requirements — Console 对话产品化
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-25
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-28 — Milestone v1.2 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
