@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: defining requirements
-stopped_at: Started milestone v1.2 Console 对话产品化
+status: roadmap ready
+stopped_at: Roadmap created for milestone v1.2 Console 对话产品化
 last_updated: "2026-06-28T00:00:00.000Z"
 last_activity: 2026-06-28
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Milestone v1.2 requirements — Console 对话产品化
+**Current focus:** Phase 16 — Conversation Read Model and Recent Sessions
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 16
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-28 — Milestone v1.2 started
+Status: Roadmap ready — next step is phase planning
+Last activity: 2026-06-28 — Milestone v1.2 roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -44,17 +44,28 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 10. Responsive Baseline and Mobile Test Harness | 3/3 | - | - |
-| 11. Shared Responsive Shell and Navigation | 0/TBD | - | - |
-| 12. Console Mobile-First Flow | 0/TBD | - | - |
-| 13. Runtime Cards, Timeline, Tool, and Approval UX | 0/TBD | - | - |
-| 14. Admin Governance Full-Site Mobile Coverage | 0/TBD | - | - |
-| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | 0/TBD | - | - |
+| 16. Conversation Read Model and Recent Sessions | 0/TBD | - | - |
+| 17. Console Session Restore UX | 0/TBD | - | - |
+| 18. Streaming Bubble Lifecycle | 0/TBD | - | - |
+| 19. Multi-Turn Runtime Context | 0/TBD | - | - |
+| 20. Provider/Model and Local Profile Stability | 0/TBD | - | - |
+| 21. Verification, Security, and Regression Hardening | 0/TBD | - | - |
 
 **Recent Trend:**
 
 - Last 5 plans: none in v1.1
 - Trend: N/A
+
+### v1.2 Roadmap
+
+| Phase | Goal |
+|-------|------|
+| 16 | Conversation Read Model and Recent Sessions |
+| 17 | Console Session Restore UX |
+| 18 | Streaming Bubble Lifecycle |
+| 19 | Multi-Turn Runtime Context |
+| 20 | Provider/Model and Local Profile Stability |
+| 21 | Verification, Security, and Regression Hardening |
 
 | Phase 10-responsive-baseline-and-mobile-test-harness P02 | 5min | 3 tasks | 4 files |
 | Phase 10-responsive-baseline-and-mobile-test-harness P01 | 364 | 3 tasks | 5 files |
@@ -88,6 +99,10 @@ Progress: [░░░░░░░░░░] 0%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecting current work:
+
+- [Milestone v1.2]: Continue phase numbering after v1.1; new milestone starts at Phase 16.
+- [Milestone v1.2]: Scope is Console conversation productization: Kimi-style chat IA, recent sessions, transcript restore, streaming assistant bubbles, multi-turn context, provider/local stability, and verification.
+- [Milestone v1.2]: Preserve Java/Vaadin/COLA boundaries; add typed conversation read models and App-layer context assembly rather than Vaadin-only history or mobile-only APIs.
 
 - [Milestone v1.1]: Continue phase numbering after v1.0; new milestone starts at Phase 10.
 - [Milestone v1.1]: Keep 6 phases for full-site mobile H5 support.
@@ -169,9 +184,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-25T11:42:39.809Z
-Stopped at: Completed 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md
+Last session: 2026-06-28
+Stopped at: Roadmap created for milestone v1.2 Console 对话产品化
 Resume file: None
 
 ---
-*State reset: 2026-06-20 after v1.1 roadmap creation*
+*State reset: 2026-06-28 after v1.2 roadmap creation*

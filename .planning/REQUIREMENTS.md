@@ -85,42 +85,42 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CIA-01 | TBD | Pending |
-| CIA-02 | TBD | Pending |
-| CIA-03 | TBD | Pending |
-| CIA-04 | TBD | Pending |
-| SESS-01 | TBD | Pending |
-| SESS-02 | TBD | Pending |
-| SESS-03 | TBD | Pending |
-| SESS-04 | TBD | Pending |
-| SESS-05 | TBD | Pending |
-| STRM-01 | TBD | Pending |
-| STRM-02 | TBD | Pending |
-| STRM-03 | TBD | Pending |
-| STRM-04 | TBD | Pending |
-| STRM-05 | TBD | Pending |
-| CTX-01 | TBD | Pending |
-| CTX-02 | TBD | Pending |
-| CTX-03 | TBD | Pending |
-| CTX-04 | TBD | Pending |
-| CTX-05 | TBD | Pending |
-| PROV-01 | TBD | Pending |
-| PROV-02 | TBD | Pending |
-| PROV-03 | TBD | Pending |
-| PROV-04 | TBD | Pending |
-| PROV-05 | TBD | Pending |
-| PROV-06 | TBD | Pending |
-| VER-01 | TBD | Pending |
-| VER-02 | TBD | Pending |
-| VER-03 | TBD | Pending |
-| VER-04 | TBD | Pending |
-| VER-05 | TBD | Pending |
+| CIA-01 | Phase 17 | Pending |
+| CIA-02 | Phase 17 | Pending |
+| CIA-03 | Phase 17 | Pending |
+| CIA-04 | Phase 17 | Pending |
+| SESS-01 | Phase 16 | Pending |
+| SESS-02 | Phase 17 | Pending |
+| SESS-03 | Phase 17 | Pending |
+| SESS-04 | Phase 16 | Pending |
+| SESS-05 | Phase 20 | Pending |
+| STRM-01 | Phase 18 | Pending |
+| STRM-02 | Phase 18 | Pending |
+| STRM-03 | Phase 18 | Pending |
+| STRM-04 | Phase 18 | Pending |
+| STRM-05 | Phase 18 | Pending |
+| CTX-01 | Phase 19 | Pending |
+| CTX-02 | Phase 19 | Pending |
+| CTX-03 | Phase 19 | Pending |
+| CTX-04 | Phase 19 | Pending |
+| CTX-05 | Phase 19 | Pending |
+| PROV-01 | Phase 20 | Pending |
+| PROV-02 | Phase 20 | Pending |
+| PROV-03 | Phase 20 | Pending |
+| PROV-04 | Phase 20 | Pending |
+| PROV-05 | Phase 20 | Pending |
+| PROV-06 | Phase 20 | Pending |
+| VER-01 | Phase 21 | Pending |
+| VER-02 | Phase 21 | Pending |
+| VER-03 | Phase 21 | Pending |
+| VER-04 | Phase 21 | Pending |
+| VER-05 | Phase 21 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30 ⚠️ Roadmap pending
+- Mapped to phases: 30
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-28*
-*Last updated: 2026-06-28 after milestone v1.2 requirements definition*
+*Last updated: 2026-06-28 after milestone v1.2 roadmap creation*

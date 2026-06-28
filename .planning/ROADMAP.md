@@ -1,209 +1,208 @@
-# Roadmap: Pi Java Agent Platform — v1.1 适配移动端web
+# Roadmap: Pi Java Agent Platform — v1.2 Console 对话产品化
 
-**Created:** 2026-06-20  
+**Created:** 2026-06-28  
 **Granularity:** Standard  
 **Mode:** YOLO  
-**Milestone:** v1.1 适配移动端web  
-**Previous milestone:** v1.0 completed Phases 1-9  
-**v1.1 Requirements:** 29  
-**Mapped:** 29 / 29 ✓
+**Milestone:** v1.2 Console 对话产品化  
+**Previous milestone:** v1.1 completed Phases 10-15  
+**v1.2 Requirements:** 30  
+**Mapped:** 30 / 30 ✓
 
 ## Overview
 
-Milestone v1.1 converts the existing Java/Vaadin Agent Web Console and Admin Governance surfaces from desktop-first browser UI into a mobile-first, full-site H5 experience. The roadmap keeps work inside the existing Web Console/Admin presentation layer and verification harness: no React/Next.js rewrite, no native app, no mobile-only backend fork, and no new Agent runtime/model/tool capability scope. Phases continue after v1.0 and start at Phase 10.
+Milestone v1.2 turns the existing Vaadin Console from a run/event workbench that can produce a reply into a daily-use, Kimi-homepage-like Agent conversation product. It focuses on durable recent sessions, typed transcript restore, one-bubble streaming, selected-session multi-turn model context, local provider/model stability, and verification/security gates.
+
+The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.js rewrite, no mobile-only API fork, no WebFlux rewrite, no vector memory/RAG, and no provider SDK types in Domain/App contracts. Work proceeds from canonical conversation read models to visible UX, then streaming, context, local/provider stability, and final verification.
 
 ## Milestones
 
-- ✅ **v1.0 Agent Platform Foundation** - Phases 1-9 (completed before this milestone)
-- 🚧 **v1.1 适配移动端web** - Phases 10-15 (current)
+- ✅ **v1.0 Agent Platform Foundation** — Phases 1-9
+- ✅ **v1.1 适配移动端web** — Phases 10-15
+- 🚧 **v1.2 Console 对话产品化** — Phases 16-21
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (10, 11, 12): Planned milestone work continuing from v1.0
-- Decimal phases (10.1, 10.2): Urgent insertions only if needed later
+**Phase Numbering:** Continue from previous milestone. v1.1 ended at Phase 15; v1.2 starts at Phase 16.
 
-- [x] **Phase 10: Responsive Baseline and Mobile Test Harness** - Establish mobile-first theme defaults, stable UI hooks, route smoke, browser contexts, and no-overflow gates before broad refactoring. (completed 2026-06-21)
-- [x] **Phase 11: Shared Responsive Shell and Navigation** - Make Console and Admin navigation touch-friendly and responsive through shared shell/primitives. (completed 2026-06-22)
-- [x] **Phase 12: Console Mobile-First Flow** - Convert Agent Catalog, Chat/Run, SSE feed, sessions, and cancellation into a usable phone-first Console flow. (additional gap closure planned 2026-06-23) (completed 2026-06-24)
-- [x] **Phase 13: Runtime Cards, Timeline, Tool, and Approval UX** - Make run events, tool cards, dense details, approvals, dialogs, and confirmations safe and readable on mobile. (gap closure planned 2026-06-24)
-- [x] **Phase 14: Admin Governance Full-Site Mobile Coverage** - Convert every existing Admin Governance surface to mobile card/detail layouts without relying on desktop tables. (completed 2026-06-25)
-- [x] **Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening** - Validate final mobile/tablet/browser/orientation/accessibility behavior and preserve desktop regression coverage. (completed 2026-06-25)
+- [ ] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
+- [ ] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session.
+- [ ] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states.
+- [ ] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries.
+- [ ] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior.
+- [ ] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries.
 
 ## Phase Details
 
-### Phase 10: Responsive Baseline and Mobile Test Harness
-**Goal**: Mobile users can open the existing Console/Admin site at representative phone viewports while automated gates detect route failures, horizontal overflow, and missing primary actions before broad UI conversion begins.
-**Depends on**: Phase 9
-**Requirements**: MH5-01, MH5-03, MVER-01, MVER-02
-**Success Criteria** (what must be TRUE):
-  1. Mobile user can open every existing Console and Admin route at representative phone viewports without blank screens, route errors, or desktop-only blockers.
-  2. Mobile user does not encounter page-level horizontal overflow on the baseline routed pages covered by the smoke harness.
-  3. Maintainer can run automated mobile browser smoke tests for representative Chromium, WebKit/Safari proxy, Firefox or Firefox-sized mobile, and tablet contexts supported by CI.
-  4. Maintainer can see route-level smoke results that verify route load, no page-level horizontal overflow, visible primary actions, and at least one key interaction per route category.
-**Plans**: 3 plans
-Plans:
-- [ ] 10-responsive-baseline-and-mobile-test-harness-01-PLAN.md — Vaadin responsive theme baseline and stable root selectors
-- [ ] 10-responsive-baseline-and-mobile-test-harness-02-PLAN.md — Representative Playwright mobile/tablet project matrix and helper foundation
-- [ ] 10-responsive-baseline-and-mobile-test-harness-03-PLAN.md — Route-level mobile smoke gates and targeted overflow fixes
-**UI hint**: yes
+### Phase 16: Conversation Read Model and Recent Sessions
 
-### Phase 11: Shared Responsive Shell and Navigation
-**Goal**: Mobile users can move through all Console and Admin sections with a touch-friendly responsive shell, readable layout container, keyboard/focus-safe navigation, and shared mobile UI primitives.
-**Depends on**: Phase 10
-**Requirements**: MH5-02, MH5-04, MH5-05
-**Success Criteria** (what must be TRUE):
-  1. Mobile user can navigate all Console and Admin sections through a compact header, drawer/tabs, or equivalent touch-friendly navigation without desktop-width assumptions.
-  2. Touch user can reliably activate primary links, buttons, toggles, refresh controls, details expanders, approvals, and cancel controls with mobile-safe target sizes and spacing.
-  3. Keyboard or tablet user retains visible focus indicators and a usable focus order across drawers, dialogs, navigation, and page content.
-  4. User sees a consistent route title, content container, status/action placement, and card/detail styling across Console and Admin pages.
-**Plans**: 3 plans
-Plans:
-- [x] 11-shared-responsive-shell-and-navigation-01-PLAN.md — Shared route navigation registry and responsive shell wiring
-- [x] 11-shared-responsive-shell-and-navigation-02-PLAN.md — Mobile tap/focus theme contract and shared page primitives
-- [x] 11-shared-responsive-shell-and-navigation-03-PLAN.md — Playwright all-route shell navigation, touch, and focus gate
-**UI hint**: yes
+**Goal:** Users and future clients have a canonical, ownership-safe conversation read model for recent sessions and typed transcripts, instead of relying on Vaadin memory or raw run-event maps.
 
-### Phase 12: Console Mobile-First Flow
-**Goal**: Mobile users can complete the existing Agent Console workflow end-to-end: browse/select an agent, start or continue chat/run sessions, watch live output, and cancel active runs from visible mobile controls.
-**Depends on**: Phase 11
-**Requirements**: MCON-01, MCON-02, MCON-03, MCON-04, MCON-05, MVER-03
-**Success Criteria** (what must be TRUE):
-  1. Mobile user can browse Agent Catalog as stacked cards and select/start the General Agent without a desktop-width layout.
-  2. Mobile user can type a multi-line prompt, submit it, and understand active run/composer state in a mobile-first Chat/Run flow.
-  3. Mobile user can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls.
-  4. Mobile user can open session history, select a past session, continue it, and clearly identify the active session.
-  5. Mobile user can cancel an active run from a visible touch-safe control and see cancelling or terminal feedback in the UI.
-**Plans**: 6 plans
-Plans:
-- [x] 12-console-mobile-first-flow-01-PLAN.md — Chat-first Console panel state, segmented switcher, stacked Agent/session cards
-- [x] 12-console-mobile-first-flow-02-PLAN.md — Sticky bounded composer, vertical event feed, inline run state, dual Cancel controls
-- [x] 12-console-mobile-first-flow-03-PLAN.md — Console mobile product-path E2E, desktop regression, and documentation
-- [x] 12-console-mobile-first-flow-04-PLAN.md — Gap closure for real Agent, Session, Send, and Cancel UI activation wiring
-- [x] 12-console-mobile-first-flow-05-PLAN.md — Gap closure for user-triggered run execution, event feed progression, and cancellation feedback
-- [x] 12-console-mobile-first-flow-06-PLAN.md — Gap closure for incremental live/replay event append and visible selectable session history
-**UI hint**: yes
+**Depends on:** Phase 15
 
-### Phase 13: Runtime Cards, Timeline, Tool, and Approval UX
-**Goal**: Mobile users can safely inspect run timelines, tool execution, policy/audit-like details, approvals, and viewport-fitting dialogs without raw sensitive payload exposure or horizontal overflow.
-**Depends on**: Phase 12
-**Requirements**: MCARD-01, MCARD-02, MCARD-03, MCARD-04, MCARD-05
-**Success Criteria** (what must be TRUE):
-  1. Mobile user can inspect run timeline events as compact cards or accordions showing status, timestamp/type, summary, and expandable details.
-  2. Mobile user can inspect tool cards with tool name, source, status, policy/approval state, duration, error, and redacted input/output summaries.
-  3. Mobile user can expand dense run/tool/policy/audit details without exposing raw sensitive payloads or causing page-level horizontal overflow.
-  4. Mobile user can approve or reject a pending tool approval from a risk-first card that clearly shows side-effect context and requires intentional action.
-  5. Mobile user sees dialogs, drawers, notifications, and confirmations fit the viewport with safe scrolling and explicit close/action controls.
-**Plans**: 5 plans
-Plans:
-- [x] 13-runtime-cards-timeline-tool-and-approval-ux-01-PLAN.md — Runtime timeline-card foundation and reusable redaction
-- [x] 13-runtime-cards-timeline-tool-and-approval-ux-02-PLAN.md — Structured redacted tool execution cards
-- [x] 13-runtime-cards-timeline-tool-and-approval-ux-03-PLAN.md — Inline risk-first approval card UX
-- [x] 13-runtime-cards-timeline-tool-and-approval-ux-04-PLAN.md — Mobile CSS, browser matrix gate, and documentation
-- [x] 13-runtime-cards-timeline-tool-and-approval-ux-05-PLAN.md — Gap closure for actionable approval decision clicks and feedback
-**UI hint**: yes
+**Requirements:** SESS-01, SESS-04
 
-### Phase 14: Admin Governance Full-Site Mobile Coverage
-**Goal**: Mobile admins can inspect every existing Governance, Operations, Registry, MCP, Plugin, Extension, Policy, and Audit surface through stacked mobile cards/details instead of desktop-only tables.
-**Depends on**: Phase 13
-**Requirements**: MADM-01, MADM-02, MADM-03, MADM-04, MADM-05, MADM-06, MADM-07, MVER-04
-**Success Criteria** (what must be TRUE):
-  1. Mobile admin can read Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links.
-  2. Mobile admin can inspect Registry and Operations data as cards or responsive row details without relying on page-level horizontal table scrolling.
-  3. Mobile admin can inspect MCP, Plugin, and Extension status/metadata, including unhealthy, disconnected, selected, disabled, quarantined, and load-error states where already supported.
-  4. Mobile admin can inspect Policy decisions and Audit summaries with key IDs, actors/sources/actions/statuses/timestamps, and expandable redacted context.
-  5. Automated mobile Admin E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies mobile card/detail content.
-**Plans**: 5 plans
-Plans:
-- [x] 14-admin-governance-full-site-mobile-coverage-01-PLAN.md — Shared Admin mobile card/detail foundation and Overview status cards
-- [x] 14-admin-governance-full-site-mobile-coverage-02-PLAN.md — Registry, MCP, Plugin, and Extension sectioned mobile cards
-- [x] 14-admin-governance-full-site-mobile-coverage-03-PLAN.md — Operations metric and warning cards
-- [x] 14-admin-governance-full-site-mobile-coverage-04-PLAN.md — Policy and Audit redacted card/detail views
-- [x] 14-admin-governance-full-site-mobile-coverage-05-PLAN.md — MVER-04 Admin mobile Playwright gate and documentation
-**UI hint**: yes
+**Success Criteria:**
+1. App/client exposes typed session summary and transcript DTOs with roles, text, session/run refs, status, timestamps, and metadata.
+2. Recent sessions are queryable by tenant/user and ordered by latest activity.
+3. Transcript assembly folds persisted run inputs and model/tool/error events into stable user/assistant/tool/error messages.
+4. Repository queries enforce tenant/user/session/run ownership filters.
+5. Golden tests prove raw run-event maps are not the UI transcript contract.
 
-### Phase 15: Cross-Browser, Orientation, Accessibility, and Release Hardening
-**Goal**: The full mobile H5 milestone is release-ready across representative portrait, landscape, tablet, and desktop contexts, with documented real-device/UAT expectations and preserved desktop behavior.
-**Depends on**: Phase 14
-**Requirements**: MVER-05, MVER-06, MVER-07
-**Success Criteria** (what must be TRUE):
-  1. Mobile user can use navigation and critical flows in representative portrait, landscape, and tablet viewports with no page-level horizontal overflow.
-  2. Desktop user can still complete existing Web Console and Admin browser regression paths after mobile-first changes.
-  3. Keyboard/tablet user can complete final focus, drawer/dialog, visible label, and no-hover-only interaction checks across converted surfaces.
-  4. Maintainer can review release documentation that records Android Chrome, iOS Safari, Edge mobile, and Firefox mobile UAT expectations plus any CI/emulation gaps.
-**Plans**: 4 plans
-Plans:
-- [x] 15-cross-browser-orientation-accessibility-and-release-hardening-01-PLAN.md — All-route portrait, landscape, and tablet orientation smoke gate
-- [x] 15-cross-browser-orientation-accessibility-and-release-hardening-02-PLAN.md — Critical Console/Admin flow and desktop regression release gate
-- [x] 15-cross-browser-orientation-accessibility-and-release-hardening-03-PLAN.md — Accessibility, keyboard, reduced-motion, no-hover, and tablet bridge hardening
-- [x] 15-cross-browser-orientation-accessibility-and-release-hardening-04-PLAN.md — Release hardening documentation and real-device UAT checklist
-**UI hint**: yes
+**UI hint:** yes — no major visual polish yet; only enough Console hooks to prove the read model.
+
+### Phase 17: Console Session Restore UX
+
+**Goal:** Users can use the Console as a chat product: see recent conversations, select one, restore prior turns as bubbles, and continue the selected session.
+
+**Depends on:** Phase 16
+
+**Requirements:** CIA-01, CIA-02, CIA-03, CIA-04, SESS-02, SESS-03
+
+**Success Criteria:**
+1. Console defaults to a chat-first home with compact history and model/provider affordances.
+2. Selecting a historical session clears the current feed and hydrates typed transcript bubbles.
+3. The active session title/banner clearly distinguishes new vs continued conversation.
+4. Sending after session selection appends to the selected session, not a new session.
+5. Runtime/tool/provider details remain collapsed by default but reachable when relevant.
+
+**UI hint:** yes — Kimi-style IA and Vaadin component state are central.
+
+### Phase 18: Streaming Bubble Lifecycle
+
+**Goal:** Users experience model output as a single live assistant answer, not as runtime cards, delayed final replay, or fragmented token rows.
+
+**Depends on:** Phase 17
+
+**Requirements:** STRM-01, STRM-02, STRM-03, STRM-04, STRM-05
+
+**Success Criteria:**
+1. A pending assistant bubble appears promptly after send.
+2. Model delta events append to the same assistant bubble in order.
+3. Replayed/polled/pushed events are deduped by stable sequence or event identity.
+4. Completion, failure, cancellation, and partial response states update the bubble without generic run-status noise.
+5. Cancelling an active response prevents later deltas from mutating the stopped bubble.
+
+**UI hint:** yes — requires reducer/aggregator and browser/Vaadin timing verification.
+
+### Phase 19: Multi-Turn Runtime Context
+
+**Goal:** Continuing a selected session means the model actually receives bounded prior turns, not only the same `sessionId`.
+
+**Depends on:** Phase 16, Phase 18
+
+**Requirements:** CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
+
+**Success Criteria:**
+1. Runtime/model execution receives bounded prior user/assistant turns for the selected session.
+2. Context policy limits recent turns/chars/token approximation and records truncation metadata.
+3. Sensitive tool/audit/provider/credential data is excluded or redacted before model context assembly.
+4. Fake-model tests prove prior turns are present and the current prompt appears exactly once.
+5. Context assembly lives in App/runtime seams, not in Vaadin component state.
+
+**UI hint:** no — mostly App/runtime/model contract work, with minimal UI disclosure for truncation if needed.
+
+### Phase 20: Provider/Model and Local Profile Stability
+
+**Goal:** Local development and real provider usage feel trustworthy: provider/model readiness is visible, errors are actionable, model choices persist, and local SQLite can restore conversations after restart.
+
+**Depends on:** Phase 16, Phase 17
+
+**Requirements:** SESS-05, PROV-01, PROV-02, PROV-03, PROV-04, PROV-05, PROV-06
+
+**Success Criteria:**
+1. Console model area shows provider/model readiness and actionable errors.
+2. Model refresh shows success, empty, and error states without silent catches.
+3. Model selection persists and applies only to subsequent runs.
+4. Each run records provider/model/fallback mode for history and debugging.
+5. No-provider fallback is visually labeled as local fallback.
+6. SQLite local profile persists sessions, transcript data, run metadata, and provider config across restart.
+
+**UI hint:** yes — provider/model feedback is user-visible.
+
+### Phase 21: Verification, Security, and Regression Hardening
+
+**Goal:** The milestone is release-ready because tests prove conversation semantics, not just that text appears eventually.
+
+**Depends on:** Phase 16, Phase 17, Phase 18, Phase 19, Phase 20
+
+**Requirements:** VER-01, VER-02, VER-03, VER-04, VER-05
+
+**Success Criteria:**
+1. Automated tests cover no-key fallback, configured-provider path, recent-session restore, continuation, streaming coalescing, cancellation/error, and provider errors.
+2. Repository/query tests prevent cross-tenant, cross-user, cross-session, and cross-run leakage.
+3. Architecture tests preserve COLA boundaries and prevent prohibited framework/infra types from leaking into Domain/App contracts.
+4. Browser tests verify Kimi-style Console product paths with stable selectors and no raw runtime-event noise.
+5. Fake slow-stream tests prove assistant text appears incrementally before terminal completion.
+
+**UI hint:** yes — product E2E gates validate visible UX.
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 10 → 11 → 12 → 13 → 14 → 15
+**Execution Order:** 16 → 17 → 18 → 19 → 20 → 21
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Responsive Baseline and Mobile Test Harness | v1.1 | 3/3 | Complete   | 2026-06-21 |
-| 11. Shared Responsive Shell and Navigation | v1.1 | 3/3 | Complete   | 2026-06-22 |
-| 12. Console Mobile-First Flow | v1.1 | 6/6 | Complete    | 2026-06-24 |
-| 13. Runtime Cards, Timeline, Tool, and Approval UX | v1.1 | 5/5 | Complete    | 2026-06-24 |
-| 14. Admin Governance Full-Site Mobile Coverage | v1.1 | 5/5 | Complete    | 2026-06-25 |
-| 15. Cross-Browser, Orientation, Accessibility, and Release Hardening | v1.1 | 4/4 | Complete    | 2026-06-25 |
+| 16. Conversation Read Model and Recent Sessions | v1.2 | 0/TBD | Not started | — |
+| 17. Console Session Restore UX | v1.2 | 0/TBD | Not started | — |
+| 18. Streaming Bubble Lifecycle | v1.2 | 0/TBD | Not started | — |
+| 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
+| 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
+| 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
 
 ## Coverage Validation
 
 | Requirement Prefix | Count | Phase |
 |--------------------|-------|-------|
-| MH5 | 5 | Phase 10, 11 |
-| MCON | 5 | Phase 12 |
-| MCARD | 5 | Phase 13 |
-| MADM | 7 | Phase 14 |
-| MVER | 7 | Phase 10, 12, 14, 15 |
+| CIA | 4 | Phase 17 |
+| SESS | 5 | Phase 16, 17, 20 |
+| STRM | 5 | Phase 18 |
+| CTX | 5 | Phase 19 |
+| PROV | 6 | Phase 20 |
+| VER | 5 | Phase 21 |
 
 **Coverage map:**
-- MH5-01 → Phase 10
-- MH5-02 → Phase 11
-- MH5-03 → Phase 10
-- MH5-04 → Phase 11
-- MH5-05 → Phase 11
-- MCON-01 → Phase 12
-- MCON-02 → Phase 12
-- MCON-03 → Phase 12
-- MCON-04 → Phase 12
-- MCON-05 → Phase 12
-- MCARD-01 → Phase 13
-- MCARD-02 → Phase 13
-- MCARD-03 → Phase 13
-- MCARD-04 → Phase 13
-- MCARD-05 → Phase 13
-- MADM-01 → Phase 14
-- MADM-02 → Phase 14
-- MADM-03 → Phase 14
-- MADM-04 → Phase 14
-- MADM-05 → Phase 14
-- MADM-06 → Phase 14
-- MADM-07 → Phase 14
-- MVER-01 → Phase 10
-- MVER-02 → Phase 10
-- MVER-03 → Phase 12
-- MVER-04 → Phase 14
-- MVER-05 → Phase 15
-- MVER-06 → Phase 15
-- MVER-07 → Phase 15
+- CIA-01 → Phase 17
+- CIA-02 → Phase 17
+- CIA-03 → Phase 17
+- CIA-04 → Phase 17
+- SESS-01 → Phase 16
+- SESS-02 → Phase 17
+- SESS-03 → Phase 17
+- SESS-04 → Phase 16
+- SESS-05 → Phase 20
+- STRM-01 → Phase 18
+- STRM-02 → Phase 18
+- STRM-03 → Phase 18
+- STRM-04 → Phase 18
+- STRM-05 → Phase 18
+- CTX-01 → Phase 19
+- CTX-02 → Phase 19
+- CTX-03 → Phase 19
+- CTX-04 → Phase 19
+- CTX-05 → Phase 19
+- PROV-01 → Phase 20
+- PROV-02 → Phase 20
+- PROV-03 → Phase 20
+- PROV-04 → Phase 20
+- PROV-05 → Phase 20
+- PROV-06 → Phase 20
+- VER-01 → Phase 21
+- VER-02 → Phase 21
+- VER-03 → Phase 21
+- VER-04 → Phase 21
+- VER-05 → Phase 21
 
-**Total mapped:** 29 / 29 ✓  
+**Total mapped:** 30 / 30 ✓  
 **Duplicates:** 0 ✓  
 **Orphans:** 0 ✓
 
 ## Constraints Preserved
 
-- Java/Vaadin-first Web Console/Admin adaptation only.
-- Work remains focused on `pi-agent-adapter-web` UI, theme, and browser verification unless a general non-mobile read-model fix is proven necessary.
-- Public REST/SSE DTO boundaries remain stable; no viewport flags in Domain/App and no `/mobile/*` API fork by default.
-- No React/Next.js/Hilla React rewrite, no native app, no PWA/offline cache, and no new runtime/model/tool capability scope.
+- Java/Vaadin-first Console productization only.
+- COLA boundaries preserved: Adapter Web renders/coordinations; App owns read models/context assembly; Domain/runtime remains UI/provider/persistence neutral; Infrastructure owns persistence/provider adapters.
+- No React/Next.js, mobile-only API fork, WebFlux rewrite, vector DB/RAG, long-term memory, or automatic paid-provider fallback.
+- Conversation APIs/read models are general client contracts usable by future desktop/CLI/TUI clients.
+- Sensitive tool/audit/provider/credential data remains redacted or excluded from transcript/context surfaces.
 
 ---
-*Roadmap created: 2026-06-20 for milestone v1.1 适配移动端web*
+*Roadmap created: 2026-06-28 for milestone v1.2 Console 对话产品化*
