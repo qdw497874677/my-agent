@@ -41,6 +41,14 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 
 **Requirements:** SESS-01, SESS-04
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 16-conversation-read-model-and-recent-sessions-01-PLAN.md — Public typed conversation DTO contracts for recent sessions and transcripts.
+- [ ] 16-conversation-read-model-and-recent-sessions-02-PLAN.md — App-layer conversation query service, transcript assembler, and ownership-aware ports.
+- [ ] 16-conversation-read-model-and-recent-sessions-03-PLAN.md — JDBC/local persistence implementations for recent-session and transcript read-model queries.
+- [ ] 16-conversation-read-model-and-recent-sessions-04-PLAN.md — Session-centric REST endpoints and minimal Console proof hooks.
+
 **Success Criteria:**
 1. App/client exposes typed session summary and transcript DTOs with roles, text, session/run refs, status, timestamps, and metadata.
 2. Recent sessions are queryable by tenant/user and ordered by latest activity.
@@ -142,7 +150,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 16. Conversation Read Model and Recent Sessions | v1.2 | 0/TBD | Not started | — |
+| 16. Conversation Read Model and Recent Sessions | v1.2 | 0/4 | Planned | — |
 | 17. Console Session Restore UX | v1.2 | 0/TBD | Not started | — |
 | 18. Streaming Bubble Lifecycle | v1.2 | 0/TBD | Not started | — |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
