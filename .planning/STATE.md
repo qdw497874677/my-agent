@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: planning
-stopped_at: Phase 16 context gathered
-last_updated: "2026-06-28T08:50:25.968Z"
+stopped_at: Phase 17 context gathered
+last_updated: "2026-06-28T15:33:23.831Z"
 last_activity: 2026-06-28 — Milestone v1.2 roadmap created
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
   percent: 0
 ---
 
@@ -184,9 +184,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-28T08:50:25.964Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-conversation-read-model-and-recent-sessions/16-CONTEXT.md
+Last session: 2026-06-28T15:33:23.827Z
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-console-session-restore-ux/17-CONTEXT.md
 
 ---
 *State reset: 2026-06-28 after v1.2 roadmap creation*
