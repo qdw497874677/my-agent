@@ -1,315 +1,259 @@
-# Stack Research: Mobile-First H5 Adaptation for Vaadin Flow
+# Stack Research: Console Conversation Productization
 
 **Project:** Pi Java Agent Platform  
-**Domain:** Mobile-first H5 adaptation of an existing Java/Spring/Vaadin Agent Web Console and Admin Governance app  
-**Researched:** 2026-06-20  
-**Confidence:** **HIGH** for Vaadin responsive APIs/patterns and Playwright emulation; **MEDIUM-HIGH** for exact patch versions because Vaadin/Playwright patch lines move quickly.
+**Domain:** Kimi-style Console conversation productization in an existing Java/Spring MVC/Vaadin Agent Platform  
+**Researched:** 2026-06-28  
+**Scope:** Stack additions/changes for historical session selection/restore, real streaming assistant bubble UI, multi-turn session context, and local provider/model configuration stability.  
+**Overall confidence:** **HIGH** for “do not add a new frontend/runtime stack”; **MEDIUM-HIGH** for Vaadin push/poll and Spring MVC SSE details; **MEDIUM** for SQLite local persistence hardening because current local persistence is custom and should be stabilized by implementation tests.
 
-## Executive Recommendation
+## Summary
 
-Do **not** add a separate frontend stack. The right stack for this milestone is the existing **Vaadin Flow + Spring Boot + Playwright Java** stack, upgraded/configured for mobile-first H5: Vaadin responsive layout components and Lumo utility/theme CSS for UI adaptation, custom app-level CSS media/container queries for reusable mobile building blocks, and Playwright Java browser contexts with mobile viewport/touch emulation for automated acceptance.
+The right stack direction is **not a major dependency expansion**. The current stack already contains the essential productization building blocks: Java 21, Maven, COLA boundaries, Spring Boot **3.5.9**, Spring AI **1.1.5**, Vaadin **24.8.4**, Spring MVC REST/SSE, provider-neutral run events, OpenAI-compatible streaming, SQLite local persistence, and Vaadin poll/push-capable UI. The v1.2 work should add **small application/API seams and UI state management**, not React/Next.js, WebFlux, Kafka, Redis, LangChain memory, or a mobile-only API fork.
 
-The key stack change is not a new framework; it is a **design-system and verification layer** inside the existing Vaadin app. Treat mobile as the default layout and progressively enhance for tablet/desktop. Use Vaadin components' built-in responsive behavior where it exists, supplement with CSS classes and reusable Java view components where it does not, and verify real product paths at mobile widths with `hasTouch`, `isMobile`, and no-horizontal-overflow assertions.
+The core addition should be a **conversation read model** in App/Client backed by existing run/session/event persistence: session list, active session restore, normalized message transcript, and conversation context assembly. Today `ConsoleView` only keeps UI-local state (`selectedSessionId`, `activeRunId`, `activeRunNextAfterSequence`) and `selectSession()` returns a history path without actually restoring chat messages. `DefaultRunQueryService` exposes run-scoped events/messages, but not a product-level session transcript or recent-session list. Productization requires these seams before UI polish can be reliable.
 
-Recommended version posture: stay on **Vaadin 24.x** while the platform remains on **Spring Boot 3.5.x**. The current repo pins Vaadin **24.8.4**. Vaadin's roadmap/search results show **24.10.7** as the latest Vaadin 24 line and Vaadin 25 requiring Spring Boot 4.0.4+; therefore, upgrade within Vaadin 24 if dependency validation passes, but do **not** move to Vaadin 25 just for mobile H5.
+For real streaming UI, use the existing event stream contract and Vaadin UI update model. `DynamicAgentRuntime` already publishes `RunEventType.MODEL_DELTA` chunks from the OpenAI-compatible streaming client, and `DefaultRunQueryService` maps these to `payload.textDelta`/`payload.text`. `ChatEventStreamPanel` already has an `activeAssistantLine` append behavior. The missing stack seam is a **dedicated conversation event reducer** that treats model deltas as assistant-token updates for the current run, not as generic event cards. Use Vaadin `@Push` + `UI.access(...)` where possible for lower-latency server-side UI updates; keep the current 750 ms polling as a fallback or initial implementation if push introduces deployment friction.
+
+For multi-turn context, do **not** add a vector database, long-term memory framework, or LangChain/LangGraph layer. Build a deterministic **SessionConversationContextAssembler** in the App layer that reads the current session transcript, applies a configurable turn/token/window budget, and supplies previous user/assistant messages to the existing `ModelRequest`. The current `DynamicAgentRuntime` calls `client.stream(new ModelRequest(context, List.of()), ...)`, so it explicitly sends no history. Fix this at the runtime/App seam using project-owned message DTOs and provider-neutral model request messages.
 
 ## Recommended Stack Additions / Changes
 
-### Core Technologies
+### Keep Current Core Stack
 
-| Technology | Version / Line | Purpose | Why Recommended |
-|------------|----------------|---------|-----------------|
-| Vaadin Flow | Existing: **24.8.4**; recommended: latest compatible **24.x** patch, currently observed **24.10.7** | Existing Java UI framework for Console/Admin | Keeps the all-Java UI boundary and avoids a React/Next.js rewrite. Vaadin docs explicitly cover mobile-first responsiveness, built-in responsive component behavior, CSS media/container queries, and Lumo utilities. |
-| Vaadin Lumo Theme | Managed by Vaadin BOM | Design tokens, sizes, spacing, typography, utility classes | Lumo exposes CSS custom properties and mobile-first utility classes. It is the lowest-risk way to standardize touch spacing, responsive display/flex/grid utilities, and accessibility helpers in a Vaadin Flow codebase. |
-| App-level CSS resources | Vaadin frontend resources; `@StyleSheet` / existing theme folder | Mobile layout primitives, breakpoints, safe scrolling, touch sizing | Mobile adaptation needs reusable CSS building blocks, not scattered inline Java styles. Use a small set of project CSS classes for page shells, cards, tool timelines, approval bars, responsive grids, and mobile drawers. |
-| Playwright Java | Add/pin test dependency; Maven Central search verified **1.60.0** on 2026-05-19; check latest before implementation | Mobile viewport/browser smoke and product-path E2E | Existing project already has Playwright E2E fixtures but no visible Maven dependency in the root POM. Add an explicit test dependency and run mobile contexts for Chromium/WebKit/Firefox where CI supports them. |
-| JUnit Jupiter + Spring Boot Test | Existing | Test runner and app lifecycle for browser E2E | Keep the existing Java test harness. Mobile E2E should be another profile/tag in the same test suite, not a separate Node test project. |
+| Area | Current / Recommended | Purpose | Rationale |
+|------|-----------------------|---------|-----------|
+| Java | **21** | Runtime and SDK baseline | Already validated. No new Java version is needed for conversation UI/productization. |
+| Spring Boot | **3.5.9** current; stay on 3.5.x | REST, SSE, security, app composition | Avoid Boot 4/Vaadin 25 migration churn. v1.2 risks are conversation state and UI streaming, not platform major versions. |
+| Spring MVC | Existing `spring-boot-starter-web` | REST/SSE endpoints and Vaadin servlet stack | Spring MVC officially supports async request processing and SSE. Existing `SseEmitter` infrastructure is adequate. Do not switch the app to WebFlux for this milestone. |
+| Vaadin Flow | **24.8.4** current; stay on 24.x | Console UI | Vaadin Flow can implement chat-style UI with Java components and server push/poll. No React/Next.js rewrite is justified. |
+| Spring AI | **1.1.5** | Existing OpenAI-compatible provider adapter | Keep as the provider adapter layer. Do not expose Spring AI types into Domain/App conversation contracts. |
+| SQLite JDBC | **3.47.1.0** current in adapter-web | Local developer persistence | Keep for local profile, but harden schema and access patterns for session list/history/provider config. |
+| Playwright/JUnit | Existing milestone validation stack | Product-path verification | Extend existing no-key browser E2E to assert historical restore, streaming bubble deltas, and provider config persistence. |
 
-### Vaadin Responsive APIs and Patterns
+### Add Product Seams, Not Heavy Libraries
 
-| API / Pattern | Version | Purpose | When to Use |
-|---------------|---------|---------|-------------|
-| `AppLayout` + `DrawerToggle` + Side Navigation | Vaadin 24.x | Responsive global shell | Use for Console/Admin navigation. Vaadin docs state App Layout's navigation drawer can be overlay/bottom navbar and collapses to hamburger on small viewports. Preserve one app shell, but make drawer/primary nav mobile-aware. |
-| `FormLayout#setResponsiveSteps(...)` | Vaadin 24.x | Mobile-first forms | Use for Admin governance forms, provider/MCP/plugin settings, approval dialogs. Define `0px = 1 column`, tablet/desktop = 2+ columns. Avoid multi-column forms on phones. |
-| `FlexLayout`, `HorizontalLayout`, `VerticalLayout` with wrapping | Vaadin 24.x | Responsive stacks/toolbars/cards | Use for page headers, action bars, card decks, tool metadata chips. Prefer mobile default vertical stacks, then switch to row layouts at wider breakpoints via CSS/classes. |
-| `Scroller` | Vaadin 24.x | Constrained scroll regions | Use for chat transcript, run timeline, audit/event lists, and side panels. Prevent the whole viewport from becoming an uncontrolled nested scroll trap. |
-| `Grid` responsive column strategy | Vaadin 24.x | Dense admin data on narrow screens | Do not try to show desktop tables on phones. On mobile, hide low-priority columns, use details rows/card renderers for secondary fields, and provide search/filter overlays. Use full Grid for tablet/desktop. |
-| `VirtualList` / card list pattern | Vaadin 24.x | Mobile-friendly lists | Use for Session history, Agent catalog, MCP servers, plugins, audit summaries when list items are better represented as cards than tables. |
-| `Dialog` / `ConfirmDialog` | Vaadin 24.x | Mobile approvals and confirmations | Vaadin dialogs adapt button toolbar vertically when space is limited. Use for approvals and destructive admin actions, but avoid complex desktop-style forms inside modal dialogs on phones. |
-| `Tabs` / `MenuBar` overflow behavior | Vaadin 24.x | Compact navigation/actions | Vaadin tabs can scroll horizontally and menu bars overflow. Use carefully; avoid large tab bars on phones when a segmented/list navigation is clearer. |
-| Vaadin field types (`EmailField`, `NumberField`, `PasswordField`, etc.) | Vaadin 24.x | Mobile keyboards and input behavior | Use Vaadin typed fields instead of generic text fields where possible so mobile OS keyboards and browser behaviors are appropriate. |
+| Addition | Layer / Module | Concrete API or Class Shape | Why |
+|----------|----------------|-----------------------------|-----|
+| `SessionQueryService` | `pi-agent-app` + `pi-agent-client` DTOs | `listRecentSessions(context, limit)`, `getConversationTranscript(context, sessionId, limit)`, optionally `getSessionConversationState(...)` | The Console needs a product-level recent-session list and transcript restore. Reusing run-scoped `listEvents(sessionId, runId, afterSequence)` forces Vaadin UI to reconstruct product state from low-level run events. |
+| `ConversationMessageDto` | `pi-agent-client` | Fields: `messageId`, `sessionId`, `runId`, `role`, `text`, `createdAt`, `status`, `sourceEventId`, `sequenceRange`, `metadata` | Gives Console one stable transcript model for history restore and multi-turn context without leaking provider/event internals. |
+| `ConversationTranscriptAssembler` | `pi-agent-app` | Reduce persisted `RunEvent` / `messages` rows into ordered user/assistant/tool-status transcript | Keeps UI simple and enables deterministic tests. Deltas should be folded into assistant messages per run. |
+| `SessionConversationContextAssembler` | `pi-agent-app` or runtime-facing App service | `List<ModelMessage> assemble(sessionId, currentUserInput, budget)` | Sends multi-turn history to `ModelRequest` while respecting context budgets and without introducing external memory systems. |
+| `ConversationEventReducer` | Adapter-web UI helper, possibly mirrored in App tests | `apply(RunEventDto)` -> UI mutations: append delta, finish bubble, mark error/cancel | Turns provider-neutral events into Kimi-style chat bubbles. Prevents every event from becoming a separate feed row. |
+| `ConversationRunExecutionBridge` extension | `pi-agent-adapter-web` | Existing `ConsoleRunExecutionBridge` plus `listRecentSessions`, `loadTranscript`, maybe `activeRunForSession` | Keeps Vaadin concerns in adapter-web while delegating product queries to App use cases. |
+| Local provider config validation response | `pi-agent-client` or adapter DTO | Include `ready`, `maskedKey`, `modelId`, `baseUrl`, `models`, `lastValidationError`, `validatedAt` | Current `ProviderConfigController.listModels()` returns only models/error and `ConsoleView` catches refresh errors silently. Product UI needs stable feedback and fallback behavior. |
+| SQLite local indexes/schema evolution | Adapter-web local persistence | Index `local_runs(session_id, updated_at)`, `local_events(run_id, sequence)`, provider config table versioning | Local session restore and event replay will become common. Current `loadSessions()` has no ordering and `loadEvents()` loads all events globally. |
 
-### CSS and Theme Resources
+## Recommended Implementation Stack by Feature
 
-| Resource / Technique | Recommendation | Why |
-|----------------------|----------------|-----|
-| Lumo stylesheet | Keep/use Lumo; current Vaadin docs show `@StyleSheet(Lumo.STYLESHEET)` | Lumo is already the Vaadin default design language and exposes component style properties suitable for consistent mobile sizing/spacing. |
-| Lumo Utility Classes | Load with `@StyleSheet(Lumo.UTILITY_STYLESHEET)` when using current Vaadin stylesheet-loading style; use `LumoUtility` constants in Java | Official Vaadin docs describe Lumo utilities as mobile-first with breakpoints such as Small `640px` and Medium `768px`. They are useful for layout/native HTML/simple Vaadin layout components. |
-| Project CSS files | Add/organize app CSS under the existing Vaadin resource convention already used by the project; if using current `@StyleSheet`, include `styles.css`; if using a theme folder, keep additions there | The milestone needs repeatable primitives: `.mobile-shell`, `.responsive-toolbar`, `.card-list`, `.timeline-card`, `.approval-sticky-bar`, `.admin-filter-drawer`, `.no-horizontal-overflow`. Avoid view-specific one-off CSS. |
-| CSS media queries | Use mobile default styles, then `@media (min-width: 640px)`, `768px`, `1024px` for enhancements | Vaadin docs recommend mobile-first when mobile is important. Use min-width breakpoints so phone layout remains the base. |
-| CSS container queries | Use for cards/panels whose available width differs from viewport width | Vaadin docs call out container queries for resizable content areas. Useful for split panes, drawer content, timeline cards, and grid/detail regions. |
-| `@media (pointer: coarse)` | Increase Lumo sizes/touch spacing for touch devices | Vaadin size/space docs recommend controlling sizing through Lumo custom properties and show increasing `--lumo-size-*` under coarse pointers. |
-| Viewport/full-height CSS | Ensure `html, body, #outlet` remain `height: 100%; width: 100%; margin: 0`; consider dynamic viewport units for mobile-specific panels | Vaadin Flow's bootstrap CSS includes full-height/full-width defaults and an iOS standalone `100lvh` fix. Mobile chat/timeline layouts depend on correct viewport height handling. |
-| Shadow DOM styling | Prefer normal document-scope CSS and component style properties/parts; avoid legacy `@CssImport(themeFor=...)` patterns unless already required | Current Vaadin styling docs state older component shadow-DOM injection approaches are still supported but no longer recommended. Keep mobile styling maintainable and forward-compatible. |
+### 1. Historical Session Selection / Restore
 
-### Development / Test Tools
+**Use:** App-layer query service + client DTOs + SQLite/JDBC-backed repositories + Vaadin card/list UI.
 
-| Tool | Purpose | Configuration Tips |
-|------|---------|--------------------|
-| Playwright Java browser contexts | Mobile smoke and E2E without Node test stack | Create contexts with `setViewportSize`, `setDeviceScaleFactor`, `setIsMobile(true)`, `setHasTouch(true)`, and realistic user agents/devices where useful. Official Playwright Java docs confirm these options emulate user agent, screen size, viewport, touch, locale/timezone, permissions, and color scheme. |
-| Playwright Chromium | Android/Chrome-like mobile baseline | Run for every PR because it is usually the most stable headless mobile emulation target in Linux CI. |
-| Playwright WebKit | iOS Safari risk proxy | Run in CI if the environment supports Playwright WebKit. Use it as the best automated proxy for iOS Safari behavior, but keep a manual/human UAT note for real iOS Safari before release if CI cannot run WebKit reliably. |
-| Playwright Firefox | Firefox mobile viewport/touch smoke | Run a smaller smoke set if full mobile E2E is too slow. Vaadin supports Firefox desktop evergreen/ESR; mobile Firefox support should be validated as product target, not assumed from Vaadin's official supported browser matrix. |
-| Screenshot-on-failure | Debug narrow viewport regressions | Save screenshots/video/traces for mobile failures. Responsive bugs are often visual overflow/hidden action problems, not Java exceptions. |
-| CSS overflow assertions | Catch H5 regressions automatically | Add assertions such as `document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1` for key pages at phone widths. |
-| Accessibility/touch assertions | Verify mobile usability | Check visible/focusable primary actions, keyboard navigation for controls, tap target sizes for custom controls, and no hover-only functionality. |
+Recommended flow:
 
-## Installation / Configuration Sketch
+1. Add a `SessionQueryService` in `pi-agent-app` rather than making `ConsoleView` query low-level stores directly.
+2. Add `ConversationTranscriptResponse` and `ConversationMessageDto` to `pi-agent-client`.
+3. Implement persistence adapters for both cloud JDBC and local SQLite/dev stores:
+   - Recent sessions ordered by `updated_at DESC`.
+   - Session transcript assembled from persisted user input and `model.delta` events.
+   - Limit and paging hooks, even if v1.2 only shows the last N sessions.
+4. Extend `SessionListPanel` and `ConsoleRunExecutionBridge` so `selectSession()` loads transcript and replaces the chat feed.
 
-### Maven Properties
+**Why:** Product users expect “click old conversation → see prior messages → continue”. A history path alone is not enough. The transcript assembly belongs in App/usecase because future CLI/TUI clients will need the same behavior.
 
-Current root POM pins `vaadin.version` to `24.8.4`. For this milestone:
+**Do not use:** Browser localStorage as the source of truth. It would hide persistence bugs and diverge from REST/SSE clients.
 
-```xml
-<properties>
-  <!-- Existing Boot 3.5.x line stays. -->
-  <spring-boot.version>3.5.9</spring-boot.version>
+### 2. Real Streaming Assistant Bubble UI
 
-  <!-- Keep Vaadin 24.x for Spring Boot 3.5 compatibility. Validate latest 24.x patch before changing. -->
-  <vaadin.version>24.10.7</vaadin.version>
+**Use:** Existing `model.delta` events + Vaadin component mutation + optional `@Push`.
 
-  <!-- Add explicit Playwright Java test version. Maven Central search verified 1.60.0 on 2026-05-19. -->
-  <playwright.version>1.60.0</playwright.version>
-</properties>
-```
+Current state:
 
-If upgrading Vaadin introduces churn, it is acceptable to deliver the mobile milestone on **24.8.4** because the needed responsive APIs already exist. Upgrade within 24.x is recommended for browser fixes and supported-technology updates, not because mobile-first requires a new major version.
+- `DynamicAgentRuntime.ModelDeltaPublishingSink` publishes `RunEventPayload.ModelDeltaPayload` for text deltas.
+- `DefaultRunQueryService` maps model deltas to `payload.textDelta` and `payload.text`.
+- `ChatEventStreamPanel` appends assistant text into a single `activeAssistantLine` when category is `assistant`.
+- `ConsoleView` currently polls every 750 ms and calls `refreshActiveRunEvents()`.
 
-### Test Dependency
-
-Add Playwright explicitly, probably in `pi-agent-adapter-web` test scope because that module owns the Vaadin UI and existing Playwright readiness fixture:
-
-```xml
-<dependency>
-  <groupId>com.microsoft.playwright</groupId>
-  <artifactId>playwright</artifactId>
-  <version>${playwright.version}</version>
-  <scope>test</scope>
-</dependency>
-```
-
-Do not add Playwright to Domain/App/Infrastructure modules. It is an adapter-web E2E concern only.
-
-### Vaadin Stylesheet Loading
-
-Use the style-loading mechanism already present in the app. For current Vaadin docs style:
+Recommended stack seam:
 
 ```java
-import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.component.page.StyleSheet;
-import com.vaadin.flow.theme.lumo.Lumo;
-
-@StyleSheet(Lumo.STYLESHEET)
-@StyleSheet(Lumo.UTILITY_STYLESHEET)
-@StyleSheet("styles.css")
-public class PiWebAppShell implements AppShellConfigurator {
+public final class ConversationEventReducer {
+    public ConversationUiDelta reduce(RunEventDto event) {
+        // run.status -> composer/run state
+        // model.delta with non-empty textDelta -> assistant token append
+        // model.delta with finishReason -> mark assistant complete
+        // provider/tool errors -> error bubble/status
+    }
 }
 ```
 
-If the existing app uses a Vaadin theme folder instead, do not churn solely to switch annotations. Put the mobile CSS into the existing theme and document the convention. The important requirement is one canonical place for responsive primitives.
+Then `ConsoleView.appendRunEvents(...)` should route events through the reducer instead of relying on generic `RunEventRenderer` for all event types.
 
-### Example Mobile-First CSS Tokens
+**Push vs poll recommendation:**
 
-```css
-/* Mobile defaults */
-.pi-page {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: var(--lumo-space-s);
-}
+| Option | Recommendation | Why |
+|--------|----------------|-----|
+| Vaadin `@Push` + `UI.access(...)` | Preferred after reducer exists | Vaadin docs support server push for updating UI from background threads; it gives real-time assistant bubble updates without waiting for the next poll tick. |
+| Current `setPollInterval(750)` | Acceptable fallback / first increment | Simple and already present. However, “real streaming” will feel chunky under poor latency and wastes polling when idle. |
+| Browser `EventSource` directly mutating DOM | Avoid for Vaadin component state | Existing `EventStreamClient` can produce an EventSource expression, but direct DOM mutation bypasses server-side Vaadin state and increases split-brain risk unless encapsulated as a custom component. |
+| WebSocket/STOMP | Do not add | Overkill. The app already has SSE and Vaadin push/poll; adding STOMP creates another realtime protocol to govern and test. |
 
-.pi-responsive-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--lumo-space-s);
-}
+Version-sensitive concern: Vaadin push requires enabling push at the UI/app shell level and respecting the Vaadin session lock. Background callbacks must use `UI.access(...)`; direct component mutation from runtime/dispatcher threads is unsafe. Validate deployment/proxy behavior because push uses Atmosphere/WebSocket/long-poll transports under Vaadin.
 
-.pi-card-list {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--lumo-space-s);
-}
+### 3. Multi-Turn Session Context
 
-@media (min-width: 640px) {
-  .pi-responsive-toolbar {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
+**Use:** App-layer context assembler + existing provider-neutral model request.
 
-@media (min-width: 768px) {
-  .pi-card-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+Current gap: `DynamicAgentRuntime` sends `new ModelRequest(context, List.of())`, which means the model adapter receives no prior conversation messages.
 
-@media (min-width: 1024px) {
-  .pi-page {
-    padding: var(--lumo-space-l);
-  }
-}
+Recommended implementation:
 
-@media (pointer: coarse) {
-  html {
-    --lumo-size-xl: 4rem;
-    --lumo-size-l: 3rem;
-    --lumo-size-m: 2.5rem;
-    --lumo-size-s: 2rem;
-    --lumo-size-xs: 1.75rem;
-  }
-}
-```
+1. Define a provider-neutral conversation message abstraction in Domain/App if one does not already exist for model requests.
+2. Add `SessionConversationContextAssembler` that reads current session transcript and returns bounded previous messages.
+3. Pass assembled messages into `ModelRequest` from runtime execution.
+4. Make context policy explicit:
+   - Include previous user/assistant turns, not raw operational events by default.
+   - Exclude redacted/sensitive tool payloads unless a future policy explicitly allows summaries.
+   - Apply max messages / token approximation / character budget before provider call.
+   - Include the new user message once, avoiding duplication if it is already persisted as current run input.
 
-The `@media (pointer: coarse)` sizing pattern is directly aligned with Vaadin size/space guidance for touchscreens.
+**Why:** This preserves the platform’s provider-neutral runtime design. It also keeps chat as a first product entry without binding Domain to a specific UI.
 
-### Example Playwright Java Mobile Context
+**Do not use:** Spring AI memory or vector/RAG memory for v1.2 multi-turn chat. Those are useful later for long-term semantic memory, but v1.2 needs deterministic session-local conversational history.
+
+### 4. Local Provider / Model Configuration Stability
+
+**Use:** Existing `ProviderConfigStore` + `SqliteLocalPersistence` + REST validation endpoint + Vaadin feedback.
+
+Current state:
+
+- `ProviderConfigStore` keeps an `AtomicReference` and writes SQLite provider config.
+- `ProviderConfigController` masks the API key and lists `/models` through `RestClient`.
+- `ConsoleView.createModelBar()` updates `modelId` directly and silently ignores refresh exceptions.
+- `DynamicAgentRuntime` caches the model client by `ProviderConfigStore.version()`.
+
+Recommended changes:
+
+| Change | Why |
+|--------|-----|
+| Add explicit `ProviderValidationResponse` with `ready`, `error`, `models`, `selectedModel`, `validatedAt` | Console needs clear “configured / not configured / invalid key / endpoint unavailable” feedback. |
+| Persist `last_validation_error` and `last_validated_at` locally if useful | Makes local profile stable after page reloads and helps troubleshooting. |
+| Normalize base URL and completions path before saving | Prevents subtle invalid endpoint combinations. Current `listModels()` computes `modelsUrl` but does not use it; keep URL handling simple and tested. |
+| Replace `version++` with `AtomicLong` or synchronized update if concurrent config edits become possible | Current volatile long is probably fine for local dev but not ideal under concurrent requests. |
+| Keep API key masked in all responses | Current masking is good; keep it. Add tests that full key never appears in UI/API. |
+| Add local DB indexes and targeted load methods | Current `loadEvents()` loads all events globally. Streaming restore should query by `run_id` and sequence. |
+
+**Do not add:** Vault/secret-manager integration in this milestone. The goal is local configuration stability; cloud secret governance is a separate platform/security milestone.
+
+## Integration Points with Existing Code
+
+| Existing Code | Current Role | Recommended v1.2 Integration |
+|---------------|--------------|-------------------------------|
+| `ConsoleView` | Orchestrates current Vaadin Console, selected session/run, polling, model selector | Keep as adapter UI coordinator, but move transcript/session querying into bridge/usecases. Add transcript restore on `selectSession()`. Replace generic model delta rendering with conversation reducer. |
+| `ChatEventStreamPanel` | Chat feed + composer, already appends assistant deltas into one active line | Evolve into a message-bubble component API: `replaceTranscript(...)`, `appendUserMessage(...)`, `beginAssistantMessage(runId)`, `appendAssistantDelta(...)`, `completeAssistantMessage(...)`, `showErrorBubble(...)`. Keep UI-only state here. |
+| `AppConsoleRunExecutionBridge` | Delegates session/run/event/cancel to App usecases | Extend or replace with `ConversationConsoleBridge` that also loads recent sessions and transcripts. Do not inject repositories directly into Vaadin views. |
+| `DynamicAgentRuntime` | Local profile runtime and OpenAI-compatible streaming client resolver | Inject/use a conversation context assembler or pass assembled messages through `RunContext`/`ModelRequest`. Stop passing `List.of()` once multi-turn is implemented. |
+| `DefaultRunQueryService` | Run-scoped detail/status/events/messages/tool-calls | Keep run query API, but add separate session/conversation query usecase. Do not overload run query service with product transcript concerns unless renamed/segmented cleanly. |
+| `SqliteLocalPersistence` | Custom local sessions/runs/events/provider_config tables | Add targeted methods and indexes: `loadSessionsOrderByUpdatedAt(limit)`, `loadRunsBySession(sessionId)`, `loadEventsByRun(runId, afterSequence, limit)`. Avoid global full-table load for conversation restore. |
+| `RunEventRenderer` | Generic runtime event cards | Keep for tool/status/debug surfaces. Do not use it as the primary assistant bubble renderer for `model.delta`. |
+| `EventStreamClient` / `RunEventStreamService` | Existing public SSE contract | Preserve for REST/SSE clients and tests. Vaadin UI may use App-layer polling/push internally, but public SSE should remain the external realtime contract. |
+
+## Architecture / Boundary Guidance
+
+### COLA Placement
+
+| Concern | Correct Layer | Notes |
+|---------|---------------|-------|
+| Recent-session query | App usecase + persistence port | UI asks for recent sessions through a usecase. Infrastructure/adapter implements local/JDBC storage. |
+| Transcript DTOs | Client module | Stable API for Vaadin, REST, future CLI/TUI. |
+| Transcript reduction policy | App layer | Product semantics: which events become messages. Keep provider-neutral. |
+| Model context assembly | App/Domain boundary | Should not depend on Vaadin, Spring MVC, SQLite, or OpenAI SDK classes. |
+| Bubble rendering | Adapter-web | Vaadin components and CSS only. |
+| Provider config UI | Adapter-web | UI and local profile configuration can remain adapter-web, but secrets must stay masked. |
+
+### Suggested Minimal API Shape
 
 ```java
-try (Playwright playwright = Playwright.create()) {
-    Browser browser = playwright.chromium().launch(
-            new BrowserType.LaunchOptions().setHeadless(true));
-    BrowserContext context = browser.newContext(new Browser.NewContextOptions()
-            .setViewportSize(390, 844)       // iPhone-class portrait viewport
-            .setScreenSize(390, 844)
-            .setDeviceScaleFactor(3)
-            .setIsMobile(true)
-            .setHasTouch(true)
-            .setColorScheme(ColorScheme.LIGHT));
-    Page page = context.newPage();
-    page.navigate(baseUrl + "/console");
-    // Assert key action is visible, no horizontal overflow, and product path works.
+public interface SessionQueryService {
+    PageResponse<SessionSummaryDto> listRecentSessions(RequestContext context, int limit);
+    ConversationTranscriptResponse getTranscript(RequestContext context, String sessionId, int limit);
+}
+
+public record ConversationMessageDto(
+        String messageId,
+        String sessionId,
+        String runId,
+        String role,          // user | assistant | tool | system-status
+        String text,
+        String status,        // complete | streaming | failed | cancelled
+        Instant createdAt,
+        Map<String, Object> metadata) {
+}
+
+public record ConversationTranscriptResponse(
+        String sessionId,
+        List<ConversationMessageDto> messages,
+        String activeRunId,
+        boolean hasMore) {
 }
 ```
 
-Run at least these viewport classes:
+Keep these DTOs provider-neutral and UI-neutral. Vaadin can render them, REST clients can consume them, and future TUI/CLI can reuse them.
 
-| Class | Suggested Size | Browser Context | Why |
-|-------|----------------|-----------------|-----|
-| Narrow phone portrait | `360x740` or `375x667` | Chromium mobile + touch | Catches worst-case width and old/small phones. |
-| Modern phone portrait | `390x844` or `393x873` | Chromium mobile + WebKit where available | Common iPhone/Android-class H5 shape. |
-| Phone landscape | `844x390` | Chromium mobile + touch | Catches short-height chat/timeline/action bar issues. |
-| Small tablet | `768x1024` | Chromium/WebKit | Ensures mobile/tablet breakpoints do not leave tablet in awkward desktop state. |
-| Desktop regression | Existing desktop viewport | Existing tests | Confirms mobile-first refactor did not break validated desktop flows. |
+## Risks and Mitigations
 
-## Integration Points in Existing App
-
-| Existing Area | Stack Integration | Recommendation |
-|---------------|------------------|----------------|
-| `pi-agent-adapter-web` | Vaadin views, Spring Boot app, E2E fixture | Keep all mobile UI code here. Add CSS resources and Playwright mobile tests here; do not leak UI concerns into public client DTOs or app/domain layers. |
-| App shell/navigation | Vaadin `AppLayout`, `DrawerToggle`, `SideNav`/navigation components | Rework navigation mobile-first: hamburger/drawer or bottom navigation for high-frequency Console actions; Admin pages can remain drawer-first but must be reachable and usable. |
-| Agent Catalog | Card/grid CSS + optional `VirtualList` | Mobile default should be single-column cards with primary CTA visible. Desktop can use multi-column grid. |
-| Chat/Run | `Scroller`, sticky composer/action bar, SSE event cards | Optimize for vertical reading and one-thumb actions. Avoid side-by-side transcript/timeline on phones. |
-| Run Timeline / Tool Cards / Approval Cards | Card list + expandable details | Replace dense desktop panels with progressive disclosure. Critical status/action must be visible without horizontal scroll. |
-| Session history | Search + card/list pattern | Avoid desktop table on phones. Use compact cards with last activity and resume action. |
-| Admin Governance pages | Responsive forms, Grid-to-card/detail strategy, filter drawer | Admin can be slightly denser than Console, but every critical governance action must be touch-completable. Hide secondary columns/actions behind details/overflow menus. |
-| REST/SSE DTO boundaries | No change | Mobile H5 is a presentation-layer adaptation. Do not fork APIs or introduce mobile-specific DTOs unless a proven performance issue emerges. |
-| Playwright E2E | Add mobile-tagged smoke/product tests | Reuse existing no-key fake model/tool/MCP/plugin fixtures. Add viewport/touch matrix and overflow assertions. |
-
-## Accessibility and Touch Considerations
-
-| Concern | Recommendation | Why |
-|---------|----------------|-----|
-| Tap targets | Ensure custom buttons, icon-only actions, timeline affordances, drawer items, and approval actions have comfortable touch area; use Lumo sizes and padding rather than tiny custom CSS | Mobile usability fails quickly when actions are visually present but hard to tap. Vaadin docs recommend larger elements for touchscreens. |
-| No hover-only behavior | Every tooltip/menu/secondary action must have tap and keyboard access | Phones do not have hover; hiding tool actions behind hover breaks H5. |
-| Focus and keyboard | Preserve tab order, focus indicators, Enter/Escape behavior in dialogs/drawers, and screen-reader labels for icon buttons | Vaadin components provide accessibility foundations, but custom wrappers/cards need explicit labels and semantics. |
-| Screen reader helper text | Use Lumo accessibility utilities such as screen-reader-only where appropriate | Lumo utility docs include accessibility helpers; use them for hidden labels and status context. |
-| Motion and live updates | Keep SSE/timeline updates readable; avoid auto-scrolling away from user context unless the user is at the bottom | Chat/run views with streaming events can become unusable on mobile if the viewport jumps unexpectedly. |
-| Color/contrast/dark mode | Test light and dark if dark mode is supported; avoid color-only status | Lumo supports theme tokens; status should include text/icon labels. |
-| Safe area and sticky bars | Test iOS Safari/WebKit-like contexts for sticky composer and bottom approval actions | Bottom browser chrome and dynamic viewport heights are common H5 failure points. |
-
-## Alternatives Considered
-
-| Recommended | Alternative | Why Not / When Alternative Makes Sense |
-|-------------|-------------|----------------------------------------|
-| Vaadin Flow responsive refactor | React/Next.js mobile frontend | Not appropriate for this milestone. It violates the no React/Next.js constraint, duplicates API/client state, and creates a second frontend platform for a UI that Vaadin can adapt. |
-| Vaadin 24.x latest patch | Vaadin 25 | Vaadin 25 search evidence indicates Spring Boot 4.0.4+ and Java 21 baseline. The current stack is Boot 3.5.x; major upgrade adds unrelated framework migration risk. Revisit in a later platform upgrade milestone. |
-| Lumo utilities + project CSS | Tailwind CSS in Vaadin | Vaadin docs list Tailwind support as experimental and mutually exclusive with Lumo utility classes. It adds utility-class churn and potentially a different design language; use Lumo for this app. |
-| Mobile browser emulation with Playwright Java | Node Playwright Test project | Java Playwright integrates with existing Maven/JUnit/Spring fixtures and avoids adding Node test orchestration. Node Playwright is excellent generally but unnecessary here. |
-| Responsive single Vaadin UI | Separate mobile-only routes/UI | Separate UI doubles view code and creates divergence. Use separate mobile-specific components only for isolated cases where responsive design is clearly insufficient. |
-| Vaadin typed components | Native HTML inputs | Vaadin docs recommend Vaadin fields over native inputs when min/max/disabled options/logic matter; typed Vaadin fields still trigger appropriate mobile keyboards where supported. |
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Deltas become separate bubbles/cards | Chat feels broken and not Kimi-like | Add `ConversationEventReducer` tests: multiple `model.delta` events for one run produce one assistant message. |
+| Session restore reconstructs incomplete/incorrect transcript | Users cannot trust history | Build transcript from persisted events/run inputs with deterministic ordering; add golden tests for user → assistant delta → finish, error, cancel. |
+| Multi-turn sends duplicate current prompt | Model repeats or behaves oddly | Context assembler test should verify current input appears exactly once. |
+| Raw tool/audit payload enters model context | Security/privacy regression | Default context assembler should include only user/assistant conversational text and safe tool summaries when explicitly allowed. |
+| Vaadin push mutates UI from wrong thread | Runtime errors/session lock issues | Use `UI.access(...)`; detach listeners should unsubscribe/cancel callbacks. Keep poll fallback until push path is proven. |
+| SQLite local queries become slow or stale | Local Console feels unreliable | Add indexes and query by session/run; avoid `loadEvents()` global scan. Use SQLite UPSERT (`ON CONFLICT`) where update semantics matter. |
+| Provider config errors are swallowed | Users see no response and cannot fix setup | Surface validation errors in model bar/composer; keep no-config fallback response but make “not configured” actionable. |
+| Config changes during active run | Mixed model/provider state | Snapshot provider/model ref at run creation and display it on assistant bubble/run metadata. Do not let mid-run selector changes mutate an active run. |
 
 ## What NOT to Add
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| React, Next.js, Vite React app, Hilla React frontend | Creates a second frontend architecture and violates milestone constraints. Mobile-first H5 can be done in Vaadin Flow. | Vaadin Flow views + Lumo/project CSS + Playwright mobile E2E. |
-| Native iOS/Android app, Capacitor, Cordova, Flutter, React Native | This milestone is H5 adaptation, not app-store/mobile-app delivery. Native wrappers hide web responsiveness problems instead of fixing them. | Responsive web app tested in mobile browser contexts. |
-| Tailwind CSS | Vaadin docs say Tailwind support is experimental and mutually exclusive with Lumo utilities. It is not needed for this Java-first app. | Lumo Utility Classes + small project CSS classes. |
-| Vaadin 25 migration | Pulls Spring Boot 4/Jackson 3 ecosystem migration into a mobile UI milestone. | Stay on Vaadin 24.x; upgrade only to latest compatible 24 patch. |
-| Desktop tables squeezed onto phone screens | Horizontal scroll makes admin and run views unusable on H5. | Card/detail layouts, hidden low-priority columns, filter drawers, progressive disclosure. |
-| Hover-dependent toolbars | Breaks touch devices. | Always-visible primary actions and tap-accessible overflow menus. |
-| CSS-only patching without IA/layout refactor | The project requirement is mobile-first information architecture, not minor responsive tweaks. | Reusable mobile page templates and component-level layout variants. |
-| Mobile-specific REST/SSE DTOs by default | Adds API divergence and risks breaking public client boundaries. | Keep current DTOs; optimize UI rendering and pagination/filtering first. |
-| Visual-only testing | Responsive regressions often pass server tests. | Playwright product-path tests with mobile viewport/touch and overflow assertions. |
+| Do Not Add | Why Not | Use Instead |
+|------------|---------|-------------|
+| React/Next.js/Hilla React frontend | Violates all-Java/Vaadin-first milestone direction, duplicates client state, adds new build/runtime surface | Vaadin Flow components + CSS + Playwright Java tests. |
+| Mobile-only API fork | Creates DTO divergence and future CLI/TUI confusion | Product-level conversation DTOs usable by all clients. |
+| WebFlux rewrite | Existing app is Spring MVC/Vaadin servlet stack with working SSE; rewrite does not solve transcript/context gaps | Keep Spring MVC `SseEmitter` and Vaadin push/poll. |
+| WebSocket/STOMP stack | Adds another realtime protocol to secure, test, and operate | Existing SSE for public API; Vaadin push/poll for server-side UI updates. |
+| Kafka/Redis event bus | Not needed for single-node/local v1.2 productization | Existing persistence + in-process event fanout/poll. Revisit for horizontal scale. |
+| Vector DB / long-term memory | Multi-turn session context does not require semantic memory | Session transcript + bounded context assembler. |
+| LangChain4j/LangGraph for chat history | Duplicates project-owned runtime abstractions and adds concept churn | Project-owned conversation context assembler. |
+| JPA/Hibernate for transcript | Existing persistence is JDBC/custom SQLite; ORM migration is unrelated risk | Explicit JDBC/SQLite queries and DTO assemblers. |
+| Native mobile app/PWA offline cache | Out of scope; v1.2 is Console productization in existing H5/Vaadin app | Responsive Vaadin Console with stable local persistence. |
+| Full secret manager/Vault | Important later, but not required for local provider config stabilization | Masked local config + validation + tests. |
 
-## Stack Patterns by Variant
+## Version-Sensitive Concerns
 
-**Console user flows (Agent Catalog, Chat/Run, Session history):**
-- Use single-column card/list layouts by default.
-- Use sticky bottom composer or primary action zones where needed.
-- Use `Scroller` for transcript/timeline regions.
-- Because these are high-frequency mobile workflows and must feel natural on phones.
+| Component | Current | Recommendation | Notes |
+|-----------|---------|----------------|-------|
+| Vaadin | **24.8.4** | Stay on 24.x | Vaadin 24 docs support server push and UI updates. Do not move to Vaadin 25 because it implies broader platform upgrade risk. |
+| Spring Boot | **3.5.9** | Stay on 3.5.x | Boot 3.5 aligns with current Vaadin/Spring AI stack. |
+| Spring AI | **1.1.5** | Stay on 1.1.x | Multi-turn context should be project-owned; do not wait for or depend on Spring AI 2.x memory changes. |
+| SQLite JDBC | **3.47.1.0** | Keep unless security patch needed | SQLite supports UPSERT via `ON CONFLICT`; use explicit indexes and targeted queries. |
+| Vaadin Push | BOM-managed | Enable only after tests cover it | Requires `@Push`/app shell config and correct `UI.access` usage. Proxies and test server behavior must be validated. |
 
-**Admin Governance flows:**
-- Use mobile filter drawers, one-column forms, expandable cards/details for Grid rows, and explicit overflow action menus.
-- Keep full Grids only for tablet/desktop widths.
-- Because admin pages contain dense data, but critical actions still need H5 operability.
+## Verification Recommendations
 
-**Run timeline/tool execution views:**
-- Use event cards with severity/status badges and expandable payload sections.
-- Make approval cards sticky/visible when waiting for user input.
-- Because agent runs are event streams; mobile users need status/action clarity more than raw density.
+Add no-key automated gates in `pi-agent-adapter-web` and App tests:
 
-**Cross-browser verification:**
-- Chromium mobile context on every PR.
-- WebKit mobile context in CI if supported, otherwise scheduled/manual gate for release.
-- Firefox mobile-width smoke for product target validation.
-- Because Playwright emulates many device properties, but real iOS Safari remains the highest-risk H5 browser.
-
-## Version Compatibility
-
-| Package / Tool | Compatible With | Notes |
-|----------------|-----------------|-------|
-| Vaadin 24.x | Spring Boot 3.5.x, Java 17+; project uses Java 21 | Vaadin 24.10 release notes/search evidence list Spring Boot 3.5+ from the 3.x series and Java 17+. Current project Java 21 is fine. |
-| Vaadin 25 | Spring Boot 4.0.4+, Java 21+ | Do not adopt in this milestone; it is a platform upgrade, not an H5 adaptation prerequisite. |
-| Lumo Utility Classes | Lumo theme | Vaadin docs: Lumo utilities work with Lumo, not Aura; Tailwind and Lumo utilities are mutually exclusive. |
-| Playwright Java 1.60.0 | Java test runtime, Maven/JUnit | Maven Central search verified 1.60.0; Playwright docs also show release notes beyond 1.60, so check Maven Central before pinning in implementation. |
-| Playwright WebKit | CI OS/browser dependencies | Use as iOS Safari proxy, but keep real-device/manual UAT if CI cannot reliably run WebKit. |
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Vaadin responsive APIs/patterns | HIGH | Verified through Context7 and official Vaadin responsiveness docs: mobile-first guidance, AppLayout, FormLayout, dialogs, tabs, media/container queries, Lumo utilities. |
-| CSS/theme loading details | MEDIUM-HIGH | Current Vaadin docs emphasize `@StyleSheet`; existing Vaadin 24 apps may still use theme folders. Recommendation is intentionally compatible with either convention. |
-| Vaadin version target | MEDIUM-HIGH | Current repo has 24.8.4. Search evidence shows 24.10.7 latest Vaadin 24 and Vaadin 25 requiring Boot 4. Validate exact patch in Maven before implementation. |
-| Playwright mobile emulation | HIGH | Official Playwright Java docs verify `viewport`, `screenSize`, `deviceScaleFactor`, `isMobile`, `hasTouch`, `userAgent`, locale/timezone/colorScheme support. |
-| Real mobile browser parity | MEDIUM | Emulation catches most layout/touch issues but cannot fully replace real iOS Safari/Android browser UAT for viewport chrome and OS behavior. |
+1. **Transcript reducer unit tests**: user input + model deltas + finish produce exactly two visible messages.
+2. **Session restore App test**: create two sessions, multiple runs, select older session, transcript order is stable.
+3. **Multi-turn context test**: second run includes prior user/assistant turn and current prompt once.
+4. **Provider config persistence test**: update provider/model, reload store from SQLite, masked API response never exposes full key.
+5. **Vaadin UI test**: send prompt, observe assistant bubble text append incrementally, reload/select session, messages restore.
+6. **Error/cancel UI test**: provider error and cancelled run update existing assistant/status bubble rather than leaving indefinite “running”.
+7. **Mobile/desktop regression**: keep existing H5 viewport matrix; add assertions for history drawer/list and chat composer still usable.
 
 ## Sources
 
-- Context7 `/vaadin/flow` — Vaadin Flow CSS/resource loading, full-height bootstrap CSS, iOS standalone height fix.
-- Context7 `/websites/vaadin` — Vaadin responsiveness, responsive component behaviors, FormLayout responsive steps, Lumo utility classes.
-- Vaadin official docs, Responsiveness, updated 2025-03-24: https://vaadin.com/docs/latest/designing-apps/responsiveness — mobile-first guidance, media/container queries, AppLayout/FormLayout/Dialog/Tabs/Menu responsive behavior, Lumo mobile-first breakpoints.
-- Vaadin official docs, Utility Classes, updated 2025-12-18: https://vaadin.com/docs/latest/styling/utility-classes — Lumo utility loading with `@StyleSheet(Lumo.UTILITY_STYLESHEET)`, Tailwind experimental, Tailwind and Lumo utilities mutually exclusive.
-- Vaadin official docs/search result, Size and Space: https://vaadin.com/docs/latest/designing-apps/size-space — touch sizing via Lumo custom properties and `@media (pointer: coarse)`.
-- Vaadin roadmap/search evidence: https://vaadin.com/roadmap — Vaadin 24 stable production line, latest 24.10.7 observed; Vaadin 25/Spring Boot 4 evidence from Vaadin platform releases search.
-- Playwright Java official docs, Emulation: https://playwright.dev/java/docs/emulation — `setViewportSize`, `setScreenSize`, `setDeviceScaleFactor`, `setIsMobile`, `setHasTouch`, locale/timezone/permissions/colorScheme.
-- Context7 `/microsoft/playwright-java` — Java browser launch/context examples and cross-browser screenshots.
-- Maven Central search evidence for `com.microsoft.playwright:playwright` — version 1.60.0 observed 2026-05-19; verify latest before final pinning.
-
----
-*Stack research for: mobile-first H5 support in existing Vaadin Flow app*  
-*Researched: 2026-06-20*
+- Project files read 2026-06-28: `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `ConsoleView.java`, `ChatEventStreamPanel.java`, `AppConsoleRunExecutionBridge.java`, `DynamicAgentRuntime.java`, `DefaultRunQueryService.java`, root and adapter-web `pom.xml`.
+- Vaadin 24 official docs: Server Push / pushing UI updates and advanced server push configuration. Confidence: **HIGH** for Vaadin push/`UI.access` direction; exact app configuration should be validated in implementation.
+- Spring Framework official docs: Spring MVC asynchronous requests and SSE support via Servlet async processing. Confidence: **HIGH** for keeping Spring MVC/SSE.
+- SQLite official docs: UPSERT `ON CONFLICT` behavior and limitations. Confidence: **HIGH** for SQLite local persistence hardening guidance.
+- Existing code evidence: `DynamicAgentRuntime` publishes `MODEL_DELTA`; `DefaultRunQueryService` maps `textDelta`; `ChatEventStreamPanel` supports assistant-line append; `ConsoleView` currently polls and lacks transcript restore; `SqliteLocalPersistence` currently has basic local tables but no targeted session/run/event query methods.

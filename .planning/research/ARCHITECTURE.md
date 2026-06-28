@@ -1,547 +1,599 @@
-# Architecture Research: Mobile-First H5 Adaptation
+# Architecture Research: Console Conversation Productization
 
 **Project:** Pi Java Agent Platform  
-**Domain:** Java/Vaadin Agent Web Console and Admin Governance mobile-first H5 adaptation  
-**Researched:** 2026-06-20  
-**Confidence:** HIGH for architecture boundaries and Vaadin/Playwright integration; MEDIUM for exact class/file names until implementation inventory is finalized.
+**Milestone:** v1.2 Console 对话产品化  
+**Researched:** 2026-06-28  
+**Scope:** Integration architecture for historical sessions, restored messages, real streaming assistant bubble, multi-turn context, and local provider/model stability in the existing Java/Vaadin/COLA platform.  
+**Overall confidence:** **HIGH** for current-code integration points and COLA boundary recommendations; **MEDIUM-HIGH** for the exact class names because the roadmap may choose smaller or larger increments; **LOW** for any broad market/UX claim not directly tied to existing code.
 
-## Executive Recommendation
+## Summary
 
-Integrate mobile-first H5 support as a **Vaadin adapter-layer refactor**, not as a new frontend product, not as public API expansion, and not as runtime/domain work. The existing COLA boundary should remain unchanged: `pi-agent-domain`, `pi-agent-app`, `pi-agent-client`, infrastructure modules, REST DTOs, SSE event envelopes, `ConsoleHttpClient`, and `EventStreamClient` are stable inputs. The milestone should modify the Vaadin view/layout/component composition in `pi-agent-adapter-web`, add a project theme/CSS asset set, and extend Playwright E2E with mobile viewport/browser projects.
+v1.2 should add a **conversation product layer** on top of the existing run/session/event platform, not fork the Console into a mobile-era UI or create Vaadin-only history behavior. The platform already has the right primitives: COLA layering, session/run command/query services, persisted run projections, run event history, Spring MVC REST/SSE DTOs, a Vaadin Console route, local SQLite-backed repositories, and `DynamicAgentRuntime` streaming `model.delta` events. The missing architecture is the glue that turns those primitives into a coherent conversation: recent session summaries, typed transcript projection, run-event-to-bubble reduction, bounded session context assembly, and provider/model readiness snapshots.
 
-The primary architectural change is **presentation structure**, not data flow. Existing pages are desktop-first and class-driven (`pi-console-workbench`, `pi-console-sessions`, `pi-console-chat`, `pi-console-run-context`, `pi-admin-*`). Mobile-first adaptation should introduce a shared responsive shell, reusable mobile primitives, and CSS breakpoints that transform wide multi-column views into single-column, drawer/tabs/accordion/card flows. REST/SSE/read-model contracts should not change unless a specific page cannot render efficiently from existing DTOs; even then, prefer read-model projection changes behind existing client boundaries rather than UI-specific domain changes.
+The most important design decision is to **make conversation state an App/client read model**, not a Vaadin component state. `ConsoleView` may coordinate the UI, but it must not infer durable history from `ChatEventStreamPanel.messages()` or reconstruct model context from rendered text. The App layer should expose provider-neutral, UI-neutral DTOs such as `SessionSummaryDto`, `ConversationTranscriptResponse`, and `ConversationMessageDto`. Vaadin renders them; REST/SSE clients can reuse them; future CLI/TUI clients are not forced to reverse-engineer Vaadin behavior.
 
-The recommended build order is: baseline responsive theme and test harness first, shared shell/navigation second, console workbench third, cards/timeline/approval interaction fourth, admin governance pages fifth, and finally cross-device hardening. This order creates a measurable mobile acceptance gate before high-volume page work, then tackles the most user-critical path before broad admin coverage.
+Real streaming should preserve the existing public `RunEventDto` / `EventHistoryResponse` boundary while adding a Console-specific adapter reducer. The public contract remains run events and replay-before-subscribe SSE. The Vaadin Console should reduce `model.delta`, terminal lifecycle events, errors, and cancellation into a single mutable assistant bubble keyed by `sessionId + runId + stepId/messageId`. Polling every 750 ms can remain a fallback, but the target product architecture is Vaadin Push or an equally explicit live event subscription path using `UI.access(...)` and detach cleanup.
 
-## Standard Architecture
+Multi-turn context should be assembled from the same canonical transcript, with a bounded turn/token/character policy, and inserted into `RunContext.sessionContext()` or a provider-neutral model-request message list before `DynamicAgentRuntime` calls the model. The current `DefaultRunDispatcher.sessionContext()` returns empty lists and `DynamicAgentRuntime` sends `new ModelRequest(context, List.of())`; v1.2 must close that seam in App/Infrastructure/runtime code, not in `ConsoleView`.
 
-### System Overview
+This document intentionally replaces stale v1.1 mobile architecture. The milestone is **not** “adapt mobile APIs to Console”; it is “productize conversation using general platform boundaries”.
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Browser / H5 Clients                         │
-│  Mobile Chrome / Mobile Safari / Edge / Firefox / Tablet / Desktop   │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │ HTTP + Vaadin client engine + SSE
-┌───────────────────────────────▼─────────────────────────────────────┐
-│ pi-agent-adapter-web                                                 │
-│                                                                       │
-│  ┌──────────────────────┐   ┌─────────────────────────────────────┐  │
-│  │ Responsive Shell      │   │ Vaadin Routes / Views               │  │
-│  │ - app header          │   │ - ConsoleView                       │  │
-│  │ - mobile nav drawer   │   │ - Agent Catalog                     │  │
-│  │ - admin nav           │   │ - Chat/Run/Timeline/Approvals       │  │
-│  └──────────┬───────────┘   │ - Admin Governance pages             │  │
-│             │               └─────────────────┬───────────────────┘  │
-│  ┌──────────▼─────────────────────────────────▼───────────────────┐  │
-│  │ Shared Mobile UI Primitives                                      │  │
-│  │ - PageScaffold, ResponsiveSection, MobileActionBar               │  │
-│  │ - cards, status chips, collapsible details, touch-safe buttons    │  │
-│  └──────────┬──────────────────────────────────────────────────────┘  │
-│             │                                                         │
-│  ┌──────────▼──────────────────────────────────────────────────────┐  │
-│  │ Theme and CSS Assets                                             │  │
-│  │ frontend/themes/pi-agent/styles.css                              │  │
-│  │ responsive.css, console.css, admin.css, components.css            │  │
-│  └──────────┬──────────────────────────────────────────────────────┘  │
-│             │                                                         │
-│  ┌──────────▼───────────┐       ┌──────────────────────────────────┐  │
-│  │ ConsoleHttpClient     │       │ EventStreamClient                │  │
-│  │ REST/read-model paths │       │ SSE run event stream paths       │  │
-│  └──────────┬───────────┘       └──────────────┬───────────────────┘  │
-└─────────────┼──────────────────────────────────┼──────────────────────┘
-              │                                  │
-┌─────────────▼──────────────────────────────────▼──────────────────────┐
-│ Existing public REST/SSE and COLA application/runtime layers            │
-│ pi-agent-client DTOs → App services → Domain runtime → Infrastructure   │
-└────────────────────────────────────────────────────────────────────────┘
-```
+## Current Architecture Evidence
 
-### Component Responsibilities
+| Area | Current Evidence | Architectural Meaning |
+|------|------------------|-----------------------|
+| Console UI | `ConsoleView` owns `selectedSessionId`, `activeRunId`, `activeRunNextAfterSequence`, polls every 750 ms, and `selectSession()` only returns a history path. | Current conversation continuity is mostly view-local. Session selection is not transcript restore. |
+| Chat feed | `ChatEventStreamPanel` stores `List<String> messages`, clears empty state on first append, and aggregates assistant chunks via one `activeAssistantLine`. | Good starter for visual bubbles, but not durable history or stable stream aggregation. |
+| Bridge | `AppConsoleRunExecutionBridge` delegates create session/run, list events, cancel to App services. | Correct adapter seam exists; extend it rather than injecting repositories into Vaadin. |
+| Run command | `DefaultRunCommandService.createRun()` persists a run, enqueues `QueuedRun`, and records audit. | Run creation is already App-layer orchestration; model/provider snapshots and user input persistence should be added here/repository-side, not UI-only. |
+| Run query | `DefaultRunQueryService.listEvents()` maps `RunEvent` to `RunEventDto`, including `textDelta`, `modelRef`, provider/model IDs, finish reason, and tool-safe summaries. | Existing event DTO is sufficient for public streaming/replay; add conversation projection above it. |
+| Local profile | `LocalDevRuntimeBeanConfiguration.LocalDevStores.history()` returns empty entries; SQLite loads all sessions/runs/events globally. | Local history restore is not product-ready; add same ports/read-model semantics to local profile. |
+| Runtime context | `DefaultRunDispatcher.sessionContext()` returns empty message/artifact lists. | Multi-turn context has no injection point yet beyond the existing `SessionContext` record. |
+| Dynamic runtime | `DynamicAgentRuntime.start()` streams with `new ModelRequest(context, List.of())`, publishes fallback text if unconfigured, and `cancel()` is empty. | Real model calls are stateless today; provider fallback exists but must be labeled and included in transcript safely. |
+| Existing REST | `SessionController` has `GET /api/sessions/{sessionId}/history` returning generic `SessionHistoryResponse(List<Map<String,Object>> entries)`. | Preserve route compatibility if useful, but add typed conversation DTOs instead of rendering raw maps. |
 
-| Component | Status | Responsibility | Typical Implementation |
-|-----------|--------|----------------|------------------------|
-| `pi-agent-adapter-web` Vaadin routes | **Modified** | Convert existing Console/Admin pages from desktop-first composition to mobile-first H5 composition. | Java Vaadin Flow views/components plus CSS class hooks. |
-| `MainConsoleLayout` / admin layout shell | **Modified** | Become a responsive application shell: compact header, mobile drawer/tabs, desktop navigation, safe content container. | Vaadin `AppLayout`/drawer-style composition or equivalent Flow layout; keep Java-first. |
-| `ConsoleView` | **Modified** | Replace fixed three-column workbench with responsive mode: mobile order `chat → run context → sessions/catalog` with drawer/sections; desktop can keep three columns. | Keep `ConsoleHttpClient` and `EventStreamClient`; change layout and CSS hooks only. |
-| Console panels (`SessionListPanel`, `AgentCatalogPanel`, `ChatEventStreamPanel`, `RunContextPanel`) | **Modified** | Make panels independently usable in narrow containers; avoid assumptions that sibling columns are visible. | Add semantic class names, compact states, collapsible sections, sticky input/action regions. |
-| Cards (`AgentCard`, `ToolCallCard`, `ApprovalCard`) | **Modified** | Become touch-safe, readable mobile cards; long payloads wrap or collapse; destructive actions are reachable but guarded. | Vaadin `Div`, `Button`, `Details`/custom collapsible sections, Lumo utility classes, CSS. |
-| Admin Governance views (`Admin*View`) | **Modified** | Render operational data as stacked cards/sections on mobile, tables/grids on wide screens where useful. | Shared admin page scaffold plus card/detail components. |
-| Vaadin theme assets | **New** | Central mobile-first responsive design system for this app. | `src/main/frontend/themes/pi-agent/` or Vaadin-supported theme resource location, with `styles.css` imports. |
-| Responsive Java helper primitives | **New** | Reduce repeated mobile layout code and make tests target stable hooks. | `ui/component/PageScaffold`, `ResponsiveCard`, `StatusBadge`, `MobileActionBar`, etc. |
-| Playwright mobile projects/specs | **Modified + New** | Verify mobile viewports/browser emulation, no horizontal overflow, touch interactions, critical user/admin paths. | Extend `playwright.config.ts`; add `e2e/mobile-h5.spec.ts` or per-surface specs. |
-| `pi-agent-client` DTOs | **Unchanged by default** | Remain public REST/read-model contract. | No mobile-specific DTOs unless proven necessary. |
-| `ConsoleHttpClient` / `EventStreamClient` | **Unchanged by default** | Remain the only UI data access boundaries for REST/SSE. | May add path helpers only if existing route coverage is missing, not for layout. |
-| App/Domain/Infrastructure modules | **Unchanged** | Agent runtime, governance, tool/MCP/plugin/model functionality. | No mobile-specific dependencies or conditionals. |
+## Recommended Architecture
 
-## Recommended Project Structure
-
-Keep all mobile-first work in `pi-agent-adapter-web` plus root E2E config/specs:
+### Layered Shape
 
 ```text
-pi-agent-adapter-web/
-├── src/main/java/io/github/pi_java/agent/adapter/web/ui/
-│   ├── MainConsoleLayout.java                 # modify into responsive shell
-│   ├── AdminGovernanceLayout.java             # modify into responsive admin shell/nav
-│   ├── component/                             # new shared mobile/responsive primitives
-│   │   ├── PageScaffold.java
-│   │   ├── ResponsiveSection.java
-│   │   ├── ResponsiveCard.java
-│   │   ├── StatusBadge.java
-│   │   └── MobileActionBar.java
-│   ├── console/                               # modify existing panels/cards
-│   │   ├── ConsoleView.java
-│   │   ├── SessionListPanel.java
-│   │   ├── AgentCatalogPanel.java
-│   │   ├── ChatEventStreamPanel.java
-│   │   ├── RunContextPanel.java
-│   │   ├── ToolCallCard.java
-│   │   └── ApprovalCard.java
-│   └── admin/                                 # modify existing governance views
-│       ├── AdminGovernanceOverviewView.java
-│       ├── AdminOperationsView.java
-│       ├── AdminRegistryStatusView.java
-│       ├── AdminPolicyDecisionsView.java
-│       ├── AdminAuditView.java
-│       └── AdminApprovalQueueView.java
-├── src/main/frontend/themes/pi-agent/          # new Vaadin theme assets
-│   ├── styles.css                              # imports global theme files
-│   ├── tokens.css                              # spacing, touch target, breakpoints
-│   ├── responsive.css                          # shell and generic responsive rules
-│   ├── console.css                             # console workbench/panels/cards
-│   ├── admin.css                               # governance pages/cards/lists
-│   └── components.css                          # status chips, badges, action bars
-└── src/test/java/...                           # modify/add unit tests for classes/hooks
-
-playwright.config.ts                            # add mobile/tablet projects
-e2e/
-├── phase-05-web-console.spec.ts                # keep desktop regression
-├── phase-07-mcp-governance.spec.ts             # keep existing governance smoke
-├── phase-08-plugin-governance.spec.ts          # keep existing governance smoke
-├── phase-09-operations-governance.spec.ts      # keep existing operations smoke
-└── mobile-h5.spec.ts                           # new cross-surface mobile acceptance
+Adapter Web (Vaadin + REST/SSE)
+  ConsoleView
+  ChatEventStreamPanel
+  ConversationEventReducer / ChatStreamAggregator
+  ConversationConsoleBridge (extends current AppConsoleRunExecutionBridge)
+  SessionController / optional ConversationController
+        |
+        v
+App Layer (Use cases + assemblers)
+  SessionQueryService.listRecentSessions(...)
+  ConversationQueryService.getTranscript(...)
+  ConversationTranscriptAssembler
+  SessionConversationContextAssembler
+  RunCommandService.createRun(...) [pin model/provider + current user input]
+        |
+        v
+Domain / Runtime Core
+  SessionContext with provider-neutral message entries
+  ModelRequest / RunContext carrying bounded history
+  RunEvent / RunEventPayload.ModelDeltaPayload
+  AgentRuntime remains Vaadin/Spring/SQLite-free
+        ^
+        |
+Infrastructure
+  JDBC/PostgreSQL repositories
+  local SQLite repository/profile implementation
+  RunEventStore / RunProjectionRepository / SessionRepository extensions
+  DynamicAgentRuntime and OpenAI-compatible adapter
 ```
 
-### Structure Rationale
+### Architectural Principle
 
-- **No new frontend module:** The project explicitly avoids React/Next.js or a separate mobile app. Vaadin Flow supports Java-first UI, global/theme CSS, component CSS imports, Lumo utility classes, and responsive layouts.
-- **Theme assets centralized:** Responsive behavior must be consistent across Console and Admin. Scattered inline styles or per-view one-off media queries will regress quickly.
-- **Shared primitives in Java:** A `ResponsiveCard`/`PageScaffold` layer keeps Java/Vaadin composition readable and makes unit tests assert stable class names and data attributes.
-- **E2E outside adapter module stays:** Current Playwright setup is root-level; extend it rather than adding a second browser-test system.
+Use **one canonical conversation projection** for three consumers:
 
-## Architectural Patterns
+1. **UI restore** — selected session hydrates bubbles from persisted conversation messages.
+2. **Model context** — next run receives bounded prior user/assistant/tool-summary turns derived from the same projection.
+3. **Public clients** — REST/CLI/TUI can consume typed transcript/session summaries without Vaadin or mobile-specific DTOs.
 
-### Pattern 1: Adapter-Only Mobile Refactor
+Do **not** create separate history logic for Vaadin, mobile, local SQLite, and REST. That would make restore, context, and audit disagree.
 
-**What:** Mobile adaptation changes Vaadin layout/component composition and theme CSS; it does not change runtime, tool governance, MCP/plugin infrastructure, or public event semantics.
+## Component Boundaries
 
-**When to use:** This milestone. The product already has validated public REST/SSE/read-model contracts and `ConsoleHttpClient`/`EventStreamClient` boundaries.
+| Component | New / Modified | Layer | Responsibility | Communicates With |
+|-----------|----------------|-------|----------------|-------------------|
+| `SessionSummaryDto` | New | `pi-agent-client` | Stable recent-session item: session id, title, status, last message preview, updated time, active run id/status, provider/model snapshot. | App query, REST, Vaadin, future CLI/TUI. |
+| `ConversationMessageDto` | New | `pi-agent-client` | Stable transcript item: role, text, status, session/run/step refs, sequence range, created/updated time, metadata, redaction. | Transcript API, Vaadin renderer, context assembler tests. |
+| `ConversationTranscriptResponse` | New | `pi-agent-client` | Typed replacement/projection for raw `SessionHistoryResponse.entries`; includes messages, active run, cursor/hasMore. | Conversation query service and adapters. |
+| `ConversationQueryService` or expanded `SessionQueryService` | New/Modified | App | List recent sessions and load typed transcript. Prefer a dedicated `ConversationQueryService` if `SessionQueryService` would become too broad. | Repositories, transcript assembler, REST/Vaadin bridge. |
+| `ConversationTranscriptAssembler` | New | App | Reduce persisted runs/events/messages into ordered user/assistant/tool/status transcript. Coalesce model deltas by run/step. | `RunProjectionRepository`, `RunEventStore`, `SessionRepository`. |
+| `SessionConversationContextAssembler` | New | App or Domain-facing App service | Build bounded provider-neutral history for the next run. Applies role filter, redaction, token/char/window budget. | Transcript assembler, dispatcher/runtime context. |
+| `ConversationContextPolicy` | New | Domain/App | Explicit budget policy: max turns, max chars/tokens approximation, tool summary inclusion, truncation metadata. | Context assembler, tests, optional UI disclosure. |
+| `ConversationConsoleBridge` | Modified/new from `AppConsoleRunExecutionBridge` | Adapter Web | Vaadin-facing facade: create/reuse session, create run, list live events, list recent sessions, load transcript, cancel. | App use cases only. No direct repositories. |
+| `ConsoleView` | Modified | Adapter Web | UI coordinator only: load recent sessions on attach, select session, hydrate chat panel, submit, subscribe/poll live events. | Bridge, reducer, Vaadin components. |
+| `ChatEventStreamPanel` | Modified | Adapter Web | Bubble component API: clear/replace transcript, append user, begin assistant, append delta, mark terminal, show tool/error cards. | `ConsoleView` and reducer. Stores UI state only. |
+| `ConversationEventReducer` / `ChatStreamAggregator` | New | Adapter Web, with App-level unit-testable logic if useful | Convert `RunEventDto` into UI deltas. Idempotent by event id/sequence; keyed by session/run/step/message. | `ConsoleView`, `ChatEventStreamPanel`, `RunEventDto`. |
+| `RunProjectionRepository` extensions | Modified | App port + Infrastructure | Query runs by session ordered by time; get active/latest run; filter by tenant/user/session. Store run input and provider/model snapshot. | App assemblers, JDBC/SQLite impls. |
+| `RunEventStore` extensions | Modified | App port + Infrastructure | Query events by run(s) and session with ownership filters; avoid `runId`-only leak. | Query service, transcript assembler, live event replay. |
+| `SessionRepository` extensions | Modified | App port + Infrastructure | List recent sessions by tenant/user and update session summary metadata. | Session query, transcript restore, local profile. |
+| `DefaultRunDispatcher` | Modified | Infrastructure execution | Build non-empty `SessionContext` before runtime start; pass context and cancellation faithfully. | Context assembler, runtime. |
+| `DynamicAgentRuntime` | Modified | Adapter Web local runtime | Use `RunContext.sessionContext().messages()` or model-request history; label fallback; cancel stream if token requested. | Model client, EventSink, provider config. |
+| `SqliteLocalPersistence` | Modified | Adapter Web local infra | Add indexes and targeted loads for sessions/runs/events; keep behavior aligned with App ports. | LocalDevStores repositories. |
+| Provider config response/readiness | Modified | Adapter Web/client DTO | Surface ready/error/masked key/model list/selected model; pin model at run creation. | Vaadin model bar, provider config store/controller. |
 
-**Trade-offs:** This limits opportunities for mobile-specific backend shortcuts, but protects future CLI/TUI/API clients and avoids UI-driven domain drift.
+## Data Flow Changes
 
-**Boundary rule:** If a mobile page needs less data, collapse or lazy-render sections in the UI first. Add backend pagination/projection only when a measured mobile performance issue exists and expose it as a general read-model improvement, not a phone-only endpoint.
+### 1. Initial Console Load → Recent Sessions
 
-### Pattern 2: Mobile-First CSS With Desktop Enhancement
-
-**What:** Default CSS targets narrow screens; wider breakpoints enhance to multi-column desktop/tablet layouts.
-
-**When to use:** All new CSS for Console/Admin routes.
-
-**Example:**
-
-```css
-.pi-console-workbench {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--pi-space-m);
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-.pi-console-chat,
-.pi-console-run-context,
-.pi-console-sessions {
-  min-width: 0;
-}
-
-@media (min-width: 768px) {
-  .pi-console-workbench {
-    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
-  }
-}
-
-@media (min-width: 1100px) {
-  .pi-console-workbench {
-    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr) minmax(18rem, 24rem);
-  }
-}
+```text
+ConsoleView.attach
+  -> ConversationConsoleBridge.listRecentSessions(context, limit)
+  -> App ConversationQueryService.listRecentSessions
+  -> SessionRepository.listRecent(context, limit)
+     + RunProjectionRepository.latestRunBySession(...)
+  -> List<SessionSummaryDto>
+  -> SessionListPanel.showSessions(...)
 ```
 
-**Trade-offs:** CSS handles layout efficiently without Java-side viewport branching, but Java components must expose stable semantic class names and avoid fixed widths.
+**Key rule:** recent sessions must come from durable App/Infrastructure state. Do not populate history only from sessions created during the current Vaadin view lifetime.
 
-### Pattern 3: Progressive Disclosure for Dense Agent/Governance Data
+### 2. Session Selection → Transcript Restore
 
-**What:** Replace wide rows and always-open details with cards, status chips, and collapsible details on mobile.
+```text
+User selects session card
+  -> ConsoleView.selectSession(sessionId)
+  -> bridge.getTranscript(sessionId, limit/cursor)
+  -> ConversationQueryService.getTranscript(context, sessionId)
+  -> ConversationTranscriptAssembler
+       - loads session with tenant/user ownership
+       - loads runs for session ordered by createdAt/updatedAt
+       - loads user input / run messages / model.delta events
+       - folds deltas into assistant message per run/step
+       - marks failed/cancelled/partial terminal state
+  -> ConversationTranscriptResponse
+  -> ChatEventStreamPanel.replaceTranscript(messages)
+  -> ConsoleView sets selectedSessionId, activeRunId if response has non-terminal active run
+```
 
-**When to use:** Run timeline events, tool call payloads, approval cards, audit rows, MCP/plugin/extension capability lists, operations summaries.
+**Key rule:** restore renders typed `ConversationMessageDto`, not `SessionHistoryResponse.entries` maps and not raw `RunEventRenderer` cards.
 
-**Trade-offs:** Mobile users see less at once, but they get a reliable task flow. Desktop can still show expanded grids or side-by-side sections.
+### 3. Submit Message → Run Creation → Assistant Streaming
 
-**Recommended rule:** Every dense entity should have:
+```text
+User submits text
+  -> ChatEventStreamPanel emits submit text
+  -> ConsoleView/bridge ensures selected session exists
+  -> RunCommandService.createRun(context, sessionId, CreateRunRequest)
+       - persists run input as conversation user message source
+       - pins provider/model ref for this run in run metadata
+       - enqueues QueuedRun
+  -> ConsoleView appends user bubble and begins pending assistant bubble keyed by runId
+  -> RunDispatcher claims queued run
+  -> SessionConversationContextAssembler builds bounded history for session
+  -> RunContext(sessionContext = bounded messages) passed to AgentRuntime
+  -> DynamicAgentRuntime streams model.delta through EventSink
+  -> public RunEventStore persists events and SSE can replay/stream them
+  -> Vaadin live path receives/listEvents deltas
+  -> ConversationEventReducer appends textDelta to same assistant bubble
+  -> terminal run event marks bubble complete/failed/cancelled
+```
 
-1. A one-line summary visible on mobile.
-2. Status/severity/provenance chip.
-3. Primary action reachable within thumb range.
-4. Details collapsed by default if payloads are long.
-5. Copy/debug affordances only where safe and redacted.
+**Key rule:** append the user's message only once visually and only once in model context. The context assembler must prove the current prompt is not duplicated when it derives history from persisted run input.
 
-### Pattern 4: Stable Test Hooks as Architecture Contract
+### 4. Multi-Turn Context Assembly
 
-**What:** Existing `data-route`, `data-layout`, `data-action-*`, and class names should become an explicit UI architecture contract for Playwright and unit tests.
+```text
+RunDispatcher.dispatchClaimed(queuedRun)
+  -> requestContext(queuedRun)
+  -> conversationContextAssembler.assemble(context, queuedRun.sessionId(), queuedRun.runId(), queuedRun.input())
+       - uses transcript before/current run according to policy
+       - includes previous user/assistant turns
+       - may include safe tool summaries later
+       - excludes raw audit/provider/tool sensitive payloads
+       - applies max turns/chars/token estimate
+  -> new SessionContext(messages = bounded MessageEntry list, ...)
+  -> new RunContext(..., sessionContext, ...)
+  -> AgentRuntime.start(context)
+  -> ModelRequest(context, toolResults)
+```
 
-**When to use:** All modified/new UI components.
+**Integration preference:** use the existing `SessionContext.messages` field as the runtime-facing history carrier if its `SessionEntryPayload.MessageEntry` role/content shape is adequate. If it is too session-tree-specific, introduce a small provider-neutral `ConversationTurn`/`ModelMessage` in Domain and adapt it inside `ModelRequest`. Do not pass Spring AI message classes across Domain/App.
 
-**Example Java hook:**
+### 5. Provider/Model Stability
+
+```text
+Model bar loads ProviderConfigStore.current()
+  -> ProviderConfigController.validation/readiness endpoint
+  -> ProviderValidationResponse(ready, maskedKey, selectedModel, models, error, validatedAt)
+  -> UI status chip and refresh errors
+
+On createRun
+  -> resolve selected provider/model from current config
+  -> persist providerId/modelId/modelRef in run metadata/result/projection
+  -> DynamicAgentRuntime uses run snapshot if available; otherwise current local config fallback
+```
+
+**Key rule:** model selector changes affect subsequent runs only. History should display the provider/model actually used by each assistant response.
+
+## Recommended API / DTO Shape
+
+These are product-level APIs; they are **not mobile-only** and **not Vaadin DTOs**.
 
 ```java
-addClassNames("pi-responsive-page", "pi-console-workbench");
-getElement().setAttribute("data-route", "console");
-getElement().setAttribute("data-layout", "responsive-workbench");
+public interface ConversationQueryService {
+    PageResponse<SessionSummaryDto> listRecentSessions(RequestContext context, int limit, String cursor);
+    ConversationTranscriptResponse getTranscript(RequestContext context, String sessionId, int limit, String cursor);
+}
+
+public record SessionSummaryDto(
+        String sessionId,
+        String title,
+        String status,
+        String lastMessagePreview,
+        Instant createdAt,
+        Instant updatedAt,
+        String activeRunId,
+        String activeRunStatus,
+        String providerId,
+        String modelId,
+        Map<String, Object> metadata) {
+}
+
+public record ConversationTranscriptResponse(
+        String sessionId,
+        List<ConversationMessageDto> messages,
+        String activeRunId,
+        String activeRunStatus,
+        long nextAfterSequence,
+        String nextCursor,
+        boolean hasMore) {
+}
+
+public record ConversationMessageDto(
+        String messageId,
+        String sessionId,
+        String runId,
+        String stepId,
+        String role,       // user | assistant | tool | system | error
+        String text,
+        String status,     // complete | streaming | failed | cancelled | partial
+        Instant createdAt,
+        Instant updatedAt,
+        Long firstSequence,
+        Long lastSequence,
+        Map<String, Object> metadata) {
+}
 ```
 
-**Trade-offs:** Test hooks add small markup overhead, but prevent brittle CSS/text selectors and make mobile regressions easier to localize.
+### REST Boundary Recommendation
 
-### Pattern 5: Playwright Device Projects as Acceptance Gate
+Keep existing REST/SSE run endpoints unchanged. Add conversation endpoints or extend session endpoints with typed DTOs:
 
-**What:** Add mobile/tablet projects to `playwright.config.ts` using Playwright `devices` definitions, while preserving desktop Chromium regression.
+| Endpoint | Recommendation | Why |
+|----------|----------------|-----|
+| `GET /api/sessions/{id}/history` | Keep for compatibility; may internally delegate to transcript assembler but should not be the only product API if it stays generic maps. | Avoid breaking existing tests/clients. |
+| `GET /api/conversations/recent?limit=...` or `GET /api/sessions/recent` | Add typed recent session summaries. | Needed by Console load and future clients. |
+| `GET /api/conversations/{sessionId}/transcript?limit=...` or `GET /api/sessions/{id}/transcript` | Add typed transcript. | Avoid raw map rendering and mobile-only fork. |
+| `GET /api/sessions/{sessionId}/runs/{runId}/events` / SSE | Preserve existing run-event contract. | Public real-time stream remains provider-neutral event history. |
 
-**When to use:** From the first phase of this milestone, before large UI refactors.
+Prefer naming around **sessions/conversations** rather than mobile. `conversation` is a product projection of sessions/runs/events; it should not imply a new storage root unless the implementation later needs a materialized read table.
 
-**Example:**
+## Seams and Integration Points
 
-```ts
-projects: [
-  { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
-  { name: 'mobile-safari', use: { ...devices['iPhone 13'] } },
-  { name: 'tablet', use: { ...devices['iPad Pro 11'] } },
-]
+### ConsoleView seam
+
+`ConsoleView` should remain the Vaadin coordinator but lose product-state authority.
+
+**Modify:**
+- On attach, call bridge `listRecentSessions()` and populate `SessionListPanel`.
+- On `selectSession()`, load `ConversationTranscriptResponse`, call `chatPanel.replaceTranscript(...)`, set `selectedSessionId`, restore active run cursor if needed.
+- On send, prevent overlapping active run in the selected session unless explicitly supported.
+- Route new events through `ConversationEventReducer` before rendering.
+- Keep `RunEventRenderer` for collapsible tool/runtime/debug cards, not primary assistant text.
+
+**Do not:**
+- Build model context in `ConsoleView`.
+- Use `chatPanel.messages()` as persisted history.
+- Create `/mobile/...` or Console-only history APIs.
+
+### ChatEventStreamPanel seam
+
+Turn the panel into a typed bubble component:
+
+```java
+void replaceTranscript(List<ConversationMessageDto> messages);
+void appendUserMessage(String text, String messageId, String runId);
+void beginAssistantMessage(String runId, String stepId);
+void appendAssistantDelta(String runId, String stepId, String delta);
+void markAssistantTerminal(String runId, String status, Map<String,Object> metadata);
+void showErrorBubble(String runId, String safeMessage);
+void showToolCard(ConversationMessageDto toolMessage);
 ```
 
-**Trade-offs:** Browser matrix increases execution time. Keep smoke coverage focused on critical paths and reserve exhaustive route-by-route checks for CSS/layout invariants.
+Keep `messages()` only as a test/helper view of rendered text, not source-of-truth. Add stable selectors: `data-message-role`, `data-session-id`, `data-run-id`, `data-stream-state`.
 
-## Data Flow
+### AppConsoleRunExecutionBridge seam
 
-### Request/Data Flow: No Architectural Change Expected
+Extend or replace it with `ConversationConsoleBridge`:
 
-```text
-Mobile browser user action
-    ↓
-Vaadin route/component in pi-agent-adapter-web
-    ↓
-ConsoleHttpClient path helper / EventStreamClient stream helper
-    ↓
-Existing REST/SSE endpoints and pi-agent-client DTOs
-    ↓
-App services → Domain runtime/governance → Infrastructure
-    ↓
-Existing read models/events
-    ↓
-Vaadin component state + responsive CSS rendering
+```java
+interface ConversationConsoleBridge extends ConsoleRunExecutionBridge {
+    PageResponse<SessionSummaryDto> listRecentSessions(int limit, String cursor);
+    ConversationTranscriptResponse getTranscript(String sessionId, int limit, String cursor);
+}
 ```
 
-### Key Data Flow Changes
+This preserves the correct dependency direction: Vaadin → bridge → App use cases. The bridge should not load `SqliteLocalPersistence`, `RunEventStore`, or repositories directly.
 
-1. **No REST/SSE contract change by default:** Mobile H5 consumes the same public DTOs and event envelopes as desktop.
-2. **No new mobile-specific backend state:** Viewport, drawer open/closed state, selected tab/section, and collapsible detail state live in Vaadin component/UI state only.
-3. **Optional lazy UI rendering:** For long timelines/audit lists, defer rendering hidden details in Vaadin components, but keep source data boundaries unchanged.
-4. **Optional read-model improvement:** If mobile tests reveal payload/performance problems, add generic pagination/filter/summarization to public read models, usable by desktop/API/future CLI too.
-5. **SSE stream unchanged:** `EventStreamClient` should continue to describe run event stream paths; mobile only changes how deltas/events are presented.
+### DefaultRunQueryService seam
 
-### State Management
+Keep `DefaultRunQueryService` as a run-scoped event/detail query. Add conversation read-model logic beside it rather than overloading it with UI semantics.
 
-```text
-Server-side Vaadin UI instance
-├── selected route/page
-├── selected session/run/agent
-├── active mobile section/drawer/tabs
-├── expanded/collapsed details
-└── rendered event/card state
+**Required security improvement:** the current `listEvents(context, sessionId, runId, ...)` calls `runEventStore.listByRun(runId, ...)`. v1.2 transcript/event restore should add ownership-aware repository methods such as:
 
-Persistent platform state
-├── sessions/runs/events/tool calls/audit
-└── unchanged app/domain/infrastructure model
+```java
+List<RunEvent> listBySessionRun(RequestContext context, String sessionId, String runId, long afterSequence, int limit);
+List<RunEvent> listBySessionRuns(RequestContext context, String sessionId, List<String> runIds, int limit);
 ```
 
-## Modified Components
+At minimum, validate `runProjectionRepository.findRun(context, sessionId, runId)` before returning events. Avoid relying on UI-provided `sessionId` in responses.
 
-### Console Surface
+### DefaultRunDispatcher seam
 
-| Component | Required Mobile Change | Boundary to Preserve |
-|-----------|------------------------|----------------------|
-| `ConsoleView` | Replace `data-layout="three-column-workbench"` with responsive layout semantics; reorder/nest sections for mobile; expose hooks for no-overflow tests. | Continue using `ConsoleHttpClient` and `EventStreamClient`; keep run/session planning semantics. |
-| `SessionListPanel` | Fit as drawer/collapsible section on phone; avoid fixed widths; include tap-friendly session rows. | Must not query backend directly. |
-| `AgentCatalogPanel` / `AgentCard` | Render catalog as stacked cards; compact model/tool metadata; avoid horizontal card overflow. | Keep agent catalog path/DTO access through existing client boundary. |
-| `ChatEventStreamPanel` | Prioritize message stream and input; support long model deltas/tool text wrapping; avoid viewport-jumping where possible. | Event semantics and rendering order remain based on SSE/read events. |
-| `RunContextPanel` | Convert side panel to mobile section/bottom summary/card stack; keep status and cancel reachable. | Cancel still planned through existing REST path/request. |
-| `ToolCallCard` | Collapse raw arguments/results; show status/provenance/approval state first; ensure redaction remains visible. | Do not expose raw secrets or bypass existing redaction. |
-| `ApprovalPanel` / `ApprovalCard` | Touch-safe approve/reject controls; confirmation/role context readable; no tiny adjacent destructive actions. | Approval API and actor role semantics unchanged. |
+`DefaultRunDispatcher` is the right place to hydrate runtime context because it owns the transition from queued App run to Domain `RunContext`.
 
-### Admin Governance Surface
+**Modify:**
+- Inject a `ConversationContextAssembler`/`SessionContextAssembler` port.
+- Replace static empty `sessionContext(queuedRun)` with assembled bounded context.
+- Include context metadata in audit/debug result if useful: included turn count, truncated count, policy id.
+- Preserve Domain purity: assembler returns Domain/App-neutral messages, not Vaadin or Spring AI types.
 
-| Component | Required Mobile Change | Boundary to Preserve |
-|-----------|------------------------|----------------------|
-| `AdminGovernanceLayout` | Mobile admin nav drawer/section index; desktop can remain broad navigation. | Admin pages remain inspect/governance adapter views. |
-| `AdminGovernanceOverviewView` | Stack health/status summaries as cards; make counts/severity visible first. | Use existing overview DTO/path. |
-| `AdminOperationsView` | Render operations metrics as compact cards; avoid wide dashboards. | Observability/read-model source unchanged. |
-| `AdminRegistryStatusView` | MCP/plugin/extension/provider/tool entries become responsive cards with collapsible capability details. | Refresh/disable/quarantine action paths remain existing `ConsoleHttpClient` helpers. |
-| `AdminPolicyDecisionsView` | Policy decisions as timeline/card list; reason/details collapsed. | Existing policy read model unchanged unless generic pagination needed. |
-| `AdminAuditView` | Audit rows as searchable/filterable card list; wrap identifiers safely; preserve redaction indicators. | Existing audit DTO/path unchanged unless generic pagination needed. |
-| `AdminApprovalQueueView` | Queue items as approval cards with large actions and status. | Approval governance semantics unchanged. |
+### DynamicAgentRuntime seam
 
-### Tests and Build Assets
+`DynamicAgentRuntime` should consume the non-empty context rather than querying persistence.
 
-| Asset | Change | Purpose |
-|-------|--------|---------|
-| `playwright.config.ts` | Add mobile/tablet projects via Playwright `devices`; keep desktop Chromium. | Validate mobile H5 against emulated Pixel/iPhone/tablet profiles. |
-| `e2e/mobile-h5.spec.ts` | New smoke/invariant tests. | Console critical path, admin navigation, governance cards, no horizontal overflow, touch action visibility. |
-| Existing E2E specs | Keep; optionally tag/structure for desktop vs mobile. | Prevent desktop regression while mobile refactor proceeds. |
-| Java component tests | Add assertions for responsive class names, data hooks, action path preservation. | Catch accidental removal of architecture/test hooks without browser startup. |
-| Theme files | New Vaadin frontend theme. | Centralize tokens, breakpoints, mobile-first layout rules. |
+**Modify:**
+- Convert `context.sessionContext().messages()` into the provider request format inside the model adapter/runtime path.
+- Stop assuming `new ModelRequest(context, List.of())` implies no history; either `ModelRequest` reads history from `RunContext` or add a new message list field.
+- Use provider/model snapshot from the run if available; current global config is fallback for local profile.
+- Make `cancel(runId, reason)` meaningful if the streaming client supports cancellation; otherwise at least respect `context.cancellationToken()` during sink publishing and stop appending after terminal cancellation.
 
-## New Theme/CSS Assets
+### Local SQLite seam
 
-Recommended asset split:
+`LocalDevRuntimeBeanConfiguration` should stay a local infrastructure composition root, not a separate product architecture.
 
-| File | Purpose | Key Content |
-|------|---------|-------------|
-| `styles.css` | Theme entrypoint. | Imports `tokens.css`, `responsive.css`, `console.css`, `admin.css`, `components.css`. |
-| `tokens.css` | Mobile-first design tokens. | `--pi-space-*`, `--pi-touch-target-min`, `--pi-content-max`, breakpoint custom properties/comments. |
-| `responsive.css` | App shell/page layout primitives. | `.pi-responsive-page`, `.pi-page-header`, `.pi-mobile-nav`, safe viewport rules, no-overflow defaults. |
-| `console.css` | Console-specific responsive layout. | Workbench grid, chat stream, session/catalog drawer/stack, run context behavior. |
-| `admin.css` | Governance-specific responsive layout. | Admin card lists, registry capability wrapping, operations summaries, audit/policy cards. |
-| `components.css` | Shared cards/badges/action bars. | Status chips, risk badges, approval action bars, long-token wrapping. |
+**Modify:**
+- `LocalDevStores.history()` must return typed transcript or delegate to the same assembler.
+- `SqliteLocalPersistence.loadSessions()` should order by `updated_at DESC` and support limit.
+- Add targeted methods: `loadRunsBySession(sessionId)`, `loadEventsByRun(runId, afterSequence, limit)`, `loadEventsBySession(sessionId, ...)`.
+- Add indexes: `local_sessions(user_id, updated_at)`, `local_runs(session_id, updated_at)`, `local_events(run_id, sequence)`.
+- Store run input and provider/model snapshot. Current `local_runs` has no input JSON or model metadata, which makes user-message transcript restore depend on UI memory unless fixed.
 
-CSS architectural rules:
+## Patterns to Follow
 
-- Default styles are phone/narrow viewport styles.
-- Add enhancements at tablet and desktop breakpoints; do not make desktop the base.
-- Set `min-width: 0` on grid/flex children that contain event text, JSON, identifiers, URLs, or tool payloads.
-- Use `overflow-wrap: anywhere` for IDs, plugin names, MCP server URLs, trace IDs, and JSON fragments.
-- Avoid fixed pixel widths except minimum touch target and known icons.
-- Prefer CSS/layout over Java viewport detection. Java should expose structure; CSS should adapt it.
-- Keep Vaadin component shadow DOM styling explicit if needed via supported theme/component CSS mechanisms.
+### Pattern 1: Conversation Projection as App Read Model
 
-## Boundaries to Preserve
+**What:** A transcript is assembled from durable session/run/event state into typed conversation messages.
 
-| Boundary | Must Preserve | Why |
-|----------|---------------|-----|
-| Java/Vaadin-first UI | Do not introduce React/Next.js, separate mobile app, or TypeScript product UI. | Project constraint and stack strategy. |
-| `pi-agent-client` public contracts | No mobile-specific DTO forks. | Future CLI/TUI/API clients rely on stable public contracts. |
-| `ConsoleHttpClient` / `EventStreamClient` | UI data access goes through these helpers. | Prevents Vaadin views from coupling to controllers or runtime internals. |
-| COLA layering | No mobile code in Domain/App/Infrastructure. | Mobile H5 is presentation/adaptation work. |
-| Tool governance/redaction | Mobile cards must not reveal hidden payloads or bypass approval semantics. | Cloud safety remains primary risk. |
-| SSE event ordering/replay | Responsive rendering must not reorder persisted run events semantically. | Debuggability/audit depends on chronological event evidence. |
-| Existing desktop behavior | Desktop E2E stays in matrix. | Mobile-first does not mean desktop regression is acceptable. |
-| Route stability | Keep current routes unless a migration plan is explicit. | Existing docs/tests/users may rely on `/console` and `/admin/governance/*`. |
+**When:** Session restore, recent session previews, context assembly, and future transcript APIs.
 
-## Anti-Patterns
+**Why:** It prevents Vaadin from becoming the history source and prevents raw runtime events from leaking into chat UX.
 
-### Anti-Pattern 1: “Responsive CSS Patch” Without Information Architecture
+```java
+public final class ConversationTranscriptAssembler {
+    public ConversationTranscriptResponse assemble(RequestContext context, String sessionId, int limit) {
+        var session = sessionRepository.findById(context, sessionId).orElseThrow();
+        var runs = runProjectionRepository.listRunsBySession(context, session.sessionId(), limit);
+        var messages = new ArrayList<ConversationMessageDto>();
+        for (var run : runs.items()) {
+            messages.add(userMessageFromRunInput(run));
+            messages.addAll(assistantAndToolMessagesFromEvents(run));
+        }
+        return new ConversationTranscriptResponse(sessionId, messages, activeRunId(runs), activeRunStatus(runs), 0, null, false);
+    }
+}
+```
 
-**What people do:** Add a few media queries to shrink the three-column desktop workbench.
+### Pattern 2: Event Reducer for Live UI
 
-**Why it's wrong:** The milestone explicitly requires mobile-first IA. A three-column run cockpit does not become usable on phones by narrowing columns.
+**What:** Convert run events into UI deltas separate from durable transcript assembly.
 
-**Do this instead:** Define mobile task order and progressive disclosure per surface: chat first, status/actions second, context/catalog/history in drawer/sections.
+**When:** Live stream/poll updates after run creation or after restoring an active run.
 
-### Anti-Pattern 2: Mobile-Specific Backend Forks
+**Why:** Streaming needs mutation (`append delta`) while transcript restore needs stable messages (`full text`). They share semantics but not rendering mechanics.
 
-**What people do:** Add `/mobile/*` endpoints or mobile-only DTOs because a page feels dense.
+```java
+public final class ConversationEventReducer {
+    public List<ConversationUiDelta> reduce(RunEventDto event) {
+        if ("model.delta".equals(event.type())) {
+            String delta = string(event.payload().get("textDelta"));
+            if (!delta.isBlank()) {
+                return List.of(ConversationUiDelta.appendAssistant(event.runId(), event.stepId(), delta, event.eventId()));
+            }
+            if (event.payload().containsKey("finishReason")) {
+                return List.of(ConversationUiDelta.completeAssistant(event.runId(), event.stepId(), event.payload()));
+            }
+        }
+        if (isTerminalStatus(event)) {
+            return List.of(ConversationUiDelta.markTerminal(event.runId(), status(event)));
+        }
+        return List.of(ConversationUiDelta.optionalRuntimeCard(event));
+    }
+}
+```
 
-**Why it's wrong:** It fragments public contracts and violates the existing REST/SSE/read-model boundary.
+### Pattern 3: Context Derivation, Not Memory-as-History
 
-**Do this instead:** Recompose the UI first. If data volume is truly excessive, add general pagination/projection to existing read models.
+**What:** Complete transcript is stored independently; model context is a bounded derivation.
 
-### Anti-Pattern 3: Viewport Logic in Domain/App
+**When:** Every queued run before `AgentRuntime.start()`.
 
-**What people do:** Pass mobile flags into application services or alter runtime behavior for H5.
+**Why:** Users need full history restore, while models need a safe, bounded prompt context. These have different retention and redaction policies.
 
-**Why it's wrong:** Runtime must remain general and not bind to Chat/UI/mobile clients.
+```java
+public final class SessionConversationContextAssembler {
+    public SessionContext assemble(RequestContext context, QueuedRun run, ConversationContextPolicy policy) {
+        var transcript = conversationQueryService.getTranscript(context, run.sessionId(), policy.maxTranscriptItems(), null);
+        var prior = transcript.messages().stream()
+                .filter(message -> isContextEligible(message, run.runId()))
+                .filter(message -> List.of("user", "assistant").contains(message.role()))
+                .collect(toBoundedRecentTurns(policy));
+        return new SessionContext(toMessageEntries(prior, run.input()), List.of(), List.of(), List.of(), List.of(), Optional.of(workspaceScope(run)), List.of());
+    }
+}
+```
 
-**Do this instead:** Keep viewport/layout state in Vaadin UI and CSS.
+## Anti-Patterns to Avoid
 
-### Anti-Pattern 4: Wide Tables as Admin Default
+### Anti-Pattern 1: Vaadin as the History Database
 
-**What people do:** Keep desktop table/grid layouts for audit, policy, registry, MCP, and plugin pages.
+**What:** Use `ChatEventStreamPanel.messages()` or component tree text to restore history or assemble context.  
+**Why bad:** Loses role/status/run metadata, disappears on refresh, cannot serve REST/CLI, and cannot enforce redaction.  
+**Instead:** Persist run input/events and assemble typed transcript in App.
 
-**Why it's wrong:** Wide operational data is the fastest path to horizontal overflow and unusable mobile admin.
+### Anti-Pattern 2: Mobile-Only Conversation APIs
 
-**Do this instead:** Use mobile card lists with collapsed details; enhance to grids only on wider screens.
+**What:** Add endpoints or DTO names scoped to mobile/v1.1 responsive work.  
+**Why bad:** v1.2 Console conversation productization is a general product capability; mobile-specific APIs will fork future CLI/TUI/Admin clients.  
+**Instead:** Use session/conversation DTOs under existing REST/client module boundaries.
 
-### Anti-Pattern 5: Browser Matrix Without Assertions
+### Anti-Pattern 3: Raw Event Log as Chat Transcript
 
-**What people do:** Add mobile Playwright projects but only load pages.
+**What:** Render every `run.status`, `model.delta`, tool lifecycle, and audit-like item as a chat row.  
+**Why bad:** Users see operational noise, deltas fragment answers, and restored sessions feel broken.  
+**Instead:** Project events into user/assistant/tool/error messages; keep raw events in run detail/expanders.
 
-**Why it's wrong:** Smoke navigation alone misses horizontal overflow, hidden action buttons, and inaccessible critical paths.
+### Anti-Pattern 4: Session ID Equals Context
 
-**Do this instead:** Assert layout invariants and complete key flows: create run, view stream/tool card, cancel/approval action visibility, admin registry/plugin/MCP status visibility.
+**What:** Assume reusing `selectedSessionId` means the model remembers prior turns.  
+**Why bad:** Current runtime sends empty history; UI continuity and model continuity diverge.  
+**Instead:** Add context assembler and test with a fake model that inspects prior turns.
 
-## Integration Points
+### Anti-Pattern 5: Spring AI Memory or Vector DB for v1.2 Short-Term Context
 
-### Internal Boundaries
-
-| Boundary | Communication | Mobile Integration Rule |
-|----------|---------------|-------------------------|
-| Vaadin views ↔ `ConsoleHttpClient` | Path helper/object boundary | Continue to plan REST actions through helper methods; do not call controllers/services directly. |
-| Vaadin views ↔ `EventStreamClient` | SSE connection spec boundary | Keep stream URL/replay semantics unchanged; mobile only affects rendering. |
-| Vaadin UI ↔ `pi-agent-client` DTOs | Public DTO consumption | Reuse existing DTOs. Add general read-model fields only when necessary and documented. |
-| `pi-agent-adapter-web` ↔ App/Domain | Existing controllers/services | No mobile-specific use cases in App/Domain. |
-| Theme CSS ↔ Java components | Class names/data attributes | Java components expose semantic hooks; CSS implements responsive behavior. |
-| Playwright ↔ UI | Stable `data-*` hooks and routes | Treat hooks as test contract; avoid text-only selectors for layout checks. |
-
-### External Services
-
-No new external runtime service is required. Playwright browser dependencies already exist for E2E and should be extended with mobile emulation projects. Real-device manual UAT remains useful for iOS Safari quirks, but the automated gate should use Playwright-supported Chromium/WebKit/Firefox profiles.
+**What:** Introduce external memory frameworks to solve basic multi-turn session history.  
+**Why bad:** Adds scope, leaks library abstractions, and can conflate history/memory/audit.  
+**Instead:** Use project-owned transcript and bounded recent-turn context; add long-term memory later as a separate capability.
 
 ## Suggested Build Order
 
-### Phase 1 — Responsive Baseline and Test Harness
+This order minimizes rewrites: first create canonical data/read models, then hydrate UI, then stream live deltas, then feed context to the model, then harden provider/local profile.
 
-**Build:**
+### Phase A — Conversation Read Model and Recent Sessions
 
-- Add Vaadin theme folder and `styles.css` import structure.
-- Add design tokens and global no-overflow defaults.
-- Extend `playwright.config.ts` with `mobile-chrome`, `mobile-safari`, and tablet projects.
-- Add `mobile-h5.spec.ts` with route smoke and no-horizontal-overflow assertions.
-- Add Java unit tests for stable responsive class/data hooks on representative components.
+**Goal:** App/client DTOs and repository ports exist before UI polish.
 
-**Why first:** Establishes the acceptance gate before broad UI changes.
+1. Add `SessionSummaryDto`, `ConversationMessageDto`, `ConversationTranscriptResponse` in `pi-agent-client`.
+2. Add `ConversationQueryService` or expand `SessionQueryService` with:
+   - `listRecentSessions(context, limit, cursor)`
+   - `getTranscript(context, sessionId, limit, cursor)`
+3. Extend repository ports for:
+   - list sessions by tenant/user ordered by `updatedAt DESC`
+   - list runs by session with tenant/user filters
+   - list events by run/session with ownership filters
+4. Implement `ConversationTranscriptAssembler` with golden tests for:
+   - user input + deltas + finish → two messages
+   - failed provider → user + failed/error assistant state
+   - cancelled run → partial/cancelled assistant state
+5. Implement local SQLite targeted loads/indexes and cloud JDBC equivalent if present.
 
-**Exit criteria:** Existing desktop E2E still passes; mobile projects can load `/console` and admin routes; no baseline horizontal overflow on simple pages.
+**Why first:** Without this, UI restore and context will be built on unstable rendered strings or raw maps.
 
-### Phase 2 — Shared Responsive Shell and Navigation
+### Phase B — Console Session Restore UX
 
-**Build:**
+**Goal:** Selecting history hydrates bubbles and preserves selected session continuation.
 
-- Refactor `MainConsoleLayout` and `AdminGovernanceLayout` into responsive shells.
-- Add shared `PageScaffold`, `ResponsiveSection`, `MobileActionBar`, and navigation primitives.
-- Preserve existing routes and page titles.
+1. Extend `AppConsoleRunExecutionBridge` into `ConversationConsoleBridge`.
+2. `ConsoleView.attach` loads recent sessions.
+3. `ConsoleView.selectSession()` loads transcript, calls `chatPanel.replaceTranscript(...)`, sets active run/cursor.
+4. `ChatEventStreamPanel` gains typed bubble API and stable selectors.
+5. Playwright/Vaadin tests assert refresh/select restores prior user and assistant messages.
 
-**Why second:** Every page depends on a usable shell/nav; doing page-by-page layout before shell creates rework.
+**Dependency:** Phase A typed transcript.
 
-**Exit criteria:** Mobile users can navigate Console and Admin Governance routes without horizontal scroll or unreachable nav.
+### Phase C — Streaming Bubble Lifecycle
 
-### Phase 3 — Console Workbench Mobile-First Flow
+**Goal:** Active assistant response updates one bubble with correct terminal states.
 
-**Build:**
+1. Add `ConversationEventReducer` / `ChatStreamAggregator` keyed by session/run/step/message.
+2. Change `ConsoleView.appendRunEvents()` to route `model.delta` and terminal lifecycle through reducer.
+3. Begin a pending assistant bubble immediately after run creation.
+4. Deduplicate by event id/sequence and stop appending after terminal cancellation/failure.
+5. Keep polling fallback initially; add Vaadin Push or explicit SSE integration after reducer tests pass.
+6. Add fake slow-stream tests that assert text changes before terminal completion and all chunks land in one assistant bubble.
 
-- Refactor `ConsoleView` from fixed three-column semantics to responsive workbench.
-- Prioritize chat/run status/actions on phone; move sessions/catalog into drawer/collapsible sections.
-- Keep `planChatSubmission`, `selectSession`, `planCancelRunningRun`, and stream planning behavior intact.
+**Dependency:** Phase B bubble API; existing run-event DTO mapping.
 
-**Why third:** Console is the primary user surface and exercises REST + SSE + session/run state.
+### Phase D — Multi-Turn Runtime Context
 
-**Exit criteria:** Mobile E2E can select/see agent context, submit chat/run, observe event stream area, inspect run status, and see cancel action without horizontal overflow.
+**Goal:** The model receives bounded selected-session history.
 
-### Phase 4 — Runtime Cards, Timeline, Tool, and Approval UX
+1. Add `ConversationContextPolicy` defaults: recent N turns + max chars/token estimate.
+2. Add `SessionConversationContextAssembler` using typed transcript.
+3. Inject assembler into `DefaultRunDispatcher`; replace empty `sessionContext(queuedRun)`.
+4. Update `DynamicAgentRuntime` / model adapter to send history from `RunContext.sessionContext().messages()`.
+5. Add fake model contract test: second prompt can see first user/assistant turn; current prompt appears exactly once.
+6. Add redaction/security tests: raw tool/audit/provider secrets do not enter context.
 
-**Build:**
+**Dependency:** Phase A transcript projection and run input persistence.
 
-- Refactor `ToolCallCard`, `ApprovalCard`, `ApprovalPanel`, run event/timeline rendering, status badges.
-- Add progressive disclosure for tool inputs/results and long event payloads.
-- Ensure redaction/approval/risk indicators remain prominent.
+### Phase E — Provider/Model and Local Profile Stability
 
-**Why fourth:** These components are reused in Console and Admin approval/governance views; they also carry safety semantics.
+**Goal:** Local provider config and persisted history survive reloads and are explainable.
 
-**Exit criteria:** Mobile tests verify tool/approval cards fit viewport, actions are touch-safe, redaction markers are visible, and long identifiers/payloads wrap.
+1. Add readiness/validation DTO with `ready`, `maskedKey`, `selectedModel`, `models`, `error`, `validatedAt`.
+2. Surface refresh/list/send errors in `ConsoleView` model bar and composer.
+3. Pin provider/model ref per run at creation; display a small model chip on assistant messages/history.
+4. Store run input/model metadata in SQLite and production run projection.
+5. Make no-provider fallback visually labeled as fallback/local, not indistinguishable from real model output.
+6. Validate local restart: sessions, transcript, selected model/config restore.
 
-### Phase 5 — Admin Governance Full-Site Coverage
+**Dependency:** Phase A repository/schema changes; Phase C UI status semantics.
 
-**Build:**
+### Phase F — Verification and Regression Hardening
 
-- Convert overview, operations, registry, MCP/plugin/extension, policy decisions, audit, and approval queue pages to responsive card/section layouts.
-- Keep inspect-only and mutation-control semantics visible through data attributes and text.
-- Add mobile E2E coverage for each admin route category.
+**Goal:** Prevent productization regressions from passing as “text eventually appears”.
 
-**Why fifth:** Admin has broad surface area; shared shell/cards should exist first.
+1. App unit tests for transcript and context assembly.
+2. Repository tests for tenant/user/session ownership filters.
+3. Vaadin component tests for bubble grouping, terminal states, and selectors.
+4. Playwright product path:
+   - no-key fallback visible and labeled
+   - recent session list loads after refresh
+   - select old session restores bubbles
+   - continue selected session reuses same session ID
+   - fake slow deltas aggregate into one assistant bubble
+   - cancel marks partial and stops appending
+   - provider refresh/send error is visible
 
-**Exit criteria:** Every existing Admin Governance route is reachable and readable on phone/tablet; key refresh/disable/quarantine/approval action plans remain visible and tested.
+## Risks and Mitigations
 
-### Phase 6 — Cross-Browser Hardening and Documentation
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Transcript source is ambiguous | UI restore, context, and audit disagree. | Make `ConversationTranscriptAssembler` the canonical read-model path for restore/context. |
+| Run input is not persisted in local projection | Restored transcript lacks user messages after reload. | Add input JSON / message entries to run projection or session entries; update SQLite schema. |
+| Event queries leak across session/tenant | Security issue in history restore. | Add ownership-aware repository methods and negative tests. |
+| Deltas duplicate on replay/poll | Assistant bubble repeats text. | Idempotent reducer keyed by event id/sequence; track cursor per run. |
+| Tool/status events corrupt assistant bubble | Chat becomes fragmented or misleading. | Route tool/status to inline cards; only `model.delta.textDelta` appends assistant text. |
+| Multi-turn context duplicates current prompt | Model repeats or overweights prompt. | Context assembler test: current user input appears exactly once. |
+| Context includes raw tool/audit secrets | Privacy/security regression. | Default context includes only user/assistant text; tool summaries opt-in and redacted. |
+| Vaadin Push updates outside UI lock | Runtime/session lock exceptions. | Use `UI.access(...)`, capture UI on attach, unregister on detach; keep polling fallback until validated. |
+| Provider config changes rewrite history meaning | Users cannot tell which model answered. | Pin provider/model at run creation and display per-run chip. |
+| Local SQLite diverges from production behavior | Tests pass locally but fail in cloud. | Same App ports/read-model assemblers for SQLite and JDBC; local only swaps infrastructure implementation. |
 
-**Build:**
+## Verification Gates for Roadmap
 
-- Tune Safari/WebKit quirks, orientation/tablet breakpoints, keyboard/input behavior.
-- Add final mobile acceptance checklist to project docs.
-- Ensure screenshots/traces are retained on mobile failures in CI.
+| Gate | Layer | Acceptance Signal |
+|------|-------|-------------------|
+| Transcript assembler golden tests | App | Multiple `model.delta` events fold into one assistant `ConversationMessageDto`. |
+| Recent sessions repository test | Infrastructure | Sessions ordered by updated time and filtered by tenant/user. |
+| Session restore UI test | Adapter Web | Selecting historical session clears current feed and renders prior user/assistant bubbles. |
+| Streaming UI test | Adapter Web/E2E | Slow fake model changes one assistant bubble before terminal completion. |
+| Multi-turn context test | App/Runtime | Fake model receives prior turn and current prompt exactly once. |
+| Cancellation test | Runtime/UI | Cancelled run stops appending deltas and shows partial/cancelled state. |
+| Provider config test | Adapter Web/local | Masked key only; readiness/error visible; selected model persists after reload. |
+| Security negative test | App/Infrastructure | Events/runs from another session/tenant are not included in transcript. |
+| Architecture boundary test | ArchUnit/static | `pi-agent-app`/`pi-agent-domain` do not depend on Vaadin, adapter-web provider classes, SQLite, or Spring AI message classes. |
 
-**Why last:** Hardening is most useful after all surfaces are converted.
+## Decision Log / Recommendations
 
-**Exit criteria:** Desktop + mobile Chrome + mobile Safari/WebKit + tablet Playwright smoke pass; no route has horizontal overflow; critical Console/Admin actions complete under mobile viewport.
-
-## Dependency Map
-
-```text
-Theme/test harness
-  → Responsive shell/navigation
-    → Console workbench layout
-      → Shared runtime cards/tool/approval components
-        → Admin governance route conversion
-          → Cross-browser/orientation hardening
-```
-
-Critical dependency rules:
-
-- Page conversion depends on shared theme and shell.
-- Admin conversion depends on reusable cards/details patterns.
-- Mobile E2E should exist before refactoring high-risk pages.
-- DTO/API changes, if any, must be justified by generic read-model needs and come after UI-only options are exhausted.
-
-## Scaling and Performance Considerations
-
-| Concern | Mobile Risk | Recommended Architecture Response |
-|---------|-------------|-----------------------------------|
-| Long SSE timelines | Phone DOM becomes heavy and scroll janky. | Render compact event summaries; collapse details; consider generic event pagination/virtualization later. |
-| Large tool payloads | Horizontal overflow or secret exposure through raw JSON. | Wrap/collapse payloads; preserve redaction; show summaries first. |
-| Admin audit/registry lists | Dense tables unusable on phones. | Card lists with progressive disclosure; desktop grid enhancement only at wide breakpoints. |
-| Vaadin server-side UI state | More collapsible/drawer state per user session. | Keep state lightweight; do not store large payload copies solely for mobile. |
-| E2E matrix time | Mobile projects increase CI duration. | Keep mobile tests smoke/invariant-focused; run exhaustive checks only on changed surfaces or nightly. |
-
-## Roadmap Implications
-
-1. **This milestone is adapter-layer modernization.** It should not reopen runtime/provider/tool/MCP/plugin architecture.
-2. **Mobile acceptance must be a first-class gate.** Add the Playwright mobile matrix before page refactors so every later phase can prove progress.
-3. **Console before Admin.** Console validates the hardest user-facing flow: catalog/session/chat/run/SSE/tool/approval rendering. Admin then reuses the same shell/cards.
-4. **Cards and progressive disclosure are architectural primitives.** Treat them as shared components, not one-off CSS patches.
-5. **Preserve protocol future-proofing.** Future TUI/CLI and external API clients should see no mobile-specific contract drift.
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| COLA/API boundary preservation | HIGH | Directly from `.planning/PROJECT.md` and existing module layout. |
-| Vaadin theme/CSS integration | HIGH | Vaadin docs verify theme/global CSS, CSS imports, Lumo utility classes, responsive FormLayout/utilities. Exact project theme annotation/name may need implementation check. |
-| Playwright mobile emulation | HIGH | Playwright docs verify `devices` registry and mobile projects for Pixel/iPhone/WebKit/Chromium. |
-| Existing component inventory | MEDIUM-HIGH | Verified key classes/routes in repository; final implementation should inventory all UI classes before coding. |
-| Data flow unchanged | HIGH | Existing `ConsoleHttpClient`/`EventStreamClient` and public DTO architecture already isolate UI from backend. |
-| Build order | MEDIUM-HIGH | Derived from dependency analysis; should be validated after baseline mobile E2E spike. |
-
-## Open Questions / Phase Research Flags
-
-- **Theme bootstrap detail:** Confirm whether the current app already has an `AppShellConfigurator`/`@Theme` class or needs one added for `pi-agent` theme loading.
-- **Vaadin component choice:** Decide during implementation whether to use `AppLayout`, `Tabs`, `Details`, `Grid`, or plain layouts for each surface. Architecture recommendation is about boundaries and behavior, not mandatory widgets.
-- **Large-list strategy:** If audit/events/registry lists are large, research Vaadin virtualization/lazy data providers in a phase-specific task. Do not block initial mobile layout on this.
-- **Real iOS Safari UAT:** Playwright WebKit mobile emulation is valuable but not a perfect substitute for real-device Safari validation.
-- **Accessibility gate:** Consider adding keyboard/focus/ARIA assertions after basic mobile layout passes; touch usability and accessibility overlap but are not identical.
+| Decision | Recommendation | Confidence |
+|----------|----------------|------------|
+| Where to put historical sessions | App read model + client DTOs, backed by repository ports. | HIGH |
+| How to restore messages | Typed transcript projection; do not render raw `SessionHistoryResponse.entries`. | HIGH |
+| How to stream UI | Existing run events + Console reducer + Vaadin bubble API; push/SSE preferred, polling fallback allowed. | HIGH |
+| How to do multi-turn | Bounded context assembler before runtime; do not build in Vaadin or Spring AI memory. | HIGH |
+| Whether to add mobile APIs | Do not. Conversation APIs must be general session/conversation APIs. | HIGH |
+| Whether to add React/WebFlux/vector DB | Do not for this milestone. Current stack is sufficient. | HIGH |
+| Where to stabilize local provider config | Adapter/local profile for UI/config, but run/session/history through shared App ports. | MEDIUM-HIGH |
 
 ## Sources
 
-- Project context: `/root/workspace/pi-java/.planning/PROJECT.md` — milestone goal, target features, constraints, validated phases, and Java/Vaadin/public REST/SSE boundary. HIGH confidence.
-- Existing repository inventory: `pi-agent-adapter-web` Vaadin routes/components, `ConsoleHttpClient`, `EventStreamClient`, root `playwright.config.ts`, current E2E specs. HIGH confidence for current shape inspected on 2026-06-20.
-- Vaadin documentation via Context7 (`/vaadin/docs`) — Lumo utility classes, responsive visibility utilities, responsive `FormLayout`, CSS theme folder/global styling, component CSS imports. HIGH confidence.
-- Playwright documentation via Context7 (`/microsoft/playwright`) — device emulation, `devices` registry, multi-project config for Mobile Chrome/Mobile Safari/Desktop browsers. HIGH confidence.
+- Project context: `.planning/PROJECT.md` v1.2 Console 对话产品化 requirements. Confidence: **HIGH**.
+- Existing research: `.planning/research/STACK.md`, `.planning/research/FEATURES.md`, `.planning/research/PITFALLS.md` for stack, feature, and risk findings. Confidence: **HIGH**.
+- Current code read 2026-06-28: `ConsoleView.java`, `ChatEventStreamPanel.java`, `AppConsoleRunExecutionBridge.java`, `LocalDevRuntimeBeanConfiguration.java`, `DefaultRunCommandService.java`, `DefaultRunQueryService.java`, `DefaultRunDispatcher.java`, `DynamicAgentRuntime.java`, `SessionController.java`, `SessionQueryService.java`, `RunProjectionRepository.java`, `RunEventStore.java`, `SessionRepository.java`, `SqliteLocalPersistence.java`, `ModelRequest.java`, `RunContext.java`, `SessionContext.java`. Confidence: **HIGH**.
+- Official Vaadin guidance referenced by prior research: server push/UI updates require proper server-side UI access semantics. Confidence: **HIGH** for push/`UI.access` principle; exact configuration should be validated during implementation.
+- Official Spring AI memory distinction referenced by prior pitfalls research: model memory/context is not complete product history. Confidence: **HIGH** for keeping project-owned transcript separate from model context.
 
 ---
-*Architecture research for: mobile-first H5 adaptation of Pi Java Agent Web Console/Admin Governance*  
-*Researched: 2026-06-20*
+
+*Architecture research overwrite for v1.2 Console conversation productization. This is not v1.1 mobile adaptation guidance.*
