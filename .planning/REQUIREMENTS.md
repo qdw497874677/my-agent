@@ -1,125 +1,126 @@
-# Requirements: Pi Java Agent Platform
+# Requirements: Pi Java Agent Platform — v1.2 Console 对话产品化
 
-**Defined:** 2026-06-20  
-**Milestone:** v1.1 适配移动端web  
-**Core Value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一、通用的 Runtime 运行、观测和治理。
+**Defined:** 2026-06-28  
+**Core Value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。
 
-## Milestone v1.1 Requirements
+## v1.2 Requirements
 
-Scope: convert the existing Vaadin Web Console and Admin Governance from desktop-first browser UI into a mobile-first, full-site H5 experience. This milestone adapts existing surfaces and verification gates; it does not add new Agent runtime/tool/model capabilities or a new frontend stack.
+### Conversation IA and Chat-First Console
 
-### Mobile Foundation
+- [ ] **CIA-01**: User sees a chat-first Console home focused on message input, conversation feed, recent history, and compact provider/model status.
+- [ ] **CIA-02**: User can clearly distinguish a new conversation from a selected historical session through a visible active-session title or banner.
+- [ ] **CIA-03**: User sees runtime, tool, provider, and diagnostic details collapsed or hidden by default unless needed for tool calls, approvals, errors, cancellation, or diagnostics.
+- [ ] **CIA-04**: User can access advanced run/session/tool details without leaving the conversation flow when those details are relevant.
 
-- [x] **MH5-01**: Mobile user can open every existing Console and Admin Governance route at representative phone viewports without blank screens, route errors, or desktop-only blocking messages.
-- [x] **MH5-02**: Mobile user can navigate all Console and Admin sections through a touch-friendly responsive shell, compact header, drawer/tabs, or equivalent mobile navigation.
-- [x] **MH5-03**: Mobile user does not encounter page-level horizontal overflow at representative phone, phone landscape, and tablet viewports.
-- [x] **MH5-04**: Touch user can reliably tap primary links, buttons, toggles, approvals, cancel controls, refresh controls, and details expanders using mobile-safe target sizes and spacing.
-- [x] **MH5-05**: Keyboard/tablet user retains visible focus indicators and usable drawer/dialog/navigation focus order after mobile layout changes.
+### Recent Sessions and Transcript Restore
 
-### Console Mobile Experience
+- [ ] **SESS-01**: User can see recent sessions on Console load, ordered by latest activity, with title, last activity, status, and last-message preview.
+- [ ] **SESS-02**: User can select a historical session and see previous user and assistant turns restored as chat bubbles.
+- [ ] **SESS-03**: User can continue a selected historical session without accidentally creating a new session.
+- [ ] **SESS-04**: Restored transcript comes from typed persisted data/read models, not Vaadin in-memory state or raw run-event maps.
+- [ ] **SESS-05**: User can refresh/reopen the Console and recover persisted sessions and their conversation transcript in local profile.
 
-- [x] **MCON-01**: Mobile user can browse Agent Catalog as stacked cards and select/start the General Agent without desktop-width layout.
-- [x] **MCON-02**: Mobile user can type a multi-line chat prompt, submit it, and see active run/composer state in a mobile-first Chat/Run flow.
-- [x] **MCON-03**: Mobile user can observe live SSE run output/events in a vertical feed and scroll previous events without losing access to current run controls.
-- [x] **MCON-04**: Mobile user can open session history, select a past session, continue it, and clearly see the active session.
-- [x] **MCON-05**: Mobile user can cancel an active run from a visible touch-safe control and see terminal/cancelling feedback.
+### Streaming Bubble Pipeline
 
-### Runtime Cards, Timeline, Tools, and Approvals
+- [ ] **STRM-01**: User sees a pending assistant bubble promptly after sending a message.
+- [ ] **STRM-02**: Model delta events append to one assistant bubble in order, without fragmented token cards or duplicate replay chunks.
+- [ ] **STRM-03**: User sees clear completed, failed, cancelled, or partial stream state without generic run-status noise in the main chat.
+- [ ] **STRM-04**: Active streaming remains replay-safe across polling/push refreshes using event sequence or event id dedupe.
+- [ ] **STRM-05**: User can cancel an active response and see the assistant bubble marked as stopped or partial, with no later deltas appended after cancellation.
 
-- [x] **MCARD-01**: Mobile user can inspect run timeline events as compact cards or accordions with status, timestamp/type, summary, and expandable details.
-- [x] **MCARD-02**: Mobile user can inspect tool cards with tool name, source, status, policy/approval state, duration, error, and redacted input/output summaries.
-- [x] **MCARD-03**: Mobile user can expand dense run/tool/policy/audit details without exposing raw sensitive payloads or causing page-level horizontal overflow.
-- [x] **MCARD-04**: Mobile user can approve or reject a pending tool approval from a risk-first card that clearly shows side-effect context and requires intentional action.
-- [x] **MCARD-05**: Mobile user sees dialogs, drawers, notifications, and confirmations fit the viewport with safe scrolling and explicit close/action controls.
+### Multi-Turn Runtime Context
 
-### Admin Governance Mobile Coverage
+- [ ] **CTX-01**: Next message in a selected session includes bounded prior user and assistant turns in model context.
+- [ ] **CTX-02**: Context assembly applies a configurable budget for recent turns, characters, or token approximation and records whether history was truncated.
+- [ ] **CTX-03**: Tool, audit, provider, credential, and other sensitive data is excluded or redacted before any context is sent to a model.
+- [ ] **CTX-04**: Tests prove the current prompt appears exactly once and prior turns are available to the fake model.
+- [ ] **CTX-05**: Model context assembly is implemented in App/runtime seams, not in Vaadin component state.
 
-- [x] **MADM-01**: Mobile admin can read Governance Overview as stacked status cards with runtime/provider/tool/extension/MCP/plugin health, counts, messages, and links.
-- [x] **MADM-02**: Mobile admin can inspect Registry and Operations data as cards or responsive row details without relying on page-level horizontal table scrolling.
-- [x] **MADM-03**: Mobile admin can inspect MCP server/tool status, refresh/status metadata where already supported, and unhealthy/disconnected states.
-- [x] **MADM-04**: Mobile admin can inspect Plugin state, selected/disabled/quarantined/load errors, and available plugin metadata in stacked card/detail layouts.
-- [x] **MADM-05**: Mobile admin can inspect Extension sources, contributions, providers, tools, listeners, status, and expandable metadata.
-- [x] **MADM-06**: Mobile admin can inspect Policy decisions with decision, reason, tool/run/session IDs, timestamp, and expandable redacted context.
-- [x] **MADM-07**: Mobile admin can inspect Audit summaries with actor/source/action/status/timestamp and expandable redacted details.
+### Provider, Model, and Local Profile UX
 
-### Mobile Verification and Release Gates
+- [ ] **PROV-01**: User can see provider/model readiness and actionable errors from the Console model area.
+- [ ] **PROV-02**: User can refresh model choices and see success, empty, and error states without silent failures.
+- [ ] **PROV-03**: Model selection persists locally and affects only subsequent runs.
+- [ ] **PROV-04**: Each run records the actual provider, model, and fallback mode used for history and debugging.
+- [ ] **PROV-05**: No-provider fallback is clearly labeled as local fallback, not a real model answer.
+- [ ] **PROV-06**: SQLite local profile persists sessions, transcripts, run metadata, provider config, and survives restart for Console continuation.
 
-- [x] **MVER-01**: Automated browser tests run representative Mobile Chrome, Mobile Safari/WebKit, Mobile Firefox or Firefox mobile viewport, and tablet contexts where supported by CI.
-- [x] **MVER-02**: Mobile smoke tests verify route load, no page-level horizontal overflow, visible primary action, and at least one key interaction per route category.
-- [x] **MVER-03**: Console mobile E2E starts a fake/no-key run, observes streamed event UI, opens tool/approval/session areas, and cancels or reaches terminal status.
-- [x] **MVER-04**: Admin mobile E2E opens overview, registry, operations, MCP, plugin, extension, policy, and audit pages and verifies mobile card/detail content.
-- [x] **MVER-05**: Representative portrait, landscape, and tablet viewports pass mobile navigation and no-horizontal-overflow checks.
-- [x] **MVER-06**: Desktop Web Console/Admin browser regressions remain passing after mobile-first changes.
-- [x] **MVER-07**: Release documentation records real-device/UAT expectations for Android Chrome, iOS Safari, Edge mobile, and Firefox mobile, including any CI/emulation gaps.
+### Security, Boundaries, and Verification
+
+- [ ] **VER-01**: Automated tests cover no-key fallback, configured-provider path, recent-session restore, same-session continuation, streaming coalescing, cancellation/error states, and provider errors.
+- [ ] **VER-02**: Repository/query tests prevent cross-tenant, cross-user, cross-session, or cross-run transcript/event leakage.
+- [ ] **VER-03**: Architecture tests preserve COLA boundaries and keep Vaadin, Spring AI, SQLite, and provider SDK types out of Domain/App contracts where prohibited.
+- [ ] **VER-04**: Browser tests verify the Kimi-style Console product path with stable selectors and no raw runtime-event noise in the main chat.
+- [ ] **VER-05**: Fake slow-stream tests prove assistant text appears incrementally before terminal completion.
 
 ## Future Requirements
 
-Deferred beyond v1.1 unless explicitly pulled into a later milestone.
+### Conversation Enhancements
 
-### Mobile Product Enhancements
+- **FUT-01**: User can search all historical sessions by text.
+- **FUT-02**: User can rename, archive, pin, or delete conversations.
+- **FUT-03**: User can branch, edit, or regenerate previous messages.
+- **FUT-04**: User can export or import full conversations.
+- **FUT-05**: User can use prompt templates, personas, or prompt libraries.
 
-- **MOB-FUT-01**: Native iOS/Android app.
-- **MOB-FUT-02**: Push notifications or background run monitoring.
-- **MOB-FUT-03**: Offline/PWA admin mode that caches governance/audit data.
-- **MOB-FUT-04**: Mobile-specific new Agent capabilities beyond adapting existing Web Console/Admin behavior.
-- **MOB-FUT-05**: Deep-linkable expanded mobile details, incident-triage shortcuts, event filtering, and mobile evidence copy/share.
+### Advanced Memory and Provider Behavior
+
+- **FUT-06**: Agent can use long-term memory, RAG, or personalization beyond current-session context.
+- **FUT-07**: Admin can configure explicit multi-provider fallback policies.
+- **FUT-08**: User can see advanced context compaction/summarization controls.
 
 ## Out of Scope
 
-Explicitly excluded for v1.1 to keep the milestone focused on verified full-site H5 adaptation.
-
 | Feature | Reason |
 |---------|--------|
-| React/Next.js/Hilla rewrite | Violates current Java/Vaadin-first product boundary and adds a second frontend stack. |
-| Native mobile app | This milestone is H5/mobile browser support, not app-store delivery. |
-| Mobile-only reduced product | User selected full-site coverage, including Admin Governance. |
-| Horizontal-scroll table as default admin solution | Fails mobile-first usability; dense admin data should use cards/details. |
-| Offline admin cache | Sensitive governance/audit data needs separate security design. |
-| Runtime/model/tool capability expansion | This is UI adaptation and verification, not Agent runtime expansion. |
-| Pixel-perfect support for every device model | Use representative mobile/tablet breakpoints and browser families instead of unmaintainable per-device layouts. |
+| React/Next.js Console rewrite | Violates Java/Vaadin-first direction and adds a second frontend stack for a milestone focused on product semantics. |
+| Mobile-only or Console-only backend API fork | Conversation APIs should be reusable by future CLI/TUI and desktop clients, not viewport-specific. |
+| Vector DB / long-term memory / RAG | Different product domain; v1.2 focuses on bounded current-session context. |
+| Conversation branching/edit/regenerate | Complicates transcript model; linear conversation is enough for productization. |
+| Automatic paid-provider fallback | Cost/compliance/debugging risk; provider fallback policy should be explicit and later. |
+| Full Agent Studio or workflow builder | Existing scope is conversation productization, not visual agent authoring. |
+| Browser localStorage as history source of truth | Would hide persistence bugs and diverge from cloud/runtime clients. |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MH5-01 | Phase 10 | Complete |
-| MH5-02 | Phase 11 | Complete |
-| MH5-03 | Phase 10 | Complete |
-| MH5-04 | Phase 11 | Complete |
-| MH5-05 | Phase 11 | Complete |
-| MCON-01 | Phase 12 | Complete |
-| MCON-02 | Phase 12 | Complete |
-| MCON-03 | Phase 12 | Complete |
-| MCON-04 | Phase 12 | Complete |
-| MCON-05 | Phase 12 | Complete |
-| MCARD-01 | Phase 13 | Complete |
-| MCARD-02 | Phase 13 | Complete |
-| MCARD-03 | Phase 13 | Complete |
-| MCARD-04 | Phase 13 | Complete |
-| MCARD-05 | Phase 13 | Complete |
-| MADM-01 | Phase 14 | Complete |
-| MADM-02 | Phase 14 | Complete |
-| MADM-03 | Phase 14 | Complete |
-| MADM-04 | Phase 14 | Complete |
-| MADM-05 | Phase 14 | Complete |
-| MADM-06 | Phase 14 | Complete |
-| MADM-07 | Phase 14 | Complete |
-| MVER-01 | Phase 10 | Complete |
-| MVER-02 | Phase 10 | Complete |
-| MVER-03 | Phase 12 | Complete |
-| MVER-04 | Phase 14 | Complete |
-| MVER-05 | Phase 15 | Complete |
-| MVER-06 | Phase 15 | Complete |
-| MVER-07 | Phase 15 | Complete |
+| CIA-01 | TBD | Pending |
+| CIA-02 | TBD | Pending |
+| CIA-03 | TBD | Pending |
+| CIA-04 | TBD | Pending |
+| SESS-01 | TBD | Pending |
+| SESS-02 | TBD | Pending |
+| SESS-03 | TBD | Pending |
+| SESS-04 | TBD | Pending |
+| SESS-05 | TBD | Pending |
+| STRM-01 | TBD | Pending |
+| STRM-02 | TBD | Pending |
+| STRM-03 | TBD | Pending |
+| STRM-04 | TBD | Pending |
+| STRM-05 | TBD | Pending |
+| CTX-01 | TBD | Pending |
+| CTX-02 | TBD | Pending |
+| CTX-03 | TBD | Pending |
+| CTX-04 | TBD | Pending |
+| CTX-05 | TBD | Pending |
+| PROV-01 | TBD | Pending |
+| PROV-02 | TBD | Pending |
+| PROV-03 | TBD | Pending |
+| PROV-04 | TBD | Pending |
+| PROV-05 | TBD | Pending |
+| PROV-06 | TBD | Pending |
+| VER-01 | TBD | Pending |
+| VER-02 | TBD | Pending |
+| VER-03 | TBD | Pending |
+| VER-04 | TBD | Pending |
+| VER-05 | TBD | Pending |
 
 **Coverage:**
-- v1.1 requirements: 29 total
-- Mapped to phases: 29 ✓
-- Unmapped: 0 ✓
-- Duplicate mappings: 0 ✓
+- v1.2 requirements: 30 total
+- Mapped to phases: 0
+- Unmapped: 30 ⚠️ Roadmap pending
 
 ---
-*Requirements defined: 2026-06-20*
-*Last updated: 2026-06-20 after milestone v1.1 roadmap creation*
+*Requirements defined: 2026-06-28*
+*Last updated: 2026-06-28 after milestone v1.2 requirements definition*
