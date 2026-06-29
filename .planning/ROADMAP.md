@@ -93,6 +93,14 @@ Plans:
 
 **Requirements:** STRM-01, STRM-02, STRM-03, STRM-04, STRM-05
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 18-streaming-bubble-lifecycle-01-PLAN.md — Reducer and ChatEventStreamPanel live assistant bubble contract.
+- [ ] 18-streaming-bubble-lifecycle-02-PLAN.md — Vaadin Push live subscription wiring and stream-mode hooks.
+- [ ] 18-streaming-bubble-lifecycle-03-PLAN.md — Cancellation, failure, and terminal-state suppression semantics.
+- [ ] 18-streaming-bubble-lifecycle-04-PLAN.md — Fake-runtime, Playwright, and documentation verification handoff.
+
 **Success Criteria:**
 1. A pending assistant bubble appears promptly after send.
 2. Model delta events append to the same assistant bubble in order.
