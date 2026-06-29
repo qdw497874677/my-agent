@@ -39,10 +39,13 @@ import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.MissingResourceException;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -241,7 +244,7 @@ public class ConsoleView extends Div {
         activeSessionBanner.getStyle().set("justify-content", "space-between");
         activeSessionBanner.getStyle().set("gap", "0.75rem");
         activeSessionLabel.getElement().setAttribute("data-role", "active-session-label");
-        newConversationAction.setText("New Conversation");
+        newConversationAction.setText(t("console.session.action.newConversation"));
         newConversationAction.getElement().setAttribute("data-action", "new-conversation");
         newConversationAction.addClickListener(event -> startNewConversation());
         activeSessionBanner.add(activeSessionLabel, newConversationAction);
@@ -251,7 +254,9 @@ public class ConsoleView extends Div {
     private void updateActiveSessionBanner(String title) {
         boolean continued = selectedSessionId != null;
         activeSessionBanner.getElement().setAttribute("data-active-session-state", continued ? "continued" : "new");
-        activeSessionLabel.setText(continued ? "Continue: " + (title == null || title.isBlank() ? selectedSessionId : title) : "New conversation");
+        activeSessionLabel.setText(continued
+                ? t("console.session.continueTitle", title == null || title.isBlank() ? selectedSessionId : title)
+                : t("console.session.new"));
         newConversationAction.setVisible(continued);
     }
 
@@ -261,8 +266,8 @@ public class ConsoleView extends Div {
         activeRunNextAfterSequence = 0;
         sessionListPanel.clearSelection();
         chatPanel.replaceTranscript(List.of());
-        runContextPanel.showStatus("new conversation", true);
-        chatPanel.showComposerRunStatus("No active run", false);
+        runContextPanel.showStatus(t("console.session.new"), true);
+        chatPanel.showComposerRunStatus(t("chat.noActiveRun"), false);
         updateActiveSessionBanner(null);
         showConsolePanel("chat");
     }
@@ -607,6 +612,19 @@ public class ConsoleView extends Div {
         consolePanels.forEach((panel, wrapper) -> wrapper.setVisible(panel.equals("chat") || panel.equals(activeConsolePanel)));
         panelControls.forEach((panel, button) -> button.getElement()
                 .setAttribute("aria-pressed", Boolean.toString(panel.equals(activeConsolePanel))));
+    }
+
+    private String t(String key, Object... params) {
+        String translated = getTranslation(key, params);
+        if (!translated.startsWith("!{") || !translated.endsWith("}!")) {
+            return translated;
+        }
+        try {
+            String pattern = ResourceBundle.getBundle("messages").getString(key);
+            return params == null || params.length == 0 ? pattern : MessageFormat.format(pattern, params);
+        } catch (MissingResourceException ex) {
+            return key;
+        }
     }
 
     public record AgentCatalogPlan(String path, String responseType) {

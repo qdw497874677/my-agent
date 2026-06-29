@@ -176,7 +176,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     private void showEmptyState() {
-        Span empty = new Span(getTranslation("chat.empty"));
+        Span empty = new Span(getTranslation("console.session.emptyTranscript"));
         empty.getElement().setAttribute("data-state", "empty");
         feed.add(empty);
     }
@@ -273,7 +273,7 @@ public class ChatEventStreamPanel extends Div {
         label.getStyle().set("font-weight", "600");
         header.add(label);
         if (!"completed".equals(statusValue)) {
-            Span status = new Span(statusValue);
+            Span status = new Span(translatedStatus(statusValue));
             status.addClassName("pi-transcript-status");
             status.getElement().setAttribute("data-status-chip", statusValue);
             status.getStyle().set("font-size", "var(--lumo-font-size-xs)");
@@ -285,6 +285,15 @@ public class ChatEventStreamPanel extends Div {
         summary.getElement().setAttribute("data-card-summary", roleValue);
         card.add(header, summary);
         eventComponents.add(card);
+    }
+
+    private String translatedStatus(String statusValue) {
+        return switch (statusValue) {
+            case "failed" -> getTranslation("console.session.status.failed");
+            case "cancelled" -> getTranslation("console.session.status.cancelled");
+            case "partial" -> getTranslation("console.session.status.partial");
+            default -> statusValue;
+        };
     }
 
     private static void setOptionalAttribute(Component component, String attribute, String value) {

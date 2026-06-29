@@ -69,10 +69,10 @@ class WebConsoleSessionRestoreUxTest {
         Component banner = onlyDescendantWithAttribute(view, "data-role", "active-session-banner");
         Button action = (Button) onlyDescendantWithAttribute(view, "data-action", "new-conversation");
 
-        assertThat(banner.getElement().getTextRecursively()).contains(view.getTranslation("console.session.continueTitle", "Stable Title"));
-        assertThat(action.getText()).isEqualTo(view.getTranslation("console.session.action.newConversation"));
+        assertThat(banner.getElement().getTextRecursively()).contains(ResourceBundle.getBundle("messages").getString("console.session.continueTitle").replace("{0}", "Stable Title"));
+        assertThat(action.getText()).isEqualTo(ResourceBundle.getBundle("messages").getString("console.session.action.newConversation"));
         action.click();
-        assertThat(banner.getElement().getTextRecursively()).contains(view.getTranslation("console.session.new"));
+        assertThat(banner.getElement().getTextRecursively()).contains(ResourceBundle.getBundle("messages").getString("console.session.new"));
     }
 
     @Test
