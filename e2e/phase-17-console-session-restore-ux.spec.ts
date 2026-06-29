@@ -7,7 +7,7 @@ test.describe('Phase 17 Console session restore UX', () => {
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
 
-    await openConsolePanel(page, 'sessions');
+    await openVisibleConsolePanel(page, 'sessions');
     const restoredCard = page.locator(`[data-role="session-card"][data-session-id="${restored.sessionId}"]`).first();
     await expect(restoredCard, 'recent history should include API-created fake-runtime session').toBeVisible();
     await expect(restoredCard.locator('[data-field="session-title"]')).not.toHaveText('');
@@ -38,13 +38,27 @@ test.describe('Phase 17 Console session restore UX', () => {
 
     const activeCard = page.locator(`[data-role="session-card"][data-session-active="true"][data-session-id="${restored.sessionId}"]`).first();
     await expect(activeCard).toBeVisible();
+    await assertDetailsPanelReachable(page, restored.sessionId);
     await assertMainChatDoesNotFlattenRuntimeNoise(page, restored.sessionId);
   });
 });
 
-async function openConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
-  await page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first().click();
+async function openVisibleConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
+  const control = page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first();
+  await expect(control, `${target} control must be visible before product-path navigation`).toBeVisible();
+  await expect(control, `${target} control must be enabled before product-path navigation`).toBeEnabled();
+  await control.click();
   await expect(page.locator(`[data-console-panel="${target}"][data-console-panel-active="true"]`).first()).toBeVisible();
+}
+
+async function assertDetailsPanelReachable(page: Page, sessionId: string): Promise<void> {
+  await openVisibleConsolePanel(page, 'run-context');
+  const details = page.locator('[data-console-panel="run-context"][data-console-panel-active="true"]').first();
+  await expect(details, 'run/session details should be reachable from visible Console controls').toBeVisible();
+  await expect(page.locator('[data-console-panel="chat"]').first(), 'main chat remains present while details are secondary').toBeVisible();
+  await openVisibleConsolePanel(page, 'sessions');
+  await expect(page.locator(`[data-role="session-card"][data-session-id="${sessionId}"]`).first()).toBeVisible();
+  await openVisibleConsolePanel(page, 'chat');
 }
 
 function transcriptBubble(page: Page, role: 'user' | 'assistant' | 'tool' | 'error', sessionId: string): Locator {
@@ -52,11 +66,11 @@ function transcriptBubble(page: Page, role: 'user' | 'assistant' | 'tool' | 'err
 }
 
 async function activeSessionId(page: Page): Promise<string | null> {
-  await openConsolePanel(page, 'sessions');
+  await openVisibleConsolePanel(page, 'sessions');
   const active = page.locator('[data-role="session-card"][data-session-active="true"]').first();
   await expect(active).toBeVisible();
   const id = await active.getAttribute('data-session-id');
-  await openConsolePanel(page, 'chat');
+  await openVisibleConsolePanel(page, 'chat');
   return id;
 }
 
