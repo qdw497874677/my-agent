@@ -70,6 +70,41 @@ class WebConsoleSessionRestoreUxTest {
         assertThat(view.activeConsolePanel()).isEqualTo("chat");
     }
 
+    @Test
+    void selectingHistoricalSessionLoadsTypedTranscriptAndClearsPreviousFeed() {
+        RecordingBridge bridge = new RecordingBridge();
+        ConsoleView view = viewWith(bridge);
+        view.planChatSubmission("temporary current feed");
+
+        view.selectSession("session-old");
+
+        assertThat(bridge.transcriptSessionId).isEqualTo("session-old");
+        assertThat(view.chatPanel().messages()).containsExactly("old question", "old answer");
+        assertThat(view.chatPanel().messages()).doesNotContain("temporary current feed");
+        assertThat(descendants(view.chatPanel().getElement())
+                .filter(element -> "user".equals(element.getAttribute("data-message-role")))
+                .map(Element::getTextRecursively))
+                .containsExactly("old question");
+    }
+
+    @Test
+    void selectingHistoricalSessionHighlightsCardReturnsToChatAndRestoresActiveCursor() {
+        RecordingBridge bridge = new RecordingBridge();
+        ConsoleView view = viewWith(bridge);
+        view.loadRecentSessionsForProof();
+        view.showConsolePanel("sessions");
+
+        view.selectSession("session-old");
+        int appended = view.refreshActiveRunEvents();
+
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
+        assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-old");
+        assertThat(view.sessionListPanel().sessionCards().getFirst().getElement().getAttribute("data-session-active"))
+                .isEqualTo("true");
+        assertThat(bridge.eventAfterSequences).containsExactly(42L);
+        assertThat(appended).isZero();
+    }
+
     private static ConsoleView viewWith(RecordingBridge bridge) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()), bridge, new RunEventRenderer());
     }
@@ -90,6 +125,8 @@ class WebConsoleSessionRestoreUxTest {
     private static final class RecordingBridge implements ConsoleRunExecutionBridge {
         private final List<String> createSessionCalls = new ArrayList<>();
         private final List<String> createRunSessions = new ArrayList<>();
+        private final List<Long> eventAfterSequences = new ArrayList<>();
+        private String transcriptSessionId;
 
         @Override
         public SessionResponse createSession() {
@@ -105,6 +142,7 @@ class WebConsoleSessionRestoreUxTest {
 
         @Override
         public EventHistoryResponse listEvents(String sessionId, String runId, long afterSequence) {
+            eventAfterSequences.add(afterSequence);
             return new EventHistoryResponse(sessionId, runId, List.of(), afterSequence, afterSequence, false);
         }
 
@@ -122,6 +160,7 @@ class WebConsoleSessionRestoreUxTest {
 
         @Override
         public ConversationTranscriptResponse getTranscript(String sessionId, int limit, String cursor) {
+            transcriptSessionId = sessionId;
             return new ConversationTranscriptResponse(sessionId, List.of(
                     message(sessionId, "m1", ConversationMessageRole.USER, "old question"),
                     message(sessionId, "m2", ConversationMessageRole.ASSISTANT, "old answer")
