@@ -26,10 +26,54 @@ import io.github.pi_java.agent.client.session.SessionResponse;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import org.junit.jupiter.api.Test;
 
 class WebConsoleSessionRestoreUxTest {
+
+    private static final List<String> PHASE_17_CONSOLE_KEYS = List.of(
+            "console.session.history",
+            "console.session.new",
+            "console.session.continueTitle",
+            "console.session.action.newConversation",
+            "console.session.emptyTranscript",
+            "console.session.status.failed",
+            "console.session.status.cancelled",
+            "console.session.status.partial",
+            "console.session.details",
+            "console.session.advanced");
+
+    @Test
+    void phase17SessionRestoreLabelsAreSynchronizedAcrossEnglishAndChineseBundles() {
+        ResourceBundle english = ResourceBundle.getBundle("messages", Locale.ENGLISH);
+        ResourceBundle chinese = ResourceBundle.getBundle("messages", Locale.CHINESE);
+
+        for (String key : PHASE_17_CONSOLE_KEYS) {
+            assertThat(english.containsKey(key)).as("English bundle key %s", key).isTrue();
+            assertThat(chinese.containsKey(key)).as("Chinese bundle key %s", key).isTrue();
+            assertThat(english.getString(key)).as("English value %s", key).isNotBlank();
+            assertThat(chinese.getString(key)).as("Chinese value %s", key).isNotBlank();
+        }
+        assertThat(english.getString("console.session.continueTitle")).contains("{0}");
+        assertThat(chinese.getString("console.session.continueTitle")).contains("{0}");
+    }
+
+    @Test
+    void consoleRestoreChromeUsesTranslatedLabelsInsteadOfHardcodedEnglish() {
+        ConsoleView view = viewWith(new RecordingBridge());
+        view.loadRecentSessionsForProof();
+        view.selectSession("session-old");
+
+        Component banner = onlyDescendantWithAttribute(view, "data-role", "active-session-banner");
+        Button action = (Button) onlyDescendantWithAttribute(view, "data-action", "new-conversation");
+
+        assertThat(banner.getElement().getTextRecursively()).contains(view.getTranslation("console.session.continueTitle", "Stable Title"));
+        assertThat(action.getText()).isEqualTo(view.getTranslation("console.session.action.newConversation"));
+        action.click();
+        assertThat(banner.getElement().getTextRecursively()).contains(view.getTranslation("console.session.new"));
+    }
 
     @Test
     void newConsoleStartsWithNewConversationBanner() {
