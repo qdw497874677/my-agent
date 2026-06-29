@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: verifying
-stopped_at: Completed 17-console-session-restore-ux-05-PLAN.md
-last_updated: "2026-06-29T04:20:02.403Z"
+stopped_at: Completed 17-console-session-restore-ux-06-PLAN.md
+last_updated: "2026-06-29T04:23:53.430Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 17-console-session-restore-ux P03 | 9min | 3 tasks | 3 files |
 | Phase 17-console-session-restore-ux P04 | 10m55s | 3 tasks | 8 files |
 | Phase 17-console-session-restore-ux P05 | 5m15s | 2 tasks | 4 files |
+| Phase 17-console-session-restore-ux P06 | 4m30s | 2 tasks | 2 files |
 
 ### v1.2 Roadmap
 
@@ -190,6 +191,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 17-console-session-restore-ux]: Document search/rename/archive/pin/delete and localStorage-only history as explicitly deferred rather than adding copy or UI affordances.
 - [Phase 17-console-session-restore-ux]: Expose the existing Console panel switcher as the visible history/details affordance instead of adding routes or deferred conversation-management features.
 - [Phase 17-console-session-restore-ux]: Normalize abnormal transcript status fallback labels to lowercase for selector/test stability while retaining bundle-backed copy.
+- [Phase 17-console-session-restore-ux]: Browser restore tests must assert panel controls are visible and enabled before clicking them.
+- [Phase 17-console-session-restore-ux]: Keep the automated Playwright plan gate as --list/no-key while documenting a separate live-server command for intentional browser execution.
 
 ### Pending Todos
 
@@ -203,8 +206,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T04:20:02.398Z
-Stopped at: Completed 17-console-session-restore-ux-05-PLAN.md
+Last session: 2026-06-29T04:23:53.425Z
+Stopped at: Completed 17-console-session-restore-ux-06-PLAN.md
 Resume file: None
 
 ---
