@@ -66,13 +66,15 @@ Plans:
 
 **Requirements:** CIA-01, CIA-02, CIA-03, CIA-04, SESS-02, SESS-03
 
-**Plans:** 4/4 plans complete
+**Plans:** 4/6 plans complete; 2 gap-closure plans added
 
 Plans:
 - [x] 17-console-session-restore-ux-01-PLAN.md — Compact recent-history card surface backed by Phase 16 session summaries.
 - [x] 17-console-session-restore-ux-02-PLAN.md — Typed transcript bubble/card hydration API with stable message selectors.
 - [x] 17-console-session-restore-ux-03-PLAN.md — Active-session banner, restore orchestration, and same-session continuation.
 - [x] 17-console-session-restore-ux-04-PLAN.md — i18n, Playwright restore product-path gate, and selector/deferred-boundary docs.
+- [ ] 17-console-session-restore-ux-05-PLAN.md — Gap closure for visible recent-history/details access and transcript status i18n fallback.
+- [ ] 17-console-session-restore-ux-06-PLAN.md — Gap closure for browser restore path and selector documentation aligned with visible controls.
 
 **Success Criteria:**
 1. Console defaults to a chat-first home with compact history and model/provider affordances.
