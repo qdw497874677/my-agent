@@ -105,6 +105,40 @@ class WebConsoleSessionRestoreUxTest {
         assertThat(appended).isZero();
     }
 
+    @Test
+    void sendingAfterSelectingHistoricalSessionContinuesSelectedSessionWithoutCreatingOne() {
+        RecordingBridge bridge = new RecordingBridge();
+        ConsoleView view = viewWith(bridge);
+        view.loadRecentSessionsForProof();
+        view.selectSession("session-old");
+
+        ConsoleView.RunSubmissionPlan plan = view.planChatSubmission("follow up");
+
+        assertThat(plan.createSessionPath()).isNull();
+        assertThat(plan.sessionId()).isEqualTo("session-old");
+        assertThat(bridge.createSessionCalls).isEmpty();
+        assertThat(bridge.createRunSessions).contains("session-old");
+        assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-old");
+        assertThat(view.sessionListPanel().sessionCards().getFirst().getElement().getAttribute("data-session-active"))
+                .isEqualTo("true");
+    }
+
+    @Test
+    void sendingAfterNewConversationCreatesFreshSession() {
+        RecordingBridge bridge = new RecordingBridge();
+        ConsoleView view = viewWith(bridge);
+        view.loadRecentSessionsForProof();
+        view.selectSession("session-old");
+        ((Button) onlyDescendantWithAttribute(view, "data-action", "new-conversation")).click();
+
+        ConsoleView.RunSubmissionPlan plan = view.planChatSubmission("fresh");
+
+        assertThat(plan.createSessionPath()).isEqualTo("/api/sessions");
+        assertThat(plan.sessionId()).isEqualTo("session-new");
+        assertThat(bridge.createSessionCalls).containsExactly("createSession");
+        assertThat(bridge.createRunSessions).contains("session-new");
+    }
+
     private static ConsoleView viewWith(RecordingBridge bridge) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()), bridge, new RunEventRenderer());
     }
