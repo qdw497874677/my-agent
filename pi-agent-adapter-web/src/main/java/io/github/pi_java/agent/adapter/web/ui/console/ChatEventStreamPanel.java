@@ -9,8 +9,12 @@ import com.vaadin.flow.component.textfield.TextArea;
 import io.github.pi_java.agent.client.conversation.ConversationMessageDto;
 import io.github.pi_java.agent.client.conversation.ConversationMessageRole;
 import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
 /** Center workbench column that keeps chat messages and runtime events in one narrative. */
@@ -42,12 +46,12 @@ public class ChatEventStreamPanel extends Div {
         feed.getStyle().set("gap", "0.75rem");
         composer.addClassName("pi-console-composer");
         composer.getElement().setAttribute("data-role", "chat-composer");
-        composerRunStatus.setText(getTranslation("chat.noActiveRun"));
+        composerRunStatus.setText(t("chat.noActiveRun"));
         composerRunStatus.setVisible(false);
-        input.setLabel(getTranslation("chat.label.message"));
-        input.setPlaceholder(getTranslation("chat.placeholder"));
-        send.setText(getTranslation("chat.button.send"));
-        composerCancel.setText(getTranslation("chat.button.cancelRun"));
+        input.setLabel(t("chat.label.message"));
+        input.setPlaceholder(t("chat.placeholder"));
+        send.setText(t("chat.button.send"));
+        composerCancel.setText(t("chat.button.cancelRun"));
         composerRunStatus.getElement().setAttribute("data-role", "composer-run-status");
         input.setMinRows(2);
         input.setMaxRows(6);
@@ -90,7 +94,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public String inputPlaceholder() {
-        return getTranslation("chat.placeholder");
+        return t("chat.placeholder");
     }
 
     public int messageCount() {
@@ -145,7 +149,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public void showComposerCancelling() {
-        showComposerRunStatus(getTranslation("console.run.cancelling"), true);
+        showComposerRunStatus(t("console.run.cancelling"), true);
     }
 
     public String composerStatusText() {
@@ -176,7 +180,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     private void showEmptyState() {
-        Span empty = new Span(getTranslation("console.session.emptyTranscript"));
+        Span empty = new Span(t("console.session.emptyTranscript"));
         empty.getElement().setAttribute("data-state", "empty");
         feed.add(empty);
     }
@@ -289,11 +293,24 @@ public class ChatEventStreamPanel extends Div {
 
     private String translatedStatus(String statusValue) {
         return switch (statusValue) {
-            case "failed" -> getTranslation("console.session.status.failed");
-            case "cancelled" -> getTranslation("console.session.status.cancelled");
-            case "partial" -> getTranslation("console.session.status.partial");
+            case "failed" -> t("console.session.status.failed").toLowerCase(Locale.ROOT);
+            case "cancelled" -> t("console.session.status.cancelled").toLowerCase(Locale.ROOT);
+            case "partial" -> t("console.session.status.partial").toLowerCase(Locale.ROOT);
             default -> statusValue;
         };
+    }
+
+    private String t(String key, Object... params) {
+        String translated = getTranslation(key, params);
+        if (!translated.startsWith("!{") || !translated.endsWith("}!")) {
+            return translated;
+        }
+        try {
+            String pattern = ResourceBundle.getBundle("messages").getString(key);
+            return params == null || params.length == 0 ? pattern : MessageFormat.format(pattern, params);
+        } catch (MissingResourceException ex) {
+            return key;
+        }
     }
 
     private static void setOptionalAttribute(Component component, String attribute, String value) {

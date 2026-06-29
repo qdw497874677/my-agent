@@ -131,6 +131,21 @@ class WebConsoleTranscriptHydrationTest {
     }
 
     @Test
+    void abnormalTranscriptStatusesUseReadableFallbackInsteadOfMissingKeyMarkers() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.replaceTranscript(List.of(
+                message("tool-1", ConversationMessageRole.TOOL, "partial tool", ConversationMessageStatus.PARTIAL),
+                message("error-1", ConversationMessageRole.ERROR, "cancelled tool", ConversationMessageStatus.CANCELLED),
+                message("error-2", ConversationMessageRole.ERROR, "failed tool", ConversationMessageStatus.FAILED)
+        ));
+
+        String rendered = panel.getElement().getTextRecursively();
+        assertThat(rendered).contains("partial", "cancelled", "failed");
+        assertThat(rendered).doesNotContain("!{", "}!", "console.session.status", "{", "}");
+    }
+
+    @Test
     void redactedMetadataIsNotDumpedAsRawJsonInTranscriptCards() {
         ChatEventStreamPanel panel = new ChatEventStreamPanel();
 
