@@ -87,6 +87,15 @@ public class SessionListPanel extends Div {
         renderList();
     }
 
+    public void clearSelection() {
+        selectedSessionId = null;
+        if (sessionIds.isEmpty()) {
+            renderEmpty();
+        } else {
+            renderList();
+        }
+    }
+
     public String emptyStateText() {
         return getTranslation("sessions.empty");
     }

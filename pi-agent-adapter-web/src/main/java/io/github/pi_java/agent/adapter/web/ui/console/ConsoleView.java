@@ -67,8 +67,12 @@ public class ConsoleView extends Div {
     private final AgentCatalogPanel agentCatalogPanel;
     private final ChatEventStreamPanel chatPanel;
     private final RunContextPanel runContextPanel;
+    private final Div activeSessionBanner = new Div();
+    private final Span activeSessionLabel = new Span();
+    private final Button newConversationAction = new Button();
     private final Map<String, Div> consolePanels;
     private final Map<String, Button> panelControls;
+    private final Map<String, String> recentSessionTitles = new java.util.LinkedHashMap<>();
     private ProviderConfigStore providerConfigStore;
     private ProviderConfigController providerConfigController;
     private ComboBox<String> modelSelector;
@@ -156,6 +160,7 @@ public class ConsoleView extends Div {
         Div switcher = createPanelSwitcher();
         Div agentsPanel = panelWrapper("agents", agentCatalogPanel);
         Div sessionsPanel = panelWrapper("sessions", sessionListPanel);
+        configureActiveSessionBanner();
         Div chatPanelWrapper = panelWrapper("chat", chatPanel);
         Div runContextPanelWrapper = panelWrapper("run-context", runContextPanel);
         this.consolePanels = Map.of(
@@ -179,7 +184,7 @@ public class ConsoleView extends Div {
         Div advancedPanels = new Div(sessionsPanel, runContextPanelWrapper, agentsPanel);
         advancedPanels.setVisible(false);
         advancedPanels.getElement().setAttribute("data-role", "advanced-console-panels");
-        add(hero, modelBar, chatPanelWrapper, advancedPanels);
+        add(hero, modelBar, activeSessionBanner, chatPanelWrapper, advancedPanels);
         addAttachListener(event -> {
             event.getUI().setPollInterval(750);
             event.getUI().addPollListener(poll -> refreshActiveRunEvents());
@@ -221,6 +226,45 @@ public class ConsoleView extends Div {
         Runnable cancel = () -> handleCancelRunningRun("mobile user requested cancellation");
         chatPanel.setCancelHandler(cancel);
         runContextPanel.setCancelHandler(cancel);
+    }
+
+    private void configureActiveSessionBanner() {
+        activeSessionBanner.addClassName("pi-active-session-banner");
+        activeSessionBanner.getElement().setAttribute("data-role", "active-session-banner");
+        activeSessionBanner.getStyle().set("max-width", "820px");
+        activeSessionBanner.getStyle().set("margin", "0 auto 0.75rem");
+        activeSessionBanner.getStyle().set("padding", "0.55rem 0.8rem");
+        activeSessionBanner.getStyle().set("border-radius", "999px");
+        activeSessionBanner.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        activeSessionBanner.getStyle().set("display", "flex");
+        activeSessionBanner.getStyle().set("align-items", "center");
+        activeSessionBanner.getStyle().set("justify-content", "space-between");
+        activeSessionBanner.getStyle().set("gap", "0.75rem");
+        activeSessionLabel.getElement().setAttribute("data-role", "active-session-label");
+        newConversationAction.setText("New Conversation");
+        newConversationAction.getElement().setAttribute("data-action", "new-conversation");
+        newConversationAction.addClickListener(event -> startNewConversation());
+        activeSessionBanner.add(activeSessionLabel, newConversationAction);
+        updateActiveSessionBanner(null);
+    }
+
+    private void updateActiveSessionBanner(String title) {
+        boolean continued = selectedSessionId != null;
+        activeSessionBanner.getElement().setAttribute("data-active-session-state", continued ? "continued" : "new");
+        activeSessionLabel.setText(continued ? "Continue: " + (title == null || title.isBlank() ? selectedSessionId : title) : "New conversation");
+        newConversationAction.setVisible(continued);
+    }
+
+    public void startNewConversation() {
+        selectedSessionId = null;
+        activeRunId = null;
+        activeRunNextAfterSequence = 0;
+        sessionListPanel.clearSelection();
+        chatPanel.replaceTranscript(List.of());
+        runContextPanel.showStatus("new conversation", true);
+        chatPanel.showComposerRunStatus("No active run", false);
+        updateActiveSessionBanner(null);
+        showConsolePanel("chat");
     }
 
     private void initModelSelector() {
@@ -314,6 +358,8 @@ public class ConsoleView extends Div {
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
         sessionListPanel.showSession(sessionId, sessionTitle(message), run.status(), latest(run.createdAt(), run.updatedAt()));
         sessionListPanel.selectSession(sessionId);
+        recentSessionTitles.putIfAbsent(sessionId, sessionTitle(message));
+        updateActiveSessionBanner(recentSessionTitles.get(sessionId));
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
         appendRunEvents(executionBridge.listEvents(sessionId, runId, 0));
@@ -329,7 +375,14 @@ public class ConsoleView extends Div {
         selectedSessionId = requireText(sessionId, "sessionId");
         sessionListPanel.selectSession(selectedSessionId);
         ConversationTranscriptResponse transcript = executionBridge.getTranscript(selectedSessionId, 100, null);
-        chatPanel.replaceTranscriptForProof(transcript.messages());
+        chatPanel.replaceTranscript(transcript.messages());
+        activeRunId = transcript.activeRunId();
+        activeRunNextAfterSequence = parseNextAfterSequence(transcript.nextCursor());
+        if (activeRunId != null && !activeRunId.isBlank()) {
+            runContextPanel.showRunning(selectedSessionId, activeRunId);
+            chatPanel.showComposerRunStatus("Run status: " + nullToDefault(transcript.activeRunStatus(), "running"), isCancellable(transcript.activeRunStatus()));
+        }
+        updateActiveSessionBanner(recentSessionTitles.get(selectedSessionId));
         showConsolePanel("chat");
         return new SessionSelectionPlan(selectedSessionId, httpClient.sessionHistoryPath(selectedSessionId));
     }
@@ -339,7 +392,14 @@ public class ConsoleView extends Div {
         if (recent == null || recent.items() == null) {
             return;
         }
-        sessionListPanel.showRecentSessionsForProof(recent.items());
+        recentSessionTitles.clear();
+        for (SessionSummaryDto summary : recent.items()) {
+            if (summary != null && summary.sessionId() != null && !summary.sessionId().isBlank()) {
+                recentSessionTitles.put(summary.sessionId().trim(), summary.title());
+            }
+        }
+        sessionListPanel.showRecentSessions(recent.items(), selectedSessionId, recent.hasMore());
+        updateActiveSessionBanner(selectedSessionId == null ? null : recentSessionTitles.get(selectedSessionId));
     }
 
     public void showConsolePanel(String target) {
@@ -453,6 +513,21 @@ public class ConsoleView extends Div {
             return first;
         }
         return second.isAfter(first) ? second : first;
+    }
+
+    private static String nullToDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private static long parseNextAfterSequence(String cursor) {
+        if (cursor == null || cursor.isBlank()) {
+            return 0;
+        }
+        try {
+            return Long.parseLong(cursor.trim());
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     private int appendRunEvents(EventHistoryResponse history) {
