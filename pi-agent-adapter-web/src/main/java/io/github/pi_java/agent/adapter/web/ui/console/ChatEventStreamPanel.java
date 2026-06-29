@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import io.github.pi_java.agent.client.conversation.ConversationMessageDto;
 import io.github.pi_java.agent.client.conversation.ConversationMessageRole;
@@ -224,7 +225,7 @@ public class ChatEventStreamPanel extends Div {
         ConversationMessageStatus status = message.status();
         String statusValue = status == null ? "completed" : status.wireValue();
         messages.add(text);
-        Div line = new Div(text);
+        Div line = new Div();
         line.addClassName("pi-transcript-message");
         line.addClassName("pi-transcript-" + roleValue);
         line.getElement().setAttribute("data-message-role", roleValue);
@@ -235,19 +236,55 @@ public class ChatEventStreamPanel extends Div {
         line.getStyle().set("max-width", "78%");
         line.getStyle().set("padding", "0.75rem 0.95rem");
         line.getStyle().set("border-radius", "18px");
-        if (ConversationMessageRole.USER.equals(role)) {
+        if (ConversationMessageRole.TOOL.equals(role) || ConversationMessageRole.ERROR.equals(role)) {
+            renderTranscriptCard(line, roleValue, text, statusValue);
+        } else if (ConversationMessageRole.USER.equals(role)) {
+            line.setText(text);
             line.getElement().setAttribute("data-message-kind", "primary-bubble");
             line.getElement().setAttribute("data-bubble-align", "right");
             line.getStyle().set("align-self", "flex-end");
             line.getStyle().set("background", "var(--lumo-primary-color)");
             line.getStyle().set("color", "var(--lumo-primary-contrast-color)");
         } else {
+            line.setText(text);
             line.getElement().setAttribute("data-message-kind", "primary-bubble");
             line.getElement().setAttribute("data-bubble-align", "left");
             line.getStyle().set("align-self", "flex-start");
             line.getStyle().set("background", "var(--lumo-contrast-5pct)");
         }
         feed.add(line);
+    }
+
+    private void renderTranscriptCard(Div card, String roleValue, String text, String statusValue) {
+        card.addClassName("pi-transcript-card");
+        card.getElement().setAttribute("data-message-kind", "secondary-card");
+        card.getElement().setAttribute("data-transcript-card", roleValue);
+        card.getStyle().set("align-self", "flex-start");
+        card.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        card.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+        card.getStyle().set("max-width", "92%");
+        HorizontalLayout header = new HorizontalLayout();
+        header.setSpacing(true);
+        header.setPadding(false);
+        header.getStyle().set("align-items", "center");
+        Span label = new Span(roleValue);
+        label.getElement().setAttribute("data-card-label", roleValue);
+        label.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        label.getStyle().set("font-weight", "600");
+        header.add(label);
+        if (!"completed".equals(statusValue)) {
+            Span status = new Span(statusValue);
+            status.addClassName("pi-transcript-status");
+            status.getElement().setAttribute("data-status-chip", statusValue);
+            status.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            status.getStyle().set("font-weight", "600");
+            status.getStyle().set("color", "var(--lumo-error-text-color)");
+            header.add(status);
+        }
+        Span summary = new Span(text);
+        summary.getElement().setAttribute("data-card-summary", roleValue);
+        card.add(header, summary);
+        eventComponents.add(card);
     }
 
     private static void setOptionalAttribute(Component component, String attribute, String value) {
