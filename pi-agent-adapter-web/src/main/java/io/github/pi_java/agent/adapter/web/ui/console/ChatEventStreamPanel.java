@@ -6,6 +6,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import io.github.pi_java.agent.client.conversation.ConversationMessageDto;
+import io.github.pi_java.agent.client.conversation.ConversationMessageRole;
+import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -99,6 +101,10 @@ public class ChatEventStreamPanel extends Div {
     }
 
     public void replaceTranscriptForProof(List<ConversationMessageDto> transcriptMessages) {
+        replaceTranscript(transcriptMessages);
+    }
+
+    public void replaceTranscript(List<ConversationMessageDto> transcriptMessages) {
         feed.removeAll();
         messages.clear();
         eventComponents.clear();
@@ -111,7 +117,7 @@ public class ChatEventStreamPanel extends Div {
             if (message == null || message.text() == null || message.text().isBlank()) {
                 continue;
             }
-            append(message.role() == null ? "conversation" : message.role().wireValue(), message.text());
+            appendTranscriptMessage(message);
         }
         if (messages.isEmpty()) {
             showEmptyState();
@@ -209,6 +215,45 @@ public class ChatEventStreamPanel extends Div {
             activeAssistantLine = line;
         }
         feed.add(line);
+    }
+
+    private void appendTranscriptMessage(ConversationMessageDto message) {
+        String text = requireText(message.text(), "message text");
+        ConversationMessageRole role = message.role();
+        String roleValue = role == null ? "conversation" : role.wireValue();
+        ConversationMessageStatus status = message.status();
+        String statusValue = status == null ? "completed" : status.wireValue();
+        messages.add(text);
+        Div line = new Div(text);
+        line.addClassName("pi-transcript-message");
+        line.addClassName("pi-transcript-" + roleValue);
+        line.getElement().setAttribute("data-message-role", roleValue);
+        line.getElement().setAttribute("data-message-status", statusValue);
+        line.getElement().setAttribute("data-stream-state", statusValue);
+        setOptionalAttribute(line, "data-session-id", message.sessionId());
+        setOptionalAttribute(line, "data-run-id", message.runId());
+        line.getStyle().set("max-width", "78%");
+        line.getStyle().set("padding", "0.75rem 0.95rem");
+        line.getStyle().set("border-radius", "18px");
+        if (ConversationMessageRole.USER.equals(role)) {
+            line.getElement().setAttribute("data-message-kind", "primary-bubble");
+            line.getElement().setAttribute("data-bubble-align", "right");
+            line.getStyle().set("align-self", "flex-end");
+            line.getStyle().set("background", "var(--lumo-primary-color)");
+            line.getStyle().set("color", "var(--lumo-primary-contrast-color)");
+        } else {
+            line.getElement().setAttribute("data-message-kind", "primary-bubble");
+            line.getElement().setAttribute("data-bubble-align", "left");
+            line.getStyle().set("align-self", "flex-start");
+            line.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        }
+        feed.add(line);
+    }
+
+    private static void setOptionalAttribute(Component component, String attribute, String value) {
+        if (value != null && !value.isBlank()) {
+            component.getElement().setAttribute(attribute, value);
+        }
     }
 
     private static String requireText(String value, String name) {
