@@ -7,7 +7,7 @@
 
 ### Conversation IA and Chat-First Console
 
-- [ ] **CIA-01**: User sees a chat-first Console home focused on message input, conversation feed, recent history, and compact provider/model status.
+- [x] **CIA-01**: User sees a chat-first Console home focused on message input, conversation feed, recent history, and compact provider/model status.
 - [ ] **CIA-02**: User can clearly distinguish a new conversation from a selected historical session through a visible active-session title or banner.
 - [x] **CIA-03**: User sees runtime, tool, provider, and diagnostic details collapsed or hidden by default unless needed for tool calls, approvals, errors, cancellation, or diagnostics.
 - [x] **CIA-04**: User can access advanced run/session/tool details without leaving the conversation flow when those details are relevant.
@@ -85,7 +85,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CIA-01 | Phase 17 | Pending |
+| CIA-01 | Phase 17 | Complete |
 | CIA-02 | Phase 17 | Pending |
 | CIA-03 | Phase 17 | Complete |
 | CIA-04 | Phase 17 | Complete |
