@@ -126,6 +126,28 @@ class WebConsoleSessionListPanelTest {
         assertThat(activated).hasValue("session-b");
     }
 
+    @Test
+    void selectingExistingSummaryKeepsMetadataAndSpaceActivation() {
+        SessionListPanel panel = new SessionListPanel();
+        AtomicReference<String> activated = new AtomicReference<>();
+        panel.setSessionActivationHandler(activated::set);
+        panel.showRecentSessions(List.of(summary("session-a", "Alpha"), summary("session-b", "Beta")), null, false);
+
+        panel.selectSession("session-b");
+        panel.activateSessionCardForTest("session-b", " ");
+
+        Div selected = panel.sessionCards().stream()
+                .filter(card -> "true".equals(card.getElement().getAttribute("data-session-active")))
+                .findFirst()
+                .orElseThrow();
+        assertThat(selected.getElement().getAttribute("data-session-id")).isEqualTo("session-b");
+        assertThat(selected.getElement().getAttribute("role")).isEqualTo("button");
+        assertThat(selected.getElement().getAttribute("tabindex")).isEqualTo("0");
+        assertThat(fieldText(selected, "session-title")).isEqualTo("Beta");
+        assertThat(fieldText(selected, "session-preview")).isEqualTo("Preview for Beta");
+        assertThat(activated).hasValue("session-b");
+    }
+
     private static SessionSummaryDto summary(String sessionId, String title) {
         return new SessionSummaryDto(
                 sessionId,
