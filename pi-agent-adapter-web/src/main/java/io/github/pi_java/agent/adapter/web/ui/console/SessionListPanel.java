@@ -22,6 +22,7 @@ public class SessionListPanel extends Div {
     private final Map<String, SessionMetadata> sessionMetadata = new LinkedHashMap<>();
     private Consumer<String> sessionActivationHandler;
     private String selectedSessionId;
+    private boolean hasMoreRecentSessions;
 
     public SessionListPanel() {
         addClassName("pi-console-sessions");
@@ -43,26 +44,32 @@ public class SessionListPanel extends Div {
         SessionMetadata existing = sessionMetadata.get(id);
         sessionMetadata.put(id, new SessionMetadata(
                 title == null || title.isBlank() ? existing == null ? getTranslation("sessions.defaultTitle") : existing.title() : title,
+                existing == null ? getTranslation("sessions.defaultPreview") : existing.preview(),
                 status == null || status.isBlank() ? existing == null ? getTranslation("sessions.defaultStatus") : existing.status() : status,
                 updatedAt == null ? existing == null ? getTranslation("sessions.defaultUpdated") : existing.updatedAt() : updatedAt.toString()));
         renderList();
     }
 
     public void showRecentSessionsForProof(List<SessionSummaryDto> summaries) {
-        if (summaries == null || summaries.isEmpty()) {
-            return;
-        }
+        showRecentSessions(summaries, selectedSessionId, false);
+    }
+
+    public void showRecentSessions(List<SessionSummaryDto> summaries, String selectedSessionId, boolean hasMore) {
         sessionIds.clear();
         sessionMetadata.clear();
-        for (SessionSummaryDto summary : summaries) {
+        this.hasMoreRecentSessions = hasMore;
+        this.selectedSessionId = selectedSessionId == null || selectedSessionId.isBlank() ? null : selectedSessionId.trim();
+        for (SessionSummaryDto summary : summaries == null ? List.<SessionSummaryDto>of() : summaries) {
             if (summary == null || summary.sessionId() == null || summary.sessionId().isBlank()) {
                 continue;
             }
-            sessionIds.add(summary.sessionId());
-            sessionMetadata.put(summary.sessionId(), new SessionMetadata(
-                    summary.title(),
-                    summary.status(),
-                    summary.lastActivityAt() == null ? getTranslation("sessions.defaultUpdated") : summary.lastActivityAt().toString()));
+            String id = summary.sessionId().trim();
+            sessionIds.add(id);
+            sessionMetadata.put(id, fromSummary(summary));
+        }
+        if (this.selectedSessionId != null && !sessionIds.contains(this.selectedSessionId)) {
+            sessionIds.add(this.selectedSessionId);
+            sessionMetadata.putIfAbsent(this.selectedSessionId, selectedFallbackMetadata());
         }
         if (sessionIds.isEmpty()) {
             renderEmpty();
@@ -76,7 +83,7 @@ public class SessionListPanel extends Div {
         if (!sessionIds.contains(selectedSessionId)) {
             sessionIds.add(selectedSessionId);
         }
-        sessionMetadata.putIfAbsent(selectedSessionId, new SessionMetadata(getTranslation("sessions.selected"), getTranslation("sessions.defaultStatus"), getTranslation("sessions.defaultUpdated")));
+        sessionMetadata.putIfAbsent(selectedSessionId, selectedFallbackMetadata());
         renderList();
     }
 
@@ -138,11 +145,18 @@ public class SessionListPanel extends Div {
         sessionCards.clear();
         for (String id : sessionIds) {
             SessionMetadata metadata = sessionMetadata.getOrDefault(
-                    id, new SessionMetadata(getTranslation("sessions.defaultTitle"), getTranslation("sessions.defaultStatus"), getTranslation("sessions.defaultUpdated")));
+                    id,
+                    new SessionMetadata(
+                            getTranslation("sessions.defaultTitle"),
+                            getTranslation("sessions.defaultPreview"),
+                            getTranslation("sessions.defaultStatus"),
+                            getTranslation("sessions.defaultUpdated")));
             String text = (Objects.equals(id, selectedSessionId) ? "▶ " : "")
                     + id
                     + " · "
                     + metadata.title()
+                    + " · "
+                    + metadata.preview()
                     + " · "
                     + metadata.status()
                     + " · "
@@ -150,6 +164,7 @@ public class SessionListPanel extends Div {
             renderedSessionText.add(text);
             Div card = new Div(
                     field("session-title", metadata.title()),
+                    field("session-preview", metadata.preview()),
                     field("session-status", metadata.status()),
                     field("session-updated-at", metadata.updatedAt()));
             card.addClassName("pi-session-card");
@@ -164,6 +179,11 @@ public class SessionListPanel extends Div {
                     .setFilter("event.key === 'Enter' || event.key === ' ' || event.code === 'Space'");
             sessionCards.add(card);
             list.add(card);
+        }
+        if (hasMoreRecentSessions) {
+            Span more = new Span(getTranslation("sessions.more"));
+            more.getElement().setAttribute("data-role", "session-more");
+            list.add(more);
         }
     }
 
@@ -186,8 +206,28 @@ public class SessionListPanel extends Div {
         return switch (name) {
             case "session-title" -> getTranslation("sessions.defaultTitle");
             case "session-updated-at" -> getTranslation("sessions.defaultUpdated");
+            case "session-preview" -> getTranslation("sessions.defaultPreview");
             default -> getTranslation("sessions.defaultStatus");
         };
+    }
+
+    private SessionMetadata fromSummary(SessionSummaryDto summary) {
+        String status = summary.activeRunStatus() == null || summary.activeRunStatus().isBlank()
+                ? summary.status()
+                : summary.activeRunStatus();
+        return new SessionMetadata(
+                summary.title(),
+                summary.lastMessagePreview(),
+                status,
+                summary.lastActivityAt() == null ? getTranslation("sessions.defaultUpdated") : summary.lastActivityAt().toString());
+    }
+
+    private SessionMetadata selectedFallbackMetadata() {
+        return new SessionMetadata(
+                getTranslation("sessions.selected"),
+                getTranslation("sessions.defaultPreview"),
+                getTranslation("sessions.defaultStatus"),
+                getTranslation("sessions.defaultUpdated"));
     }
 
     private static String requireText(String value, String name) {
@@ -197,6 +237,6 @@ public class SessionListPanel extends Div {
         return value.trim();
     }
 
-    private record SessionMetadata(String title, String status, String updatedAt) {
+    private record SessionMetadata(String title, String preview, String status, String updatedAt) {
     }
 }
