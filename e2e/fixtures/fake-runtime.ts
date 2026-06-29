@@ -20,6 +20,11 @@ export type RuntimeRun = {
   events: RuntimeEvent[];
 };
 
+export type RestoredConversation = RuntimeRun & {
+  prompt: string;
+  assistantPattern: RegExp;
+};
+
 export type RuntimeEvent = {
   id: string;
   sequence: number;
@@ -54,6 +59,16 @@ export async function createRun(request: APIRequestContext, text: string): Promi
 
   const terminal = await waitForTerminal(request, session.sessionId, run.runId);
   return { sessionId: session.sessionId, runId: run.runId, status: terminal.status, events: await listEvents(request, session.sessionId, run.runId) };
+}
+
+export async function createRestoredConversation(request: APIRequestContext): Promise<RestoredConversation> {
+  const prompt = 'Phase 17 restored conversation: explain recent history without raw runtime events';
+  const run = await createRun(request, prompt);
+  return {
+    ...run,
+    prompt,
+    assistantPattern: /model reply|completed|fallback|assistant|response/i,
+  };
 }
 
 export async function waitForTerminal(request: APIRequestContext, sessionId: string, runId: string) {
