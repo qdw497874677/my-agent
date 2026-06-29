@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 17-console-session-restore-ux-01-PLAN.md
-last_updated: "2026-06-29T01:56:45.905Z"
+stopped_at: Completed 17-console-session-restore-ux-03-PLAN.md
+last_updated: "2026-06-29T02:09:48.444Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 17 (console-session-restore-ux) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-06-29
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase 17-console-session-restore-ux P02 | 9min | 2 tasks | 2 files |
 | Phase 17-console-session-restore-ux P01 | 9min | 2 tasks | 4 files |
+| Phase 17-console-session-restore-ux P03 | 9min | 3 tasks | 3 files |
 
 ### v1.2 Roadmap
 
@@ -179,6 +180,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 17-console-session-restore-ux]: Mapped data-stream-state directly to persisted message status; live pending/delta/terminal mutation remains Phase 18.
 - [Phase 17-console-session-restore-ux]: Recent history cards consume SessionSummaryDto directly in adapter-web and do not render provider/model metadata by default.
 - [Phase 17-console-session-restore-ux]: Represent hasMore with lightweight data-role=session-more only; full history management/search UX remains deferred.
+- [Phase 17-console-session-restore-ux]: Use adapter-web ConsoleView state for active session identity while preserving App/read-model access through ConsoleRunExecutionBridge.
+- [Phase 17-console-session-restore-ux]: Treat New Conversation as the explicit reset path for selected-session continuation.
+- [Phase 17-console-session-restore-ux]: Restore activeRunId and numeric transcript nextCursor only as a Phase 17 polling cursor seam; full delta aggregation remains Phase 18.
 
 ### Pending Todos
 
@@ -192,8 +196,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T01:56:45.899Z
-Stopped at: Completed 17-console-session-restore-ux-01-PLAN.md
+Last session: 2026-06-29T02:09:48.440Z
+Stopped at: Completed 17-console-session-restore-ux-03-PLAN.md
 Resume file: None
 
 ---

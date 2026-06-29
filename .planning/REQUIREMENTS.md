@@ -8,7 +8,7 @@
 ### Conversation IA and Chat-First Console
 
 - [x] **CIA-01**: User sees a chat-first Console home focused on message input, conversation feed, recent history, and compact provider/model status.
-- [ ] **CIA-02**: User can clearly distinguish a new conversation from a selected historical session through a visible active-session title or banner.
+- [x] **CIA-02**: User can clearly distinguish a new conversation from a selected historical session through a visible active-session title or banner.
 - [x] **CIA-03**: User sees runtime, tool, provider, and diagnostic details collapsed or hidden by default unless needed for tool calls, approvals, errors, cancellation, or diagnostics.
 - [x] **CIA-04**: User can access advanced run/session/tool details without leaving the conversation flow when those details are relevant.
 
@@ -16,7 +16,7 @@
 
 - [ ] **SESS-01**: User can see recent sessions on Console load, ordered by latest activity, with title, last activity, status, and last-message preview.
 - [x] **SESS-02**: User can select a historical session and see previous user and assistant turns restored as chat bubbles.
-- [ ] **SESS-03**: User can continue a selected historical session without accidentally creating a new session.
+- [x] **SESS-03**: User can continue a selected historical session without accidentally creating a new session.
 - [ ] **SESS-04**: Restored transcript comes from typed persisted data/read models, not Vaadin in-memory state or raw run-event maps.
 - [ ] **SESS-05**: User can refresh/reopen the Console and recover persisted sessions and their conversation transcript in local profile.
 
@@ -86,12 +86,12 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CIA-01 | Phase 17 | Complete |
-| CIA-02 | Phase 17 | Pending |
+| CIA-02 | Phase 17 | Complete |
 | CIA-03 | Phase 17 | Complete |
 | CIA-04 | Phase 17 | Complete |
 | SESS-01 | Phase 16 | Pending |
 | SESS-02 | Phase 17 | Complete |
-| SESS-03 | Phase 17 | Pending |
+| SESS-03 | Phase 17 | Complete |
 | SESS-04 | Phase 16 | Pending |
 | SESS-05 | Phase 20 | Pending |
 | STRM-01 | Phase 18 | Pending |
