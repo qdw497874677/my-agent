@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: planning
-stopped_at: Phase 17 context gathered
-last_updated: "2026-06-28T15:33:23.831Z"
-last_activity: 2026-06-28 — Milestone v1.2 roadmap created
+status: executing
+stopped_at: Completed 17-console-session-restore-ux-02-PLAN.md
+last_updated: "2026-06-29T01:54:36.942Z"
+last_activity: 2026-06-29
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 8
+  completed_plans: 5
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 16 — Conversation Read Model and Recent Sessions
+**Current focus:** Phase 17 — console-session-restore-ux
 
 ## Current Position
 
-Phase: 16
-Plan: —
-Status: Roadmap ready — next step is phase planning
-Last activity: 2026-06-28 — Milestone v1.2 roadmap created
+Phase: 17 (console-session-restore-ux) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-29
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,6 +55,8 @@ Progress: [░░░░░░░░░░] 0%
 
 - Last 5 plans: none in v1.1
 - Trend: N/A
+
+| Phase 17-console-session-restore-ux P02 | 9min | 2 tasks | 2 files |
 
 ### v1.2 Roadmap
 
@@ -171,6 +173,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use a bounded 641px-899px tablet bridge media query before the existing 900px desktop shell breakpoint.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Treat Phase 15 automated Playwright Mobile Safari and Mobile Firefox projects as proxies, not proof of true-device Safari/Firefox mobile behavior.
 - [Phase 15-cross-browser-orientation-accessibility-and-release-hardening]: Use blocker, known limitation, and follow-up classifications as the release go/no-go vocabulary for unrun or failed true-device validation.
+- [Phase 17-console-session-restore-ux]: Promoted replaceTranscriptForProof(...) to a compatibility delegator over formal replaceTranscript(...).
+- [Phase 17-console-session-restore-ux]: Kept tool/error transcript items visible as compact secondary Vaadin cards instead of primary assistant prose.
+- [Phase 17-console-session-restore-ux]: Mapped data-stream-state directly to persisted message status; live pending/delta/terminal mutation remains Phase 18.
 
 ### Pending Todos
 
@@ -184,9 +189,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-28T15:33:23.827Z
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-console-session-restore-ux/17-CONTEXT.md
+Last session: 2026-06-29T01:54:36.938Z
+Stopped at: Completed 17-console-session-restore-ux-02-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-28 after v1.2 roadmap creation*

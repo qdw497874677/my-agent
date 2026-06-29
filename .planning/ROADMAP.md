@@ -66,11 +66,11 @@ Plans:
 
 **Requirements:** CIA-01, CIA-02, CIA-03, CIA-04, SESS-02, SESS-03
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 17-console-session-restore-ux-01-PLAN.md — Compact recent-history card surface backed by Phase 16 session summaries.
-- [ ] 17-console-session-restore-ux-02-PLAN.md — Typed transcript bubble/card hydration API with stable message selectors.
+- [x] 17-console-session-restore-ux-02-PLAN.md — Typed transcript bubble/card hydration API with stable message selectors.
 - [ ] 17-console-session-restore-ux-03-PLAN.md — Active-session banner, restore orchestration, and same-session continuation.
 - [ ] 17-console-session-restore-ux-04-PLAN.md — i18n, Playwright restore product-path gate, and selector/deferred-boundary docs.
 
@@ -159,7 +159,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
-| 17. Console Session Restore UX | v1.2 | 0/TBD | Not started | — |
+| 17. Console Session Restore UX | v1.2 | 1/4 | In Progress|  |
 | 18. Streaming Bubble Lifecycle | v1.2 | 0/TBD | Not started | — |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
