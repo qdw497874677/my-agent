@@ -86,6 +86,63 @@ class WebConsoleTranscriptHydrationTest {
                 .isEqualTo("empty");
     }
 
+    @Test
+    void toolMessagesRenderAsCompactSecondaryCardsInsteadOfAssistantProse() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.replaceTranscript(List.of(message("tool-1", ConversationMessageRole.TOOL, "Tool returned safe summary", ConversationMessageStatus.COMPLETED)));
+
+        Component tool = onlyMessage(panel, "tool");
+        assertThat(tool.getElement().getAttribute("data-message-kind")).isEqualTo("secondary-card");
+        assertThat(tool.getElement().getAttribute("data-transcript-card")).isEqualTo("tool");
+        assertThat(tool.getElement().getAttribute("data-bubble-align")).isNull();
+        assertThat(tool.getClassNames()).contains("pi-transcript-card", "pi-transcript-tool");
+        assertThat(tool.getElement().getTextRecursively()).contains("Tool returned safe summary");
+        assertThat(panel.componentCount()).isEqualTo(1);
+    }
+
+    @Test
+    void errorAndFailedMessagesRenderAsCompactStatusCardsWithVisibleAbnormalStatus() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.replaceTranscript(List.of(message("error-1", ConversationMessageRole.ERROR, "Provider failed", ConversationMessageStatus.FAILED)));
+
+        Component error = onlyMessage(panel, "error");
+        assertThat(error.getElement().getAttribute("data-message-kind")).isEqualTo("secondary-card");
+        assertThat(error.getElement().getAttribute("data-transcript-card")).isEqualTo("error");
+        assertThat(error.getElement().getAttribute("data-message-status")).isEqualTo("failed");
+        assertThat(error.getElement().getTextRecursively()).contains("failed", "Provider failed");
+    }
+
+    @Test
+    void completedCardsStayQuietWhilePartialCancelledAndFailedStatusesAreVisible() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.replaceTranscript(List.of(
+                message("tool-1", ConversationMessageRole.TOOL, "quiet tool", ConversationMessageStatus.COMPLETED),
+                message("tool-2", ConversationMessageRole.TOOL, "partial tool", ConversationMessageStatus.PARTIAL),
+                message("error-1", ConversationMessageRole.ERROR, "cancelled tool", ConversationMessageStatus.CANCELLED)
+        ));
+
+        List<Component> cards = descendantsWithAttribute(panel, "data-message-role");
+        assertThat(cards.get(0).getElement().getTextRecursively()).doesNotContain("completed");
+        assertThat(cards.get(1).getElement().getTextRecursively()).contains("partial");
+        assertThat(cards.get(2).getElement().getTextRecursively()).contains("cancelled");
+    }
+
+    @Test
+    void redactedMetadataIsNotDumpedAsRawJsonInTranscriptCards() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.replaceTranscript(List.of(new ConversationMessageDto("tool-1", "session-1", "run-1", null,
+                ConversationMessageRole.TOOL, "safe summary", ConversationMessageStatus.FAILED, now(), now(), 1L, 1L,
+                Map.of("secret", "should-not-render", "nested", Map.of("token", "raw-json")), true, true)));
+
+        String rendered = onlyMessage(panel, "tool").getElement().getTextRecursively();
+        assertThat(rendered).contains("safe summary", "failed");
+        assertThat(rendered).doesNotContain("should-not-render", "raw-json", "{", "}", "secret", "token");
+    }
+
     private static ConversationMessageDto message(String id, ConversationMessageRole role, String text, ConversationMessageStatus status) {
         return new ConversationMessageDto(id, "session-1", "run-1", null, role, text, status, now(), now(), 1L, 1L, Map.of(), true, false);
     }
