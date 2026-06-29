@@ -86,6 +86,45 @@ class WebConsoleSessionRestoreUxTest {
     }
 
     @Test
+    void newConsoleExposesVisibleHistoryAndDetailsControlsWithoutTestOnlyPanelCalls() {
+        ConsoleView view = viewWith(new RecordingBridge());
+        view.loadRecentSessionsForProof();
+
+        Component switcher = onlyDescendantWithAttribute(view, "data-role", "console-panel-switcher");
+        Button history = panelControl(view, "sessions");
+        Button details = panelControl(view, "run-context");
+        Button chat = panelControl(view, "chat");
+
+        assertThat(componentAndAncestorsVisible(switcher)).isTrue();
+        assertThat(componentAndAncestorsVisible(history)).isTrue();
+        assertThat(componentAndAncestorsVisible(details)).isTrue();
+        assertThat(componentAndAncestorsVisible(chat)).isTrue();
+    }
+
+    @Test
+    void visibleHistoryControlOpensRecentSessionsAndVisibleDetailsControlKeepsChatPrimary() {
+        ConsoleView view = viewWith(new RecordingBridge());
+        view.loadRecentSessionsForProof();
+
+        panelControl(view, "sessions").click();
+
+        Component sessions = onlyDescendantWithAttribute(view, "data-console-panel", "sessions");
+        assertThat(view.activeConsolePanel()).isEqualTo("sessions");
+        assertThat(sessions.isVisible()).isTrue();
+        assertThat(sessions.getElement().getAttribute("data-console-panel-active")).isEqualTo("true");
+        assertThat(view.sessionListPanel().sessionCards()).hasSize(1);
+
+        panelControl(view, "run-context").click();
+
+        Component chat = onlyDescendantWithAttribute(view, "data-console-panel", "chat");
+        Component details = onlyDescendantWithAttribute(view, "data-console-panel", "run-context");
+        assertThat(view.activeConsolePanel()).isEqualTo("run-context");
+        assertThat(chat.isVisible()).isTrue();
+        assertThat(details.isVisible()).isTrue();
+        assertThat(details.getElement().getAttribute("data-console-panel-active")).isEqualTo("true");
+    }
+
+    @Test
     void selectingHistoricalSessionUpdatesBannerToStableTitle() {
         ConsoleView view = viewWith(new RecordingBridge());
         view.loadRecentSessionsForProof();
@@ -194,6 +233,26 @@ class WebConsoleSessionRestoreUxTest {
                 .toList();
         assertThat(matches).hasSize(1);
         return matches.getFirst();
+    }
+
+    private static Button panelControl(ConsoleView view, String target) {
+        return descendants(view.getElement())
+                .filter(element -> "show-console-panel".equals(element.getAttribute("data-action")))
+                .filter(element -> target.equals(element.getAttribute("data-console-target")))
+                .map(element -> (Button) element.getComponent().orElseThrow())
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static boolean componentAndAncestorsVisible(Component component) {
+        Component current = component;
+        while (current != null) {
+            if (!current.isVisible()) {
+                return false;
+            }
+            current = current.getParent().orElse(null);
+        }
+        return true;
     }
 
     private static java.util.stream.Stream<Element> descendants(Element root) {

@@ -181,13 +181,12 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "chat-home");
         getElement().setAttribute("data-mobile-critical", "true");
-        switcher.setVisible(false);
         Div hero = createConversationHero();
         Div modelBar = createModelBar();
         Div advancedPanels = new Div(sessionsPanel, runContextPanelWrapper, agentsPanel);
-        advancedPanels.setVisible(false);
+        advancedPanels.addClassName("pi-console-advanced-panels");
         advancedPanels.getElement().setAttribute("data-role", "advanced-console-panels");
-        add(hero, modelBar, activeSessionBanner, chatPanelWrapper, advancedPanels);
+        add(hero, modelBar, switcher, activeSessionBanner, chatPanelWrapper, advancedPanels);
         addAttachListener(event -> {
             event.getUI().setPollInterval(750);
             event.getUI().addPollListener(poll -> refreshActiveRunEvents());
@@ -577,6 +576,12 @@ public class ConsoleView extends Div {
         switcher.add(panelButton(getTranslation("console.panel.agents"), "agents"));
         switcher.add(panelButton(getTranslation("console.panel.sessions"), "sessions"));
         switcher.add(panelButton(getTranslation("console.panel.run"), "run-context"));
+        switcher.getStyle().set("display", "flex");
+        switcher.getStyle().set("gap", "0.5rem");
+        switcher.getStyle().set("justify-content", "center");
+        switcher.getStyle().set("flex-wrap", "wrap");
+        switcher.getStyle().set("max-width", "820px");
+        switcher.getStyle().set("margin", "0 auto 0.75rem");
         return switcher;
     }
 
@@ -603,6 +608,8 @@ public class ConsoleView extends Div {
         wrapper.addClassName("pi-console-panel-" + panel);
         wrapper.getElement().setAttribute("data-console-panel", panel);
         wrapper.getElement().setAttribute("data-console-panel-active", "false");
+        wrapper.getStyle().set("max-width", "820px");
+        wrapper.getStyle().set("margin", "0 auto 0.75rem");
         return wrapper;
     }
 
