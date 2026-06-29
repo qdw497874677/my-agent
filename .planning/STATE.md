@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: executing
-stopped_at: Completed 17-console-session-restore-ux-03-PLAN.md
-last_updated: "2026-06-29T02:09:48.444Z"
+status: verifying
+stopped_at: Completed 17-console-session-restore-ux-04-PLAN.md
+last_updated: "2026-06-29T02:25:27.079Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 Phase: 17 (console-session-restore-ux) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-29
 
 Progress: [░░░░░░░░░░] 0%
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 17-console-session-restore-ux P02 | 9min | 2 tasks | 2 files |
 | Phase 17-console-session-restore-ux P01 | 9min | 2 tasks | 4 files |
 | Phase 17-console-session-restore-ux P03 | 9min | 3 tasks | 3 files |
+| Phase 17-console-session-restore-ux P04 | 10m55s | 3 tasks | 8 files |
 
 ### v1.2 Roadmap
 
@@ -183,6 +184,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 17-console-session-restore-ux]: Use adapter-web ConsoleView state for active session identity while preserving App/read-model access through ConsoleRunExecutionBridge.
 - [Phase 17-console-session-restore-ux]: Treat New Conversation as the explicit reset path for selected-session continuation.
 - [Phase 17-console-session-restore-ux]: Restore activeRunId and numeric transcript nextCursor only as a Phase 17 polling cursor seam; full delta aggregation remains Phase 18.
+- [Phase 17-console-session-restore-ux]: Use Playwright --list as the no-key CI-safe product-path gate while encoding the live browser restore flow for server-backed runs.
+- [Phase 17-console-session-restore-ux]: Keep Phase 17 transcript restore selector assertions focused on persisted message status; live delta mutation remains Phase 18.
+- [Phase 17-console-session-restore-ux]: Document search/rename/archive/pin/delete and localStorage-only history as explicitly deferred rather than adding copy or UI affordances.
 
 ### Pending Todos
 
@@ -196,8 +200,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T02:09:48.440Z
-Stopped at: Completed 17-console-session-restore-ux-03-PLAN.md
+Last session: 2026-06-29T02:25:11.951Z
+Stopped at: Completed 17-console-session-restore-ux-04-PLAN.md
 Resume file: None
 
 ---

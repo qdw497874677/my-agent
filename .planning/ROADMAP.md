@@ -25,7 +25,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 **Phase Numbering:** Continue from previous milestone. v1.1 ended at Phase 15; v1.2 starts at Phase 16.
 
 - [x] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
-- [ ] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session.
+- [x] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session. (completed 2026-06-29)
 - [ ] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states.
 - [ ] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries.
 - [ ] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior.
@@ -66,13 +66,13 @@ Plans:
 
 **Requirements:** CIA-01, CIA-02, CIA-03, CIA-04, SESS-02, SESS-03
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 17-console-session-restore-ux-01-PLAN.md — Compact recent-history card surface backed by Phase 16 session summaries.
 - [x] 17-console-session-restore-ux-02-PLAN.md — Typed transcript bubble/card hydration API with stable message selectors.
 - [x] 17-console-session-restore-ux-03-PLAN.md — Active-session banner, restore orchestration, and same-session continuation.
-- [ ] 17-console-session-restore-ux-04-PLAN.md — i18n, Playwright restore product-path gate, and selector/deferred-boundary docs.
+- [x] 17-console-session-restore-ux-04-PLAN.md — i18n, Playwright restore product-path gate, and selector/deferred-boundary docs.
 
 **Success Criteria:**
 1. Console defaults to a chat-first home with compact history and model/provider affordances.
@@ -159,7 +159,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
-| 17. Console Session Restore UX | v1.2 | 3/4 | In Progress|  |
+| 17. Console Session Restore UX | v1.2 | 4/4 | Complete   | 2026-06-29 |
 | 18. Streaming Bubble Lifecycle | v1.2 | 0/TBD | Not started | — |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
