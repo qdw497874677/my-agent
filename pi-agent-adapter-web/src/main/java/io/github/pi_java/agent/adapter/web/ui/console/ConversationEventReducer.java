@@ -56,6 +56,32 @@ public class ConversationEventReducer {
         return Operation.secondaryEvent(event, key);
     }
 
+    public static void apply(Operation operation, ChatEventStreamPanel panel, RunEventRenderer runEventRenderer) {
+        if (operation == null || panel == null) {
+            return;
+        }
+        switch (operation.kind()) {
+            case BEGIN_ASSISTANT -> panel.beginAssistantMessage(operation.sessionId(), operation.runId(), operation.stepId());
+            case APPEND_ASSISTANT_DELTA -> panel.appendAssistantDelta(
+                    operation.sessionId(), operation.runId(), operation.stepId(), operation.delta());
+            case MARK_TERMINAL -> panel.markAssistantTerminal(
+                    operation.sessionId(), operation.runId(), operation.stepId(), operation.status(), operation.safeSummary());
+            case SECONDARY_EVENT -> {
+                if (runEventRenderer != null && operation.event() != null) {
+                    RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(operation.event());
+                    if (rendered.component() != null) {
+                        panel.appendSecondaryEvent(rendered);
+                    } else if (!rendered.text().isBlank()) {
+                        panel.appendEvent(rendered);
+                    }
+                }
+            }
+            case IGNORE -> {
+                // Intentionally no-op for replay duplicates, blank finish chunks, and post-terminal deltas.
+            }
+        }
+    }
+
     private static boolean isDuplicate(RunEventDto event, RunState state) {
         String eventId = event.eventId();
         if (eventId != null && !eventId.isBlank() && state.renderedEventIds.contains(eventId)) {

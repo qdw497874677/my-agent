@@ -97,6 +97,17 @@ public class ChatEventStreamPanel extends Div {
         append(event.category(), event.text(), event.component());
     }
 
+    public void appendSecondaryEvent(RunEventRenderer.RenderedEvent event) {
+        if (event == null || event.component() == null) {
+            return;
+        }
+        if (messages.isEmpty() && eventComponents.isEmpty()) {
+            feed.removeAll();
+        }
+        eventComponents.add(event.component());
+        feed.add(event.component());
+    }
+
     public String inputPlaceholder() {
         return t("chat.placeholder");
     }
