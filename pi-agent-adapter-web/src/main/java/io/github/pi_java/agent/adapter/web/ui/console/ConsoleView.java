@@ -66,6 +66,8 @@ public class ConsoleView extends Div {
     private final AgentCatalogQueryService agentCatalogQueryService;
     private final ConsoleRunExecutionBridge executionBridge;
     private final RunEventRenderer runEventRenderer;
+    private final ConsoleLiveRunEventSubscriber liveRunEventSubscriber;
+    private final ConversationEventReducer conversationEventReducer = new ConversationEventReducer();
     private final SessionListPanel sessionListPanel;
     private final AgentCatalogPanel agentCatalogPanel;
     private final ChatEventStreamPanel chatPanel;
@@ -146,13 +148,37 @@ public class ConsoleView extends Div {
             AgentCatalogQueryService agentCatalogQueryService,
             ConsoleRunExecutionBridge executionBridge,
             RunEventRenderer runEventRenderer,
+            ConsoleLiveRunEventSubscriber liveRunEventSubscriber) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer, null, null, liveRunEventSubscriber);
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer,
             ProviderConfigStore providerConfigStore,
             ProviderConfigController providerConfigController) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer,
+                providerConfigStore, providerConfigController, null);
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer,
+            ProviderConfigStore providerConfigStore,
+            ProviderConfigController providerConfigController,
+            ConsoleLiveRunEventSubscriber liveRunEventSubscriber) {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
         this.agentCatalogQueryService = agentCatalogQueryService;
         this.executionBridge = executionBridge;
         this.runEventRenderer = runEventRenderer;
+        this.liveRunEventSubscriber = liveRunEventSubscriber;
         this.providerConfigStore = providerConfigStore;
         this.providerConfigController = providerConfigController;
         this.sessionListPanel = new SessionListPanel();
@@ -181,6 +207,7 @@ public class ConsoleView extends Div {
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "chat-home");
         getElement().setAttribute("data-mobile-critical", "true");
+        getElement().setAttribute("data-stream-mode", liveStreamingAvailable() ? "push" : "polling-fallback");
         Div hero = createConversationHero();
         Div modelBar = createModelBar();
         Div advancedPanels = new Div(sessionsPanel, runContextPanelWrapper, agentsPanel);
@@ -360,6 +387,7 @@ public class ConsoleView extends Div {
         activeRunId = runId;
         activeRunNextAfterSequence = 0;
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
+        chatPanel.beginAssistantMessage(sessionId, runId, null);
         sessionListPanel.showSession(sessionId, sessionTitle(message), run.status(), latest(run.createdAt(), run.updatedAt()));
         sessionListPanel.selectSession(sessionId);
         recentSessionTitles.putIfAbsent(sessionId, sessionTitle(message));
@@ -367,6 +395,7 @@ public class ConsoleView extends Div {
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
         appendRunEvents(executionBridge.listEvents(sessionId, runId, 0));
+        subscribeToLiveRunEvents(runId);
         return new RunSubmissionPlan(
                 needsSession ? httpClient.createSessionPath() : null,
                 sessionId,
@@ -543,9 +572,10 @@ public class ConsoleView extends Div {
             if (event.sequence() <= activeRunNextAfterSequence) {
                 continue;
             }
-            RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
             activeRunNextAfterSequence = Math.max(activeRunNextAfterSequence, event.sequence());
             appended++;
+            ConversationEventReducer.apply(conversationEventReducer.reduce(event), chatPanel, runEventRenderer);
+            RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
             boolean statusApplied = false;
             if (event.type() != null && event.type().toLowerCase().contains("status") && event.payload() != null) {
                 Object status = event.payload().get("status");
@@ -557,15 +587,39 @@ public class ConsoleView extends Div {
             if (rendered.terminal() && !statusApplied) {
                 applyRunStatus("terminal", true);
             }
-            if (rendered.component() == null && (rendered.text() == null || rendered.text().isBlank())) {
-                continue;
-            }
-            chatPanel.appendEvent(rendered);
         }
         if (history.nextAfterSequence() > activeRunNextAfterSequence) {
             activeRunNextAfterSequence = history.nextAfterSequence();
         }
         return appended;
+    }
+
+    private boolean liveStreamingAvailable() {
+        return liveRunEventSubscriber != null && liveRunEventSubscriber.available();
+    }
+
+    private void subscribeToLiveRunEvents(String runId) {
+        if (!liveStreamingAvailable()) {
+            return;
+        }
+        liveRunEventSubscriber.subscribe(this, runId, event -> {
+            if (event.sequence() <= activeRunNextAfterSequence) {
+                return;
+            }
+            activeRunNextAfterSequence = Math.max(activeRunNextAfterSequence, event.sequence());
+            ConversationEventReducer.apply(conversationEventReducer.reduce(event), chatPanel, runEventRenderer);
+            RunEventRenderer.RenderedEvent rendered = runEventRenderer.render(event);
+            if (event.type() != null && event.type().toLowerCase().contains("status") && event.payload() != null) {
+                Object status = event.payload().get("status");
+                if (status != null) {
+                    applyRunStatus(String.valueOf(status), rendered.terminal());
+                    return;
+                }
+            }
+            if (rendered.terminal()) {
+                applyRunStatus("terminal", true);
+            }
+        });
     }
 
     private Div createPanelSwitcher() {
