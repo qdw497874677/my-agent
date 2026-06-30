@@ -12,6 +12,7 @@ import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
 import io.github.pi_java.agent.app.usecase.DefaultAgentCatalogQueryService;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
+import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
@@ -81,6 +82,54 @@ class WebConsoleStreamingCancellationTest {
         assertThat(bridge.cancelReason).isEqualTo("mobile user requested cancellation");
     }
 
+    @Test
+    void modelErrorEventMarksAssistantFailedWithSafeStatusCard() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        ConversationEventReducer.apply(reducer.reduce(event("delta-1", "session-fail", "run-fail", 1, "model.delta", Map.of("text", "partial"))), panel, renderer);
+        ConversationEventReducer.apply(reducer.reduce(event("error-1", "session-fail", "run-fail", 2, "model.error",
+                Map.of("errorCategory", "provider_unavailable", "apiKey", "sk-secret", "token", "raw-token"))), panel, renderer);
+
+        Component assistant = primaryAssistantBubbles(panel).getFirst();
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("failed");
+        assertThat(assistant.getElement().getTextRecursively()).contains("partial", "provider_unavailable");
+        assertThat(statusChips(assistant)).contains(ConversationMessageStatus.FAILED.wireValue());
+        assertThat(assistant.getElement().getTextRecursively()).doesNotContain("apiKey", "sk-secret", "token", "raw-token", "{", "}");
+    }
+
+    @Test
+    void rawExceptionBodiesAndSecretPayloadFieldsAreNotRenderedAsAssistantProse() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        ConversationEventReducer.apply(reducer.reduce(event("delta-1", "session-fail", "run-fail", 1, "model.delta", Map.of("text", "partial"))), panel, renderer);
+        ConversationEventReducer.apply(reducer.reduce(event("failed-1", "session-fail", "run-fail", 2, "run.failed",
+                Map.of("error", "java.lang.RuntimeException: upstream body {apiKey=sk-secret, token=raw-token, secret=value}"))), panel, renderer);
+
+        Component assistant = primaryAssistantBubbles(panel).getFirst();
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("failed");
+        assertThat(assistant.getElement().getTextRecursively()).contains("partial");
+        assertThat(assistant.getElement().getTextRecursively()).doesNotContain("RuntimeException", "apiKey", "sk-secret", "token", "raw-token", "secret=value", "{");
+    }
+
+    @Test
+    void terminalTransitionsKeepBufferedTextVisibleBeforeTerminalStatus() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        ConversationEventReducer.apply(reducer.reduce(event("delta-1", "session-done", "run-done", 1, "model.delta", Map.of("text", "final text"))), panel, renderer);
+        ConversationEventReducer.apply(reducer.reduce(event("done-1", "session-done", "run-done", 2, "run.completed", Map.of())), panel, renderer);
+
+        Component assistant = primaryAssistantBubbles(panel).getFirst();
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("completed");
+        assertThat(assistant.getElement().getTextRecursively()).contains("final text");
+        assertThat(panel.messages()).containsExactly("final text");
+    }
+
     private static ConsoleView consoleView(RecordingBridge bridge) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), new DefaultAgentCatalogQueryService(), bridge, new RunEventRenderer());
     }
@@ -95,6 +144,13 @@ class WebConsoleStreamingCancellationTest {
 
     private static java.util.stream.Stream<Element> descendants(Element root) {
         return root.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
+    }
+
+    private static List<String> statusChips(Component root) {
+        return descendants(root.getElement())
+                .filter(element -> element.hasAttribute("data-status-chip"))
+                .map(element -> element.getAttribute("data-status-chip"))
+                .toList();
     }
 
     private static RunEventDto event(String eventId, String sessionId, String runId, long sequence, String type, Map<String, Object> payload) {
