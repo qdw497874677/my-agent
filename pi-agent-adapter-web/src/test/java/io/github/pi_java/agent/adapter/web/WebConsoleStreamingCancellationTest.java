@@ -24,8 +24,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -130,6 +132,46 @@ class WebConsoleStreamingCancellationTest {
         assertThat(panel.messages()).containsExactly("final text");
     }
 
+    @Test
+    void englishAndChineseBundlesContainSynchronizedStreamStateAndModeLabels() {
+        ResourceBundle en = ResourceBundle.getBundle("messages", Locale.ENGLISH);
+        ResourceBundle zh = ResourceBundle.getBundle("messages", Locale.CHINESE);
+        List<String> keys = List.of(
+                "console.stream.pending",
+                "console.stream.streaming",
+                "console.stream.completed",
+                "console.stream.failed",
+                "console.stream.cancelled",
+                "console.stream.partial",
+                "console.stream.stopped",
+                "console.stream.failureSummary",
+                "console.stream.mode.push",
+                "console.stream.mode.polling-fallback");
+
+        for (String key : keys) {
+            assertThat(en.containsKey(key)).as("English key %s", key).isTrue();
+            assertThat(zh.containsKey(key)).as("Chinese key %s", key).isTrue();
+            assertReadable(en.getString(key));
+            assertReadable(zh.getString(key));
+        }
+    }
+
+    @Test
+    void directPanelConstructionRendersReadableCancelledFailedAndPartialLabels() {
+        for (ConversationMessageStatus status : List.of(
+                ConversationMessageStatus.CANCELLED,
+                ConversationMessageStatus.FAILED,
+                ConversationMessageStatus.PARTIAL)) {
+            ChatEventStreamPanel panel = new ChatEventStreamPanel();
+            panel.markAssistantTerminal("session-label", "run-" + status.wireValue(), "step-1", status, null);
+            Component component = primaryAssistantBubbles(panel).getFirst();
+            String rendered = component.getElement().getTextRecursively();
+            assertThat(rendered).isNotBlank();
+            assertThat(rendered).doesNotContain("!{", "}!");
+            assertThat(component.getElement().getAttribute("data-stream-state")).isEqualTo(status.wireValue());
+        }
+    }
+
     private static ConsoleView consoleView(RecordingBridge bridge) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), new DefaultAgentCatalogQueryService(), bridge, new RunEventRenderer());
     }
@@ -151,6 +193,11 @@ class WebConsoleStreamingCancellationTest {
                 .filter(element -> element.hasAttribute("data-status-chip"))
                 .map(element -> element.getAttribute("data-status-chip"))
                 .toList();
+    }
+
+    private static void assertReadable(String value) {
+        assertThat(value).isNotBlank();
+        assertThat(value).doesNotContain("!{", "}!");
     }
 
     private static RunEventDto event(String eventId, String sessionId, String runId, long sequence, String type, Map<String, Object> payload) {
