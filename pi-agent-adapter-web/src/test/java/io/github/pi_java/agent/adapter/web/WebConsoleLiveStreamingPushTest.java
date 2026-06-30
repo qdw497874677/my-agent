@@ -99,13 +99,25 @@ class WebConsoleLiveStreamingPushTest {
                 new io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId("workspace-1"),
                 sequence,
                 Instant.parse("2026-06-01T00:00:00Z"),
-                new io.github.pi_java.agent.domain.event.RunEventType(type),
-                new io.github.pi_java.agent.domain.common.PlatformIds.TraceId("trace-1"),
+                runEventType(type),
+                new io.github.pi_java.agent.domain.common.PlatformIds.TraceId("00000000000000000000000000000001"),
                 new io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId("correlation-1"),
                 new io.github.pi_java.agent.domain.common.PlatformIds.CausationId("cause-1"),
-                new io.github.pi_java.agent.domain.event.RunEventPayload("schema", 1, payload),
+                runEventPayload(type, payload),
                 io.github.pi_java.agent.domain.event.EventVisibility.USER,
-                io.github.pi_java.agent.domain.event.RedactionMetadata.none());
+                new io.github.pi_java.agent.domain.event.RedactionMetadata(false, false, java.util.Set.of(), "test"));
+    }
+
+    private static io.github.pi_java.agent.domain.event.RunEventType runEventType(String type) {
+        return switch (type) {
+            case "model.delta" -> io.github.pi_java.agent.domain.event.RunEventType.MODEL_DELTA;
+            case "run.completed" -> io.github.pi_java.agent.domain.event.RunEventType.RUN_COMPLETED;
+            default -> io.github.pi_java.agent.domain.event.RunEventType.RUN_STARTED;
+        };
+    }
+
+    private static io.github.pi_java.agent.domain.event.RunEventPayload runEventPayload(String type, Map<String, Object> payload) {
+        return new io.github.pi_java.agent.domain.event.RunEventPayload.ExtensionPayload("test.lifecycle", "1", payload);
     }
 
     private static final class RecordingUi extends UI {
