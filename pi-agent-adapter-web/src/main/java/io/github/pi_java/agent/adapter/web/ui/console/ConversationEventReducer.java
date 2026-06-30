@@ -40,10 +40,11 @@ public class ConversationEventReducer {
             terminalKeys.add(key);
             return Operation.markTerminal(event, key, ConversationMessageStatus.COMPLETED, null);
         }
-        if (type.contains("run.failed") || type.contains("failed") || type.contains("timed_out")) {
+        if (type.contains("run.failed") || type.contains("model.error") || type.contains("provider.error")
+                || type.contains("failed") || type.contains("timed_out") || type.contains("error")) {
             terminalKeys.add(key);
             return Operation.markTerminal(event, key, ConversationMessageStatus.FAILED,
-                    safeSummary(event.payload(), "message", "reason", "status", "error"));
+                    safeSummary(event.payload(), "message", "reason", "status", "errorCategory", "category", "error"));
         }
         if (type.contains("run.cancelled") || type.contains("cancelled")) {
             terminalKeys.add(key);
@@ -128,7 +129,7 @@ public class ConversationEventReducer {
 
     private static String safeSummary(Map<String, Object> payload, String... keys) {
         String value = payloadValue(payload, keys);
-        return value.isBlank() ? null : value;
+        return safePublicSummary(value);
     }
 
     private static String safeCancellationSummary(String reason) {
@@ -149,6 +150,25 @@ public class ConversationEventReducer {
             }
         }
         return "";
+    }
+
+    private static String safePublicSummary(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String trimmed = value.trim();
+        String lower = normalize(trimmed);
+        if (trimmed.contains("{")
+                || trimmed.contains("}")
+                || lower.contains("apikey")
+                || lower.contains("api_key")
+                || lower.contains("token")
+                || lower.contains("secret")
+                || lower.contains("runtimeexception")
+                || lower.contains("exception:")) {
+            return null;
+        }
+        return trimmed;
     }
 
     private static String aggregationKey(String sessionId, String runId, String stepId) {

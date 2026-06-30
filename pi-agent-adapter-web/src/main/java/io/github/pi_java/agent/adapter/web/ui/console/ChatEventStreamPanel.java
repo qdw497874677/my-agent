@@ -280,6 +280,9 @@ public class ChatEventStreamPanel extends Div {
 
     private void renderTerminalStatus(LiveAssistantBubble bubble, ConversationMessageStatus status, String safeSummary) {
         String summary = safeSummary == null || safeSummary.isBlank() ? translatedStatus(status.wireValue()) : safeSummary.trim();
+        if (ConversationMessageStatus.FAILED.equals(status) && summary.equals(translatedStatus(status.wireValue()))) {
+            summary = t("console.stream.failureSummary");
+        }
         bubble.line().removeAll();
         if (!bubble.text().isBlank()) {
             Span text = new Span(bubble.text());
@@ -410,10 +413,12 @@ public class ChatEventStreamPanel extends Div {
 
     private String translatedStatus(String statusValue) {
         return switch (statusValue) {
-            case "pending" -> "pending";
-            case "failed" -> t("console.session.status.failed").toLowerCase(Locale.ROOT);
-            case "cancelled" -> t("console.session.status.cancelled").toLowerCase(Locale.ROOT);
-            case "partial" -> t("console.session.status.partial").toLowerCase(Locale.ROOT);
+            case "pending" -> t("console.stream.pending").toLowerCase(Locale.ROOT);
+            case "streaming" -> t("console.stream.streaming").toLowerCase(Locale.ROOT);
+            case "completed" -> t("console.stream.completed").toLowerCase(Locale.ROOT);
+            case "failed" -> t("console.stream.failed").toLowerCase(Locale.ROOT);
+            case "cancelled" -> t("console.stream.cancelled").toLowerCase(Locale.ROOT);
+            case "partial" -> t("console.stream.partial").toLowerCase(Locale.ROOT);
             default -> statusValue;
         };
     }
