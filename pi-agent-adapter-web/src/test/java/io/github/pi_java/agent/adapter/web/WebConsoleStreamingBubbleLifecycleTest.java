@@ -5,6 +5,7 @@ import com.vaadin.flow.dom.Element;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
 import io.github.pi_java.agent.adapter.web.ui.console.ConversationEventReducer;
 import io.github.pi_java.agent.adapter.web.ui.console.ConversationEventReducer.Operation;
+import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
 import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
 import io.github.pi_java.agent.client.event.RunEventDto;
 import org.junit.jupiter.api.Test;
@@ -146,6 +147,60 @@ class WebConsoleStreamingBubbleLifecycleTest {
         assertThat(cancelled.status()).isEqualTo(ConversationMessageStatus.CANCELLED);
     }
 
+    @Test
+    void reducerOperationsApplyToPanelAsOneAssistantBubbleWithSecondaryCards() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        apply(reducer.reduce(event("delta-1", 1, "model.delta", Map.of("text", "A"))), panel, renderer);
+        apply(reducer.reduce(event("delta-1", 2, "model.delta", Map.of("text", "A"))), panel, renderer);
+        apply(reducer.reduce(event("tool-1", 3, "tool.lifecycle", Map.of("status", "started", "toolName", "lookup"))), panel, renderer);
+        apply(reducer.reduce(event("delta-2", 4, "model.delta", Map.of("text", "B"))), panel, renderer);
+        apply(reducer.reduce(event("done-1", 5, "run.completed", Map.of())), panel, renderer);
+
+        assertThat(primaryAssistantBubbles(panel)).hasSize(1);
+        assertThat(primaryAssistantBubbles(panel).getFirst().getElement().getTextRecursively()).isEqualTo("AB");
+        assertThat(primaryAssistantBubbles(panel).getFirst().getElement().getAttribute("data-stream-state")).isEqualTo("completed");
+        assertThat(panel.messages()).containsExactly("AB");
+        assertThat(panel.componentCount()).isEqualTo(1);
+    }
+
+    @Test
+    void failedTerminalRendersSafeSummaryWithoutRawPayloadOrSecrets() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        apply(reducer.reduce(event("delta-1", 1, "model.delta", Map.of("text", "partial"), "run-failed")), panel, renderer);
+        apply(reducer.reduce(event("failed-1", 2, "run.failed",
+                Map.of("message", "Provider unavailable", "apiKey", "sk-secret", "metadata", Map.of("token", "raw-token")),
+                "run-failed")), panel, renderer);
+
+        Component assistant = primaryAssistantBubbles(panel).getFirst();
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("failed");
+        assertThat(assistant.getElement().getTextRecursively()).contains("partial", "Provider unavailable");
+        assertThat(assistant.getElement().getTextRecursively())
+                .doesNotContain("apiKey", "sk-secret", "metadata", "raw-token", "{", "}");
+    }
+
+    @Test
+    void cancelledTerminalPreservesPartialTextAndIgnoresLaterDelta() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        RunEventRenderer renderer = new RunEventRenderer();
+
+        apply(reducer.reduce(event("delta-1", 1, "model.delta", Map.of("text", "partial"), "run-cancelled")), panel, renderer);
+        apply(reducer.reduce(event("cancel-1", 2, "run.cancelled", Map.of("reason", "user cancelled"), "run-cancelled")), panel, renderer);
+        apply(reducer.reduce(event("delta-2", 3, "model.delta", Map.of("text", " late"), "run-cancelled")), panel, renderer);
+
+        Component assistant = primaryAssistantBubbles(panel).getFirst();
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("cancelled");
+        assertThat(assistant.getElement().getTextRecursively()).contains("partial", "user cancelled");
+        assertThat(assistant.getElement().getTextRecursively()).doesNotContain("late");
+        assertThat(panel.messages()).containsExactly("partial");
+    }
+
     private static List<Component> primaryAssistantBubbles(ChatEventStreamPanel panel) {
         return descendantsWithAttribute(panel, "data-message-role").stream()
                 .filter(component -> "assistant".equals(component.getElement().getAttribute("data-message-role")))
@@ -162,6 +217,10 @@ class WebConsoleStreamingBubbleLifecycleTest {
 
     private static java.util.stream.Stream<Element> descendants(Element root) {
         return root.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
+    }
+
+    private static void apply(Operation operation, ChatEventStreamPanel panel, RunEventRenderer renderer) {
+        ConversationEventReducer.apply(operation, panel, renderer);
     }
 
     private static RunEventDto event(String eventId, long sequence, String type, Map<String, Object> payload) {
