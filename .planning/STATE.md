@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: executing
-stopped_at: Completed 18-streaming-bubble-lifecycle-03-PLAN.md
-last_updated: "2026-06-30T02:46:17.010Z"
+status: verifying
+stopped_at: Completed 18-streaming-bubble-lifecycle-04-PLAN.md
+last_updated: "2026-06-30T02:58:01.348Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 Phase: 18 (streaming-bubble-lifecycle) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-30
 
 Progress: [░░░░░░░░░░] 0%
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 18-streaming-bubble-lifecycle P01 | 12m33s | 3 tasks | 3 files |
 | Phase 18-streaming-bubble-lifecycle P02 | 15m14s | 3 tasks | 5 files |
 | Phase 18-streaming-bubble-lifecycle P03 | 9m48s | 3 tasks | 6 files |
+| Phase 18-streaming-bubble-lifecycle P04 | 7m30s | 3 tasks | 3 files |
 
 ### v1.2 Roadmap
 
@@ -205,6 +206,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 18-streaming-bubble-lifecycle]: Cancel is enforced locally before the runtime cancel response returns so late provider deltas cannot mutate stopped partial output.
 - [Phase 18-streaming-bubble-lifecycle]: Failure summaries prefer public message/status/category fields and drop raw exception/secret-looking bodies instead of rendering provider payload prose.
 - [Phase 18-streaming-bubble-lifecycle]: Stream state selectors remain language-neutral while visible labels come from synchronized resource bundles.
+- [Phase 18-streaming-bubble-lifecycle]: Phase 18 browser verification defaults to Playwright --list so CI stays no-key and does not require a live server.
+- [Phase 18-streaming-bubble-lifecycle]: Fake-runtime helpers use only public session/run/status/events/cancel APIs with dev headers, not test-only backend endpoints or database access.
+- [Phase 18-streaming-bubble-lifecycle]: Live browser assertions target semantic selectors and stream state/mode contracts rather than screenshots or millisecond timing.
 
 ### Pending Todos
 
@@ -218,8 +222,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-30T02:46:17.004Z
-Stopped at: Completed 18-streaming-bubble-lifecycle-03-PLAN.md
+Last session: 2026-06-30T02:58:01.343Z
+Stopped at: Completed 18-streaming-bubble-lifecycle-04-PLAN.md
 Resume file: None
 
 ---

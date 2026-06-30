@@ -26,7 +26,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 
 - [x] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
 - [x] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session. (completed 2026-06-29)
-- [ ] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states.
+- [x] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states. (completed 2026-06-30)
 - [ ] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries.
 - [ ] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior.
 - [ ] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries.
@@ -93,13 +93,13 @@ Plans:
 
 **Requirements:** STRM-01, STRM-02, STRM-03, STRM-04, STRM-05
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 18-streaming-bubble-lifecycle-01-PLAN.md — Reducer and ChatEventStreamPanel live assistant bubble contract.
 - [x] 18-streaming-bubble-lifecycle-02-PLAN.md — Vaadin Push live subscription wiring and stream-mode hooks.
 - [x] 18-streaming-bubble-lifecycle-03-PLAN.md — Cancellation, failure, and terminal-state suppression semantics.
-- [ ] 18-streaming-bubble-lifecycle-04-PLAN.md — Fake-runtime, Playwright, and documentation verification handoff.
+- [x] 18-streaming-bubble-lifecycle-04-PLAN.md — Fake-runtime, Playwright, and documentation verification handoff.
 
 **Success Criteria:**
 1. A pending assistant bubble appears promptly after send.
@@ -170,7 +170,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
-| 18. Streaming Bubble Lifecycle | v1.2 | 3/4 | In Progress|  |
+| 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete   | 2026-06-30 |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
