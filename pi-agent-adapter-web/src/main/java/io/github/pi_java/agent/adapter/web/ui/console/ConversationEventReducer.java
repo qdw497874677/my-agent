@@ -56,6 +56,10 @@ public class ConversationEventReducer {
         return Operation.secondaryEvent(event, key);
     }
 
+    public Operation begin(String sessionId, String runId, String stepId) {
+        return Operation.beginAssistant(sessionId, runId, stepId, aggregationKey(sessionId, runId, stepId));
+    }
+
     public static void apply(Operation operation, ChatEventStreamPanel panel, RunEventRenderer runEventRenderer) {
         if (operation == null || panel == null) {
             return;
@@ -182,6 +186,11 @@ public class ConversationEventReducer {
         public static Operation appendAssistantDelta(RunEventDto event, String key, String delta) {
             return new Operation(Kind.APPEND_ASSISTANT_DELTA, event.sessionId(), event.runId(), event.stepId(), key,
                     delta, null, null, event);
+        }
+
+        public static Operation beginAssistant(String sessionId, String runId, String stepId, String key) {
+            return new Operation(Kind.BEGIN_ASSISTANT, sessionId, runId, stepId, key,
+                    null, null, null, null);
         }
 
         public static Operation markTerminal(

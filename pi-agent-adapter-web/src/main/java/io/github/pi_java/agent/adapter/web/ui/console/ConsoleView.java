@@ -60,6 +60,7 @@ public class ConsoleView extends Div {
     private static final String CHAT_PANEL_SELECTOR_CONTRACT = "data-console-panel=chat";
     private static final String AGENTS_TARGET_SELECTOR_CONTRACT = "data-console-target=agents";
     private static final String SELECT_SESSION_RETURN_CONTRACT = "showConsolePanel(\"chat\")";
+    private static final String DEFAULT_ASSISTANT_STEP_ID = "step-1";
 
     private final ConsoleHttpClient httpClient;
     private final EventStreamClient eventStreamClient;
@@ -387,7 +388,7 @@ public class ConsoleView extends Div {
         activeRunId = runId;
         activeRunNextAfterSequence = 0;
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
-        chatPanel.beginAssistantMessage(sessionId, runId, null);
+        ConversationEventReducer.apply(conversationEventReducer.begin(sessionId, runId, DEFAULT_ASSISTANT_STEP_ID), chatPanel, runEventRenderer);
         sessionListPanel.showSession(sessionId, sessionTitle(message), run.status(), latest(run.createdAt(), run.updatedAt()));
         sessionListPanel.selectSession(sessionId);
         recentSessionTitles.putIfAbsent(sessionId, sessionTitle(message));
