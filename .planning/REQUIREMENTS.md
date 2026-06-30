@@ -22,10 +22,10 @@
 
 ### Streaming Bubble Pipeline
 
-- [ ] **STRM-01**: User sees a pending assistant bubble promptly after sending a message.
-- [ ] **STRM-02**: Model delta events append to one assistant bubble in order, without fragmented token cards or duplicate replay chunks.
-- [ ] **STRM-03**: User sees clear completed, failed, cancelled, or partial stream state without generic run-status noise in the main chat.
-- [ ] **STRM-04**: Active streaming remains replay-safe across polling/push refreshes using event sequence or event id dedupe.
+- [x] **STRM-01**: User sees a pending assistant bubble promptly after sending a message.
+- [x] **STRM-02**: Model delta events append to one assistant bubble in order, without fragmented token cards or duplicate replay chunks.
+- [x] **STRM-03**: User sees clear completed, failed, cancelled, or partial stream state without generic run-status noise in the main chat.
+- [x] **STRM-04**: Active streaming remains replay-safe across polling/push refreshes using event sequence or event id dedupe.
 - [ ] **STRM-05**: User can cancel an active response and see the assistant bubble marked as stopped or partial, with no later deltas appended after cancellation.
 
 ### Multi-Turn Runtime Context
@@ -94,10 +94,10 @@
 | SESS-03 | Phase 17 | Complete |
 | SESS-04 | Phase 16 | Pending |
 | SESS-05 | Phase 20 | Pending |
-| STRM-01 | Phase 18 | Pending |
-| STRM-02 | Phase 18 | Pending |
-| STRM-03 | Phase 18 | Pending |
-| STRM-04 | Phase 18 | Pending |
+| STRM-01 | Phase 18 | Complete |
+| STRM-02 | Phase 18 | Complete |
+| STRM-03 | Phase 18 | Complete |
+| STRM-04 | Phase 18 | Complete |
 | STRM-05 | Phase 18 | Pending |
 | CTX-01 | Phase 19 | Pending |
 | CTX-02 | Phase 19 | Pending |

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: verifying
-stopped_at: Phase 18 context gathered
-last_updated: "2026-06-29T13:55:52.807Z"
-last_activity: 2026-06-29
+status: executing
+stopped_at: Completed 18-streaming-bubble-lifecycle-01-PLAN.md
+last_updated: "2026-06-30T02:13:12.255Z"
+last_activity: 2026-06-30
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 14
+  completed_plans: 11
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 17 — console-session-restore-ux
+**Current focus:** Phase 18 — streaming-bubble-lifecycle
 
 ## Current Position
 
-Phase: 17 (console-session-restore-ux) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-06-29
+Phase: 18 (streaming-bubble-lifecycle) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-30
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 17-console-session-restore-ux P04 | 10m55s | 3 tasks | 8 files |
 | Phase 17-console-session-restore-ux P05 | 5m15s | 2 tasks | 4 files |
 | Phase 17-console-session-restore-ux P06 | 4m30s | 2 tasks | 2 files |
+| Phase 18-streaming-bubble-lifecycle P01 | 12m33s | 3 tasks | 3 files |
 
 ### v1.2 Roadmap
 
@@ -193,6 +194,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 17-console-session-restore-ux]: Normalize abnormal transcript status fallback labels to lowercase for selector/test stability while retaining bundle-backed copy.
 - [Phase 17-console-session-restore-ux]: Browser restore tests must assert panel controls are visible and enabled before clicking them.
 - [Phase 17-console-session-restore-ux]: Keep the automated Playwright plan gate as --list/no-key while documenting a separate live-server command for intentional browser execution.
+- [Phase 18-streaming-bubble-lifecycle]: Reducer operations, not raw RunEventRenderer assistant text, own primary assistant streaming semantics.
+- [Phase 18-streaming-bubble-lifecycle]: Secondary runtime/tool/approval/policy events remain compact cards and are not added to primary assistant prose during reducer application.
+- [Phase 18-streaming-bubble-lifecycle]: Live assistant bubbles are keyed by sessionId/runId/stepId-or-default and clear on transcript replacement or new user messages.
 
 ### Pending Todos
 
@@ -206,9 +210,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-29T13:55:52.803Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-streaming-bubble-lifecycle/18-CONTEXT.md
+Last session: 2026-06-30T02:13:12.249Z
+Stopped at: Completed 18-streaming-bubble-lifecycle-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-28 after v1.2 roadmap creation*
