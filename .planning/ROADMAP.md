@@ -93,12 +93,12 @@ Plans:
 
 **Requirements:** STRM-01, STRM-02, STRM-03, STRM-04, STRM-05
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 18-streaming-bubble-lifecycle-01-PLAN.md — Reducer and ChatEventStreamPanel live assistant bubble contract.
 - [x] 18-streaming-bubble-lifecycle-02-PLAN.md — Vaadin Push live subscription wiring and stream-mode hooks.
-- [ ] 18-streaming-bubble-lifecycle-03-PLAN.md — Cancellation, failure, and terminal-state suppression semantics.
+- [x] 18-streaming-bubble-lifecycle-03-PLAN.md — Cancellation, failure, and terminal-state suppression semantics.
 - [ ] 18-streaming-bubble-lifecycle-04-PLAN.md — Fake-runtime, Playwright, and documentation verification handoff.
 
 **Success Criteria:**
@@ -170,7 +170,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
-| 18. Streaming Bubble Lifecycle | v1.2 | 2/4 | In Progress|  |
+| 18. Streaming Bubble Lifecycle | v1.2 | 3/4 | In Progress|  |
 | 19. Multi-Turn Runtime Context | v1.2 | 0/TBD | Not started | — |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
