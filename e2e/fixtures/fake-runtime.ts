@@ -20,6 +20,16 @@ export type RuntimeRun = {
   events: RuntimeEvent[];
 };
 
+export type StreamingRun = RuntimeRun & {
+  prompt: string;
+  expectedChunks: string[];
+  assistantPattern: RegExp;
+};
+
+export type CancelledStreamingRun = StreamingRun & {
+  cancelReason: string;
+};
+
 export type RestoredConversation = RuntimeRun & {
   prompt: string;
   assistantPattern: RegExp;
@@ -33,7 +43,19 @@ export type RuntimeEvent = {
   payloadSchema?: string;
 };
 
-export async function createRun(request: APIRequestContext, text: string): Promise<RuntimeRun> {
+export function slowStreamingHint(): string {
+  return 'phase 18 slow streaming lifecycle: emit chunks Alpha, Beta, Gamma; replay duplicate delta once; finish completed';
+}
+
+export function failedStreamingHint(): string {
+  return 'phase 18 slow streaming failure: emit partial chunk then provider error with safe public summary';
+}
+
+export function cancelledStreamingHint(): string {
+  return 'phase 18 slow streaming cancel: emit partial chunk slowly and suppress late delta after cancel';
+}
+
+async function createSession(request: APIRequestContext): Promise<{ sessionId: string }> {
   const sessionResponse = await request.post('/api/sessions', {
     headers: devHeaders,
     data: {
@@ -42,9 +64,11 @@ export async function createRun(request: APIRequestContext, text: string): Promi
     },
   });
   expect(sessionResponse.ok()).toBeTruthy();
-  const session = await sessionResponse.json();
+  return sessionResponse.json();
+}
 
-  const runResponse = await request.post(`/api/sessions/${session.sessionId}/runs`, {
+async function startRun(request: APIRequestContext, sessionId: string, text: string): Promise<{ runId: string }> {
+  const runResponse = await request.post(`/api/sessions/${sessionId}/runs`, {
     headers: devHeaders,
     data: {
       agentId: 'cloud-general-agent',
@@ -55,10 +79,60 @@ export async function createRun(request: APIRequestContext, text: string): Promi
     },
   });
   expect(runResponse.ok()).toBeTruthy();
-  const run = await runResponse.json();
+  return runResponse.json();
+}
+
+export async function createRun(request: APIRequestContext, text: string): Promise<RuntimeRun> {
+  const session = await createSession(request);
+  const run = await startRun(request, session.sessionId, text);
 
   const terminal = await waitForTerminal(request, session.sessionId, run.runId);
   return { sessionId: session.sessionId, runId: run.runId, status: terminal.status, events: await listEvents(request, session.sessionId, run.runId) };
+}
+
+export async function createSlowStreamingRun(request: APIRequestContext): Promise<StreamingRun> {
+  const prompt = slowStreamingHint();
+  const run = await createRun(request, prompt);
+  return {
+    ...run,
+    prompt,
+    expectedChunks: ['Alpha', 'Beta', 'Gamma'],
+    assistantPattern: /Alpha|Beta|Gamma|model reply|completed|response/i,
+  };
+}
+
+export async function createFailedStreamingRun(request: APIRequestContext): Promise<StreamingRun> {
+  const prompt = failedStreamingHint();
+  const run = await createRun(request, prompt);
+  return {
+    ...run,
+    prompt,
+    expectedChunks: ['partial'],
+    assistantPattern: /failed|provider|unavailable|error|partial/i,
+  };
+}
+
+export async function cancelStreamingRun(request: APIRequestContext): Promise<CancelledStreamingRun> {
+  const prompt = cancelledStreamingHint();
+  const cancelReason = 'Playwright Phase 18 cancellation branch';
+  const session = await createSession(request);
+  const run = await startRun(request, session.sessionId, prompt);
+  const cancelResponse = await request.post(`/api/sessions/${session.sessionId}/runs/${run.runId}/cancel`, {
+    headers: devHeaders,
+    data: { reason: cancelReason },
+  });
+  expect(cancelResponse.ok()).toBeTruthy();
+  const terminal = await waitForTerminal(request, session.sessionId, run.runId);
+  return {
+    sessionId: session.sessionId,
+    runId: run.runId,
+    status: terminal.status,
+    events: await listEvents(request, session.sessionId, run.runId),
+    prompt,
+    expectedChunks: ['partial'],
+    assistantPattern: /partial|cancel|stopped/i,
+    cancelReason,
+  };
 }
 
 export async function createRestoredConversation(request: APIRequestContext): Promise<RestoredConversation> {
@@ -115,15 +189,8 @@ export async function decideApproval(
 }
 
 export async function cancelRun(request: APIRequestContext): Promise<RuntimeRun> {
-  const sessionResponse = await request.post('/api/sessions', { headers: devHeaders, data: { workspaceId: 'e2e-workspace', metadata: {} } });
-  expect(sessionResponse.ok()).toBeTruthy();
-  const session = await sessionResponse.json();
-  const runResponse = await request.post(`/api/sessions/${session.sessionId}/runs`, {
-    headers: devHeaders,
-    data: { agentId: 'cloud-general-agent', inputType: 'chat', input: { text: 'cancel me slowly' }, workspaceId: 'e2e-workspace', metadata: {} },
-  });
-  expect(runResponse.ok()).toBeTruthy();
-  const run = await runResponse.json();
+  const session = await createSession(request);
+  const run = await startRun(request, session.sessionId, 'cancel me slowly');
   const cancelResponse = await request.post(`/api/sessions/${session.sessionId}/runs/${run.runId}/cancel`, {
     headers: devHeaders,
     data: { reason: 'Playwright cancellation branch' },
