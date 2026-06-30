@@ -3,10 +3,15 @@ package io.github.pi_java.agent.adapter.web;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.dom.Element;
 import io.github.pi_java.agent.adapter.web.ui.console.ChatEventStreamPanel;
+import io.github.pi_java.agent.adapter.web.ui.console.ConversationEventReducer;
+import io.github.pi_java.agent.adapter.web.ui.console.ConversationEventReducer.Operation;
 import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
+import io.github.pi_java.agent.client.event.RunEventDto;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,6 +87,65 @@ class WebConsoleStreamingBubbleLifecycleTest {
                 .contains("partial");
     }
 
+    @Test
+    void reducerIgnoresDuplicateEventIdOrAlreadyRenderedRunSequence() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+
+        Operation first = reducer.reduce(event("event-1", 10, "model.delta", Map.of("text", "A")));
+        Operation duplicateId = reducer.reduce(event("event-1", 11, "model.delta", Map.of("text", "B")));
+        Operation duplicateSequence = reducer.reduce(event("event-2", 10, "model.delta", Map.of("text", "C")));
+
+        assertThat(first.kind()).isEqualTo(Operation.Kind.APPEND_ASSISTANT_DELTA);
+        assertThat(first.delta()).isEqualTo("A");
+        assertThat(duplicateId.kind()).isEqualTo(Operation.Kind.IGNORE);
+        assertThat(duplicateSequence.kind()).isEqualTo(Operation.Kind.IGNORE);
+    }
+
+    @Test
+    void reducerAppendsNonEmptyModelDeltaPayloadFieldsAndIgnoresBlankFinishChunks() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+
+        assertThat(reducer.reduce(event("event-1", 1, "model.delta", Map.of("text", "A"))).delta()).isEqualTo("A");
+        assertThat(reducer.reduce(event("event-2", 2, "model.delta", Map.of("textDelta", "B"))).delta()).isEqualTo("B");
+        assertThat(reducer.reduce(event("event-3", 3, "model.delta", Map.of("delta", "C"))).delta()).isEqualTo("C");
+        assertThat(reducer.reduce(event("event-4", 4, "model.delta", Map.of("content", "D"))).delta()).isEqualTo("D");
+        assertThat(reducer.reduce(event("event-5", 5, "model.delta", Map.of("finishReason", "stop"))).kind())
+                .isEqualTo(Operation.Kind.IGNORE);
+    }
+
+    @Test
+    void reducerRoutesToolApprovalPolicyAndRuntimeEventsAsSecondaryOperations() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+
+        assertThat(reducer.reduce(event("tool-1", 1, "tool.lifecycle", Map.of("status", "started"))).kind())
+                .isEqualTo(Operation.Kind.SECONDARY_EVENT);
+        assertThat(reducer.reduce(event("approval-1", 2, "approval_required", Map.of("status", "APPROVAL_REQUIRED"))).kind())
+                .isEqualTo(Operation.Kind.SECONDARY_EVENT);
+        assertThat(reducer.reduce(event("policy-1", 3, "policy.decision", Map.of("decision", "allow"))).kind())
+                .isEqualTo(Operation.Kind.SECONDARY_EVENT);
+        assertThat(reducer.reduce(event("runtime-1", 4, "runtime.status", Map.of("status", "running"))).kind())
+                .isEqualTo(Operation.Kind.SECONDARY_EVENT);
+    }
+
+    @Test
+    void reducerProducesTerminalOperationsAndIgnoresLaterDeltasForTerminalKey() {
+        ConversationEventReducer reducer = new ConversationEventReducer();
+
+        Operation completed = reducer.reduce(event("done-1", 1, "run.completed", Map.of()));
+        assertThat(completed.kind()).isEqualTo(Operation.Kind.MARK_TERMINAL);
+        assertThat(completed.status()).isEqualTo(ConversationMessageStatus.COMPLETED);
+
+        Operation failed = reducer.reduce(event("failed-1", 1, "run.failed", Map.of("message", "Provider unavailable"), "run-failed"));
+        assertThat(failed.kind()).isEqualTo(Operation.Kind.MARK_TERMINAL);
+        assertThat(failed.status()).isEqualTo(ConversationMessageStatus.FAILED);
+        assertThat(failed.safeSummary()).isEqualTo("Provider unavailable");
+        assertThat(reducer.reduce(event("late-1", 2, "model.delta", Map.of("text", "late"), "run-failed")).kind())
+                .isEqualTo(Operation.Kind.IGNORE);
+
+        Operation cancelled = reducer.reduce(event("cancel-1", 1, "run.cancelled", Map.of("reason", "user cancelled"), "run-cancelled"));
+        assertThat(cancelled.status()).isEqualTo(ConversationMessageStatus.CANCELLED);
+    }
+
     private static List<Component> primaryAssistantBubbles(ChatEventStreamPanel panel) {
         return descendantsWithAttribute(panel, "data-message-role").stream()
                 .filter(component -> "assistant".equals(component.getElement().getAttribute("data-message-role")))
@@ -98,5 +162,15 @@ class WebConsoleStreamingBubbleLifecycleTest {
 
     private static java.util.stream.Stream<Element> descendants(Element root) {
         return root.getChildren().flatMap(child -> java.util.stream.Stream.concat(java.util.stream.Stream.of(child), descendants(child)));
+    }
+
+    private static RunEventDto event(String eventId, long sequence, String type, Map<String, Object> payload) {
+        return event(eventId, sequence, type, payload, "run-1");
+    }
+
+    private static RunEventDto event(String eventId, long sequence, String type, Map<String, Object> payload, String runId) {
+        return new RunEventDto(eventId, "tenant-1", "user-1", "session-1", runId, "step-1", "workspace-1",
+                sequence, Instant.parse("2026-06-01T00:00:00Z"), type, "trace-1", "correlation-1", null,
+                "USER", null, "schema", 1, payload);
     }
 }
