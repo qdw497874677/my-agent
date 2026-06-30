@@ -60,6 +60,18 @@ public class ConversationEventReducer {
         return Operation.beginAssistant(sessionId, runId, stepId, aggregationKey(sessionId, runId, stepId));
     }
 
+    public Operation stopRun(String sessionId, String runId, String stepId, String reason) {
+        String key = aggregationKey(sessionId, runId, stepId);
+        terminalKeys.add(key);
+        return Operation.markTerminal(
+                sessionId,
+                runId,
+                stepId,
+                key,
+                ConversationMessageStatus.CANCELLED,
+                safeCancellationSummary(reason));
+    }
+
     public static void apply(Operation operation, ChatEventStreamPanel panel, RunEventRenderer runEventRenderer) {
         if (operation == null || panel == null) {
             return;
@@ -117,6 +129,10 @@ public class ConversationEventReducer {
     private static String safeSummary(Map<String, Object> payload, String... keys) {
         String value = payloadValue(payload, keys);
         return value.isBlank() ? null : value;
+    }
+
+    private static String safeCancellationSummary(String reason) {
+        return reason == null || reason.isBlank() ? null : reason.trim();
     }
 
     private static String payloadValue(Map<String, Object> payload, String... keys) {
@@ -200,6 +216,17 @@ public class ConversationEventReducer {
                 String safeSummary) {
             return new Operation(Kind.MARK_TERMINAL, event.sessionId(), event.runId(), event.stepId(), key,
                     null, status, safeSummary, event);
+        }
+
+        public static Operation markTerminal(
+                String sessionId,
+                String runId,
+                String stepId,
+                String key,
+                ConversationMessageStatus status,
+                String safeSummary) {
+            return new Operation(Kind.MARK_TERMINAL, sessionId, runId, stepId, key,
+                    null, status, safeSummary, null);
         }
 
         public static Operation secondaryEvent(RunEventDto event, String key) {

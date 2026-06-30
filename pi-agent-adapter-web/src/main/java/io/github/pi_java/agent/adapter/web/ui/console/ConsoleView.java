@@ -472,6 +472,13 @@ public class ConsoleView extends Div {
         runContextPanel.showCancelling();
         chatPanel.showComposerCancelling();
         CancelRunRequest request = new CancelRunRequest(reason);
+        // Mark the reducer and current assistant bubble stopped before the App call returns.
+        // Provider abort is best-effort at lower layers; this local terminal key prevents
+        // late model.delta events from mutating already-cancelled partial output.
+        ConversationEventReducer.apply(
+                conversationEventReducer.stopRun(selectedSessionId, activeRunId, DEFAULT_ASSISTANT_STEP_ID, reason),
+                chatPanel,
+                runEventRenderer);
         RunStatusResponse response = executionBridge.cancelRun(selectedSessionId, activeRunId, request);
         applyRunStatus(response.status(), response.terminal());
         activeRunId = response.terminal() ? null : response.runId();
