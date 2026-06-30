@@ -11,8 +11,10 @@ import io.github.pi_java.agent.client.conversation.ConversationMessageRole;
 import io.github.pi_java.agent.client.conversation.ConversationMessageStatus;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -28,6 +30,7 @@ public class ChatEventStreamPanel extends Div {
     private final Button composerCancel = new Button();
     private final List<String> messages = new ArrayList<>();
     private final List<Component> eventComponents = new ArrayList<>();
+    private final Map<String, LiveAssistantBubble> liveAssistantBubbles = new HashMap<>();
     private Div activeAssistantLine;
     private Consumer<String> submitHandler;
     private Runnable cancelHandler;
@@ -86,6 +89,7 @@ public class ChatEventStreamPanel extends Div {
 
     public void appendUserMessage(String text) {
         activeAssistantLine = null;
+        liveAssistantBubbles.clear();
         append("user", requireText(text, "text"));
     }
 
@@ -114,6 +118,7 @@ public class ChatEventStreamPanel extends Div {
         messages.clear();
         eventComponents.clear();
         activeAssistantLine = null;
+        liveAssistantBubbles.clear();
         if (transcriptMessages == null || transcriptMessages.isEmpty()) {
             showEmptyState();
             return;
@@ -160,6 +165,57 @@ public class ChatEventStreamPanel extends Div {
         return composerCancel.isVisible();
     }
 
+    public void beginAssistantMessage(String sessionId, String runId, String stepId) {
+        String key = aggregationKey(sessionId, runId, stepId);
+        liveAssistantBubbles.computeIfAbsent(key, ignored -> createLiveAssistantBubble(sessionId, runId, stepId, key));
+    }
+
+    public void appendAssistantDelta(String sessionId, String runId, String stepId, String delta) {
+        String cleanDelta = requireNonBlank(delta, "delta");
+        String key = aggregationKey(sessionId, runId, stepId);
+        LiveAssistantBubble bubble = liveAssistantBubbles.computeIfAbsent(
+                key, ignored -> createLiveAssistantBubble(sessionId, runId, stepId, key));
+        if (bubble.terminal()) {
+            return;
+        }
+        bubble.append(cleanDelta);
+        bubble.line().removeAll();
+        bubble.line().setText(bubble.text());
+        setLiveBubbleStatus(bubble.line(), ConversationMessageStatus.PENDING, "streaming");
+        if (bubble.messageIndex() == null) {
+            bubble.messageIndex(messages.size());
+            messages.add(bubble.text());
+        } else {
+            messages.set(bubble.messageIndex(), bubble.text());
+        }
+    }
+
+    public void markAssistantTerminal(
+            String sessionId,
+            String runId,
+            String stepId,
+            ConversationMessageStatus status,
+            String safeSummary) {
+        ConversationMessageStatus terminalStatus = status == null ? ConversationMessageStatus.COMPLETED : status;
+        String key = aggregationKey(sessionId, runId, stepId);
+        LiveAssistantBubble bubble = liveAssistantBubbles.computeIfAbsent(
+                key, ignored -> createLiveAssistantBubble(sessionId, runId, stepId, key));
+        bubble.terminal(true);
+        setLiveBubbleStatus(bubble.line(), terminalStatus, terminalStatus.wireValue());
+        if (ConversationMessageStatus.COMPLETED.equals(terminalStatus)) {
+            if (bubble.text().isBlank()) {
+                bubble.line().removeAll();
+                bubble.line().setText("");
+            }
+            return;
+        }
+        renderTerminalStatus(bubble, terminalStatus, safeSummary);
+    }
+
+    public void showErrorBubble(String sessionId, String runId, String stepId, String safeSummary) {
+        markAssistantTerminal(sessionId, runId, stepId, ConversationMessageStatus.FAILED, safeSummary);
+    }
+
     public int inputMinRows() {
         return input.getMinRows();
     }
@@ -183,6 +239,56 @@ public class ChatEventStreamPanel extends Div {
         Span empty = new Span(t("console.session.emptyTranscript"));
         empty.getElement().setAttribute("data-state", "empty");
         feed.add(empty);
+    }
+
+    private LiveAssistantBubble createLiveAssistantBubble(String sessionId, String runId, String stepId, String key) {
+        if (messages.isEmpty() && eventComponents.isEmpty()) {
+            feed.removeAll();
+        }
+        Div line = new Div();
+        line.addClassName("pi-transcript-message");
+        line.addClassName("pi-transcript-assistant");
+        line.getElement().setAttribute("data-message-role", ConversationMessageRole.ASSISTANT.wireValue());
+        line.getElement().setAttribute("data-message-kind", "primary-bubble");
+        line.getElement().setAttribute("data-bubble-align", "left");
+        line.getElement().setAttribute("data-stream-aggregation-key", key);
+        setOptionalAttribute(line, "data-session-id", sessionId);
+        setOptionalAttribute(line, "data-run-id", runId);
+        setOptionalAttribute(line, "data-step-id", normalizedStepId(stepId));
+        setLiveBubbleStatus(line, ConversationMessageStatus.PENDING, ConversationMessageStatus.PENDING.wireValue());
+        line.getStyle().set("max-width", "78%");
+        line.getStyle().set("padding", "0.75rem 0.95rem");
+        line.getStyle().set("border-radius", "18px");
+        line.getStyle().set("align-self", "flex-start");
+        line.getStyle().set("background", "var(--lumo-contrast-5pct)");
+        Span pending = statusChip(ConversationMessageStatus.PENDING, t("chat.assistant.pending"));
+        line.add(pending);
+        feed.add(line);
+        return new LiveAssistantBubble(line);
+    }
+
+    private void renderTerminalStatus(LiveAssistantBubble bubble, ConversationMessageStatus status, String safeSummary) {
+        String summary = safeSummary == null || safeSummary.isBlank() ? translatedStatus(status.wireValue()) : safeSummary.trim();
+        bubble.line().removeAll();
+        if (!bubble.text().isBlank()) {
+            Span text = new Span(bubble.text());
+            text.getElement().setAttribute("data-assistant-text", "true");
+            bubble.line().add(text);
+        }
+        bubble.line().add(statusChip(status, summary));
+    }
+
+    private Span statusChip(ConversationMessageStatus status, String text) {
+        Span chip = new Span(text);
+        chip.getElement().setAttribute("data-status-chip", status.wireValue());
+        chip.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        chip.getStyle().set("font-weight", "600");
+        return chip;
+    }
+
+    private static void setLiveBubbleStatus(Div line, ConversationMessageStatus status, String streamState) {
+        line.getElement().setAttribute("data-message-status", status.wireValue());
+        line.getElement().setAttribute("data-stream-state", streamState);
     }
 
     private void append(String category, String text) {
@@ -293,6 +399,7 @@ public class ChatEventStreamPanel extends Div {
 
     private String translatedStatus(String statusValue) {
         return switch (statusValue) {
+            case "pending" -> "pending";
             case "failed" -> t("console.session.status.failed").toLowerCase(Locale.ROOT);
             case "cancelled" -> t("console.session.status.cancelled").toLowerCase(Locale.ROOT);
             case "partial" -> t("console.session.status.partial").toLowerCase(Locale.ROOT);
@@ -319,10 +426,65 @@ public class ChatEventStreamPanel extends Div {
         }
     }
 
+    private static String aggregationKey(String sessionId, String runId, String stepId) {
+        return requireText(sessionId, "sessionId") + "::" + requireText(runId, "runId") + "::" + normalizedStepId(stepId);
+    }
+
+    private static String normalizedStepId(String stepId) {
+        return stepId == null || stepId.isBlank() ? "default" : stepId.trim();
+    }
+
     private static String requireText(String value, String name) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(name + " must not be blank");
         }
         return value.trim();
+    }
+
+    private static String requireNonBlank(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
+        return value;
+    }
+
+    private static final class LiveAssistantBubble {
+
+        private final Div line;
+        private final StringBuilder text = new StringBuilder();
+        private Integer messageIndex;
+        private boolean terminal;
+
+        private LiveAssistantBubble(Div line) {
+            this.line = line;
+        }
+
+        private Div line() {
+            return line;
+        }
+
+        private void append(String delta) {
+            text.append(delta);
+        }
+
+        private String text() {
+            return text.toString();
+        }
+
+        private Integer messageIndex() {
+            return messageIndex;
+        }
+
+        private void messageIndex(Integer messageIndex) {
+            this.messageIndex = messageIndex;
+        }
+
+        private boolean terminal() {
+            return terminal;
+        }
+
+        private void terminal(boolean terminal) {
+            this.terminal = terminal;
+        }
     }
 }
