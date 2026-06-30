@@ -127,6 +127,50 @@ class WebConsoleLiveStreamingPushTest {
         assertThat(view.chatPanel().messages()).containsExactly("hello streaming", "AB");
     }
 
+    @Test
+    void liveFanoutDeltasAppendToExistingPendingAssistantBubbleNotGenericRows() {
+        SseRunEventFanout fanout = new SseRunEventFanout();
+        ConsoleView view = liveView(new RecordingBridge(List.of()), fanout);
+
+        view.planChatSubmission("hello streaming");
+        fanout.publish(domainEvent("live-1", "session-live", "run-live", 1, "model.delta", Map.of("text", "streamed")));
+
+        List<Component> assistants = primaryAssistantBubbles(view);
+        assertThat(assistants).hasSize(1);
+        assertThat(assistants.getFirst().getElement().getTextRecursively()).isEqualTo("streamed");
+        assertThat(view.chatPanel().messages()).containsExactly("hello streaming", "streamed");
+    }
+
+    @Test
+    void fallbackRefreshUsesReducerDedupeStateAfterLiveDeliveryWithoutDuplicatingText() {
+        SseRunEventFanout fanout = new SseRunEventFanout();
+        RecordingBridge bridge = new RecordingBridge(List.of(
+                dto("live-1", 1, "session-live", "run-live", "model.delta", Map.of("text", "streamed"))));
+        ConsoleView view = liveView(bridge, fanout);
+
+        view.planChatSubmission("hello streaming");
+        fanout.publish(domainEvent("live-1", "session-live", "run-live", 1, "model.delta", Map.of("text", "streamed")));
+        int refreshed = view.refreshActiveRunEvents();
+
+        assertThat(refreshed).isZero();
+        assertThat(primaryAssistantBubbles(view)).hasSize(1);
+        assertThat(view.chatPanel().messages()).containsExactly("hello streaming", "streamed");
+    }
+
+    @Test
+    void secondaryLiveEventsRenderCompactCardsThroughRunEventRenderer() {
+        SseRunEventFanout fanout = new SseRunEventFanout();
+        ConsoleView view = liveView(new RecordingBridge(List.of()), fanout);
+
+        view.planChatSubmission("hello streaming");
+        fanout.publish(domainEvent("tool-1", "session-live", "run-live", 1, "tool.started",
+                Map.of("status", "STARTED", "toolName", "lookup")));
+
+        assertThat(primaryAssistantBubbles(view)).hasSize(1);
+        assertThat(view.chatPanel().messages()).containsExactly("hello streaming");
+        assertThat(view.chatPanel().componentCount()).isEqualTo(1);
+    }
+
     private static RecordingUi installUi() {
         RecordingUi ui = new RecordingUi();
         UI.setCurrent(ui);
