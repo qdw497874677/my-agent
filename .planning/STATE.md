@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: executing
-stopped_at: Completed 19-multi-turn-runtime-context-03-PLAN.md
-last_updated: "2026-07-01T14:31:19.041Z"
+status: verifying
+stopped_at: Completed 19-multi-turn-runtime-context-04-PLAN.md
+last_updated: "2026-07-01T14:43:30.234Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 Phase: 19 (multi-turn-runtime-context) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-01
 
 Progress: [░░░░░░░░░░] 0%
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 19-multi-turn-runtime-context P01 | 8m23s | 2 tasks | 4 files |
 | Phase 19-multi-turn-runtime-context P02 | 794s | 2 tasks | 4 files |
 | Phase 19-multi-turn-runtime-context P03 | 356s | 2 tasks | 5 files |
+| Phase 19-multi-turn-runtime-context P04 | 441s | 2 tasks | 6 files |
 
 ### v1.2 Roadmap
 
@@ -223,6 +224,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 19-multi-turn-runtime-context]: Build OpenAI provider messages from SessionContext.messages first, then append current RunInput as the final user message exactly once.
 - [Phase 19-multi-turn-runtime-context]: Ignore unsupported or blank historical roles at the provider boundary and map only user/assistant roles to Spring AI messages.
 - [Phase 19-multi-turn-runtime-context]: Keep Spring AI UserMessage/AssistantMessage imports isolated to pi-agent-infrastructure-model-openai.
+- [Phase 19-multi-turn-runtime-context]: Keep fake model request capture as testkit-only accessors without changing production ModelClient or StreamingModelClient contracts.
+- [Phase 19-multi-turn-runtime-context]: Treat credential-like transcript metadata as model-context sensitive even when visible text is otherwise safe.
+- [Phase 19-multi-turn-runtime-context]: Leave Domain architecture gate unchanged because the existing broad rule already rejects Spring AI, OpenAI, Vaadin, App, Infra, Adapter, and persistence dependencies.
 
 ### Pending Todos
 
@@ -236,8 +240,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-01T14:31:19.035Z
-Stopped at: Completed 19-multi-turn-runtime-context-03-PLAN.md
+Last session: 2026-07-01T14:43:30.229Z
+Stopped at: Completed 19-multi-turn-runtime-context-04-PLAN.md
 Resume file: None
 
 ---

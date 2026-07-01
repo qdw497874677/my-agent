@@ -27,7 +27,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 - [x] **Phase 16: Conversation Read Model and Recent Sessions** — Establish typed conversation/session DTOs, query services, repository filters, and transcript assembly before UI polish.
 - [x] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session. (completed 2026-06-29)
 - [x] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states. (completed 2026-06-30)
-- [ ] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries.
+- [x] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries. (completed 2026-07-01)
 - [ ] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior.
 - [ ] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries.
 
@@ -118,13 +118,13 @@ Plans:
 
 **Requirements:** CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 19-multi-turn-runtime-context-01-PLAN.md — App context policy, metadata, and safe transcript-to-message assembler.
 - [x] 19-multi-turn-runtime-context-02-PLAN.md — Dispatch-time context injection and safe metadata wiring.
 - [x] 19-multi-turn-runtime-context-03-PLAN.md — OpenAI-compatible ordered message provider boundary.
-- [ ] 19-multi-turn-runtime-context-04-PLAN.md — Fake-model capture, CTX-04 proof, and architecture/safety gates.
+- [x] 19-multi-turn-runtime-context-04-PLAN.md — Fake-model capture, CTX-04 proof, and architecture/safety gates.
 
 **Success Criteria:**
 1. Runtime/model execution receives bounded prior user/assistant turns for the selected session.
@@ -179,7 +179,7 @@ Plans:
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
-| 19. Multi-Turn Runtime Context | v1.2 | 3/4 | In Progress|  |
+| 19. Multi-Turn Runtime Context | v1.2 | 4/4 | Complete   | 2026-07-01 |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
 
