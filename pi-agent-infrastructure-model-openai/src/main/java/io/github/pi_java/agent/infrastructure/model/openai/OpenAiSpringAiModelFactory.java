@@ -3,6 +3,7 @@ package io.github.pi_java.agent.infrastructure.model.openai;
 import io.github.pi_java.agent.domain.model.ModelUsage;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
@@ -78,11 +79,11 @@ public interface OpenAiSpringAiModelFactory {
         }
 
         @Override
-        public Iterable<OpenAiStreamEvent> stream(String prompt, CancellationToken cancellationToken) {
+        public Iterable<OpenAiStreamEvent> stream(List<OpenAiChatMessage> messages, CancellationToken cancellationToken) {
             List<OpenAiStreamEvent> events = new CopyOnWriteArrayList<>();
             CountDownLatch done = new CountDownLatch(1);
             AtomicReference<Throwable> failure = new AtomicReference<>();
-            Disposable disposable = model.stream(new Prompt(new UserMessage(prompt))).subscribe(response -> events.addAll(toEvents(response)),
+            Disposable disposable = model.stream(new Prompt(toSpringAiMessages(messages))).subscribe(response -> events.addAll(toEvents(response)),
                     throwable -> {
                         failure.set(throwable);
                         done.countDown();
@@ -103,6 +104,16 @@ public interface OpenAiSpringAiModelFactory {
                 events.add(OpenAiStreamEvent.error(failure.get()));
             }
             return events;
+        }
+
+        private List<Message> toSpringAiMessages(List<OpenAiChatMessage> messages) {
+            return messages.stream()
+                    .<Message>map(message -> switch (message.role()) {
+                        case "user" -> new UserMessage(message.content());
+                        case "assistant" -> new AssistantMessage(message.content());
+                        default -> throw new IllegalArgumentException("Unsupported OpenAI chat role: " + message.role());
+                    })
+                    .toList();
         }
 
         private List<OpenAiStreamEvent> toEvents(ChatResponse response) {

@@ -9,9 +9,14 @@ import io.github.pi_java.agent.domain.model.ModelRequest;
 import io.github.pi_java.agent.domain.model.ModelStreamChunk;
 import io.github.pi_java.agent.domain.model.StreamingModelClient;
 import io.github.pi_java.agent.domain.runtime.CancellationToken;
+import io.github.pi_java.agent.domain.runtime.RunInput;
+import io.github.pi_java.agent.domain.session.SessionEntryPayload;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -48,7 +53,7 @@ public final class OpenAiCompatibleStreamingModelClient implements StreamingMode
 
         Iterable<OpenAiStreamEvent> events;
         try {
-            events = resiliencePolicy.executeBeforeStream(() -> modelFactory.create(config).stream(promptFrom(request), cancellationToken));
+            events = resiliencePolicy.executeBeforeStream(() -> modelFactory.create(config).stream(messagesFrom(request), cancellationToken));
         } catch (RuntimeException ex) {
             sink.accept(error(sequence, started, modelRef, OpenAiProviderErrorMapper.fromThrowable(ex, secret.rawValue(), true)));
             return;
@@ -97,11 +102,33 @@ public final class OpenAiCompatibleStreamingModelClient implements StreamingMode
                 sequence.getAndIncrement(), latency(started), summary);
     }
 
+    static List<OpenAiChatMessage> messagesFrom(ModelRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
+        List<OpenAiChatMessage> messages = new ArrayList<>();
+        for (SessionEntryPayload.MessageEntry entry : request.context().sessionContext().messages()) {
+            toChatMessage(entry).ifPresent(messages::add);
+        }
+        messages.add(OpenAiChatMessage.user(promptFrom(request)));
+        return List.copyOf(messages);
+    }
+
+    private static java.util.Optional<OpenAiChatMessage> toChatMessage(SessionEntryPayload.MessageEntry entry) {
+        if (entry == null || entry.role() == null || entry.content() == null || entry.content().isBlank()) {
+            return java.util.Optional.empty();
+        }
+        String role = entry.role().trim().toLowerCase(Locale.ROOT);
+        return switch (role) {
+            case "user" -> java.util.Optional.of(OpenAiChatMessage.user(entry.content()));
+            case "assistant" -> java.util.Optional.of(OpenAiChatMessage.assistant(entry.content()));
+            default -> java.util.Optional.empty();
+        };
+    }
+
     private static String promptFrom(ModelRequest request) {
-        if (request.context().input() instanceof io.github.pi_java.agent.domain.runtime.RunInput.ChatInput chat) {
+        if (request.context().input() instanceof RunInput.ChatInput chat) {
             return chat.text();
         }
-        if (request.context().input() instanceof io.github.pi_java.agent.domain.runtime.RunInput.TaskInput task) {
+        if (request.context().input() instanceof RunInput.TaskInput task) {
             return task.objective();
         }
         return request.context().input().toString();

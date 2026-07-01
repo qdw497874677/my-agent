@@ -18,6 +18,7 @@ import io.github.pi_java.agent.domain.runtime.CancellationToken;
 import io.github.pi_java.agent.domain.runtime.RunContext;
 import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.session.SessionContext;
+import io.github.pi_java.agent.domain.session.SessionEntryPayload;
 import io.github.pi_java.agent.domain.workspace.WorkspaceScope;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +55,39 @@ class OpenAiCompatibleStreamingModelClientTest {
         assertThat(factory.captured().modelId()).isEqualTo("gpt-test");
         assertThat(factory.captured().extraBody()).containsEntry("custom", "value");
         assertThat(chunks).extracting(ModelStreamChunk::modelRef).containsOnly("openai-compatible:gpt-test");
+    }
+
+    @Test
+    void sendsPriorSessionMessagesThenCurrentInputAsOrderedProviderChatMessages() {
+        CapturingSpringAiModelFactory factory = new CapturingSpringAiModelFactory(List.of(
+                OpenAiStreamEvent.text("context-aware"),
+                OpenAiStreamEvent.finish("stop", null)));
+        OpenAiCompatibleStreamingModelClient client = new OpenAiCompatibleStreamingModelClient(
+                providerProperties(), secretResolver("sk-secret-value"), factory);
+
+        client.stream(requestWithHistory(new RunInput.ChatInput("current question")), new CancellationToken(), chunk -> { });
+
+        assertThat(factory.capturedMessages()).extracting(OpenAiChatMessage::role)
+                .containsExactly("user", "assistant", "user");
+        assertThat(factory.capturedMessages()).extracting(OpenAiChatMessage::content)
+                .containsExactly("prior question", "prior answer", "current question");
+        assertThat(factory.capturedMessages()).filteredOn(message -> message.content().equals("current question"))
+                .hasSize(1);
+    }
+
+    @Test
+    void normalizesOnlySupportedHistoricalRolesAndAppendsTaskInputOnce() {
+        CapturingSpringAiModelFactory factory = new CapturingSpringAiModelFactory(List.of(OpenAiStreamEvent.finish("stop", null)));
+        OpenAiCompatibleStreamingModelClient client = new OpenAiCompatibleStreamingModelClient(
+                providerProperties(), secretResolver("sk-secret-value"), factory);
+
+        client.stream(requestWithHistory(new RunInput.TaskInput("complete the task")), new CancellationToken(), chunk -> { });
+
+        assertThat(factory.capturedMessages()).extracting(OpenAiChatMessage::role)
+                .containsExactly("user", "assistant", "user");
+        assertThat(factory.capturedMessages()).extracting(OpenAiChatMessage::content)
+                .containsExactly("prior question", "prior answer", "complete the task");
+        assertThat(factory.capturedMessages()).noneMatch(message -> message.content().contains("system secret"));
     }
 
     @Test
@@ -130,12 +164,25 @@ class OpenAiCompatibleStreamingModelClientTest {
     }
 
     private static ModelRequest request() {
+        return requestWithHistory(new RunInput.ChatInput("hello"), List.of());
+    }
+
+    private static ModelRequest requestWithHistory(RunInput input) {
+        return requestWithHistory(input, List.of(
+                new SessionEntryPayload.MessageEntry("user", "prior question"),
+                new SessionEntryPayload.MessageEntry("assistant", "prior answer"),
+                new SessionEntryPayload.MessageEntry("system", "system secret"),
+                new SessionEntryPayload.MessageEntry("", "blank role"),
+                new SessionEntryPayload.MessageEntry("tool", "tool output")));
+    }
+
+    private static ModelRequest requestWithHistory(RunInput input, List<SessionEntryPayload.MessageEntry> messages) {
         AgentDefinition agent = new AgentDefinition(new AgentId("agent"), "Agent", "You help", "openai-compatible:gpt-test",
                 Set.of("tools"), Set.of("policy"), new RuntimeLimits(Duration.ofSeconds(30), 4, 4),
                 Set.of(InteractionMode.CHAT), "workspace", "output");
         WorkspaceScope workspace = new WorkspaceScope("tenant", "user", "session", "run-openai", "workspace", Set.of(), Set.of());
-        RunContext context = new RunContext(agent, new RunInput.ChatInput("hello"),
-                new SessionContext(List.of(), List.of(), List.of(), List.of(), List.of(), Optional.of(workspace), List.of()),
+        RunContext context = new RunContext(agent, input,
+                new SessionContext(messages, List.of(), List.of(), List.of(), List.of(), Optional.of(workspace), List.of()),
                 workspace, agent.runtimeLimits(), new CancellationToken(), "trace", Instant.now());
         return new ModelRequest(context, List.of());
     }
@@ -143,6 +190,7 @@ class OpenAiCompatibleStreamingModelClientTest {
     private static final class CapturingSpringAiModelFactory implements OpenAiSpringAiModelFactory {
         private final List<OpenAiStreamEvent> events;
         private OpenAiSpringAiModelFactory.ModelConfig captured;
+        private List<OpenAiChatMessage> capturedMessages = List.of();
 
         private CapturingSpringAiModelFactory(List<OpenAiStreamEvent> events) {
             this.events = events;
@@ -151,11 +199,18 @@ class OpenAiCompatibleStreamingModelClientTest {
         @Override
         public OpenAiStreamSource create(ModelConfig config) {
             this.captured = config;
-            return (prompt, cancellationToken) -> events;
+            return (messages, cancellationToken) -> {
+                this.capturedMessages = List.copyOf(messages);
+                return events;
+            };
         }
 
         private ModelConfig captured() {
             return captured;
+        }
+
+        private List<OpenAiChatMessage> capturedMessages() {
+            return capturedMessages;
         }
     }
 }
