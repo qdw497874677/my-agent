@@ -11,6 +11,13 @@ import io.github.pi_java.agent.app.port.execution.RunTerminalEventPublisher;
 import io.github.pi_java.agent.app.port.persistence.AuditRepository;
 import io.github.pi_java.agent.app.port.persistence.RunEventStore;
 import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
+import io.github.pi_java.agent.app.usecase.ConversationContextAssembler;
+import io.github.pi_java.agent.app.usecase.ConversationContextMetadata;
+import io.github.pi_java.agent.app.usecase.ConversationContextPolicy;
+import io.github.pi_java.agent.app.usecase.ConversationQueryService;
+import io.github.pi_java.agent.client.api.PageResponse;
+import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
+import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.agent.InteractionMode;
 import io.github.pi_java.agent.domain.agent.RuntimeLimits;
@@ -23,6 +30,7 @@ import io.github.pi_java.agent.domain.runtime.RunHandle;
 import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.runtime.RunStatus;
 import io.github.pi_java.agent.domain.session.SessionContext;
+import io.github.pi_java.agent.domain.session.SessionEntryPayload;
 import io.github.pi_java.agent.domain.workspace.WorkspaceScope;
 
 import java.time.Clock;
@@ -54,6 +62,8 @@ public class DefaultRunDispatcher implements RunDispatcher {
     private final Duration runTimeout;
     private final AgentDefinition agentDefinition;
     private final RuntimeLimits runtimeLimits;
+    private final ConversationContextAssembler conversationContextAssembler;
+    private final ConversationContextPolicy conversationContextPolicy;
 
     public DefaultRunDispatcher(
             RunQueue runQueue,
@@ -94,8 +104,45 @@ public class DefaultRunDispatcher implements RunDispatcher {
             AgentRuntime agentRuntime,
             Clock clock,
             Duration runTimeout,
+            String modelRef,
+            ConversationContextAssembler conversationContextAssembler,
+            ConversationContextPolicy conversationContextPolicy) {
+        this(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher, cancellationRegistry,
+                auditRepository, agentRuntime, clock, runTimeout, defaultAgentDefinition(runTimeout, modelRef),
+                new RuntimeLimits(runTimeout, 64, 64), conversationContextAssembler, conversationContextPolicy);
+    }
+
+    public DefaultRunDispatcher(
+            RunQueue runQueue,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            RunTerminalEventPublisher runTerminalEventPublisher,
+            CancellationRegistry cancellationRegistry,
+            AuditRepository auditRepository,
+            AgentRuntime agentRuntime,
+            Clock clock,
+            Duration runTimeout,
             AgentDefinition agentDefinition,
             RuntimeLimits runtimeLimits) {
+        this(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher, cancellationRegistry,
+                auditRepository, agentRuntime, clock, runTimeout, agentDefinition, runtimeLimits,
+                emptyConversationContextAssembler(), ConversationContextPolicy.defaults());
+    }
+
+    public DefaultRunDispatcher(
+            RunQueue runQueue,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            RunTerminalEventPublisher runTerminalEventPublisher,
+            CancellationRegistry cancellationRegistry,
+            AuditRepository auditRepository,
+            AgentRuntime agentRuntime,
+            Clock clock,
+            Duration runTimeout,
+            AgentDefinition agentDefinition,
+            RuntimeLimits runtimeLimits,
+            ConversationContextAssembler conversationContextAssembler,
+            ConversationContextPolicy conversationContextPolicy) {
         this.runQueue = Objects.requireNonNull(runQueue, "runQueue must not be null");
         this.runProjectionRepository = Objects.requireNonNull(runProjectionRepository, "runProjectionRepository must not be null");
         this.runEventStore = Objects.requireNonNull(runEventStore, "runEventStore must not be null");
@@ -107,6 +154,8 @@ public class DefaultRunDispatcher implements RunDispatcher {
         this.runTimeout = Objects.requireNonNull(runTimeout, "runTimeout must not be null");
         this.agentDefinition = Objects.requireNonNull(agentDefinition, "agentDefinition must not be null");
         this.runtimeLimits = Objects.requireNonNull(runtimeLimits, "runtimeLimits must not be null");
+        this.conversationContextAssembler = Objects.requireNonNull(conversationContextAssembler, "conversationContextAssembler must not be null");
+        this.conversationContextPolicy = Objects.requireNonNull(conversationContextPolicy, "conversationContextPolicy must not be null");
     }
 
     @Override
@@ -138,7 +187,8 @@ public class DefaultRunDispatcher implements RunDispatcher {
             runProjectionRepository.markRunning(runId, startedAt);
             auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, Map.of("workerId", workerId));
             validateModelRef(agentDefinition.modelRef());
-            RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
+            ConversationContextAssembler.Result contextResult = conversationContextAssembler.assemble(requestContext, queuedRun.sessionId(), runId);
+            RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun, contextResult.messages()), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
             RunHandle handle = runRuntimeWithTimeout(context, runId);
             Instant finishedAt = clock.instant();
             if (token.isCancellationRequested()) {
@@ -244,8 +294,22 @@ public class DefaultRunDispatcher implements RunDispatcher {
         };
     }
 
-    private static SessionContext sessionContext(QueuedRun run) {
-        return new SessionContext(List.of(), List.of(), List.of(), List.of(), List.of(), java.util.Optional.of(workspaceScope(run)), List.of());
+    private static SessionContext sessionContext(QueuedRun run, List<SessionEntryPayload.MessageEntry> messages) {
+        return new SessionContext(messages, List.of(), List.of(), List.of(), List.of(), java.util.Optional.of(workspaceScope(run)), List.of());
+    }
+
+    private static ConversationContextAssembler emptyConversationContextAssembler() {
+        return new ConversationContextAssembler(new ConversationQueryService() {
+            @Override
+            public PageResponse<SessionSummaryDto> listRecentSessions(RequestContext context, int limit, String cursor) {
+                return new PageResponse<>(List.of(), limit, null, null, false);
+            }
+
+            @Override
+            public ConversationTranscriptResponse getTranscript(RequestContext context, String sessionId, int limit, String cursor) {
+                return new ConversationTranscriptResponse(sessionId, List.of(), null, null, null, false, Map.of());
+            }
+        }, ConversationContextPolicy.defaults());
     }
 
     private static WorkspaceScope workspaceScope(QueuedRun run) {
