@@ -118,6 +118,14 @@ Plans:
 
 **Requirements:** CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 19-multi-turn-runtime-context-01-PLAN.md — App context policy, metadata, and safe transcript-to-message assembler.
+- [ ] 19-multi-turn-runtime-context-02-PLAN.md — Dispatch-time context injection and safe metadata wiring.
+- [ ] 19-multi-turn-runtime-context-03-PLAN.md — OpenAI-compatible ordered message provider boundary.
+- [ ] 19-multi-turn-runtime-context-04-PLAN.md — Fake-model capture, CTX-04 proof, and architecture/safety gates.
+
 **Success Criteria:**
 1. Runtime/model execution receives bounded prior user/assistant turns for the selected session.
 2. Context policy limits recent turns/chars/token approximation and records truncation metadata.
