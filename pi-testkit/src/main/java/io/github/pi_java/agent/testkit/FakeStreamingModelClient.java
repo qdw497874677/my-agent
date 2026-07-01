@@ -11,8 +11,11 @@ import io.github.pi_java.agent.domain.tool.ToolCall;
 
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public final class FakeStreamingModelClient implements StreamingModelClient {
@@ -20,6 +23,7 @@ public final class FakeStreamingModelClient implements StreamingModelClient {
     private static final String DEFAULT_MODEL_ID = "fake-model";
 
     private final Queue<ScriptedAction> actions = new ArrayDeque<>();
+    private final List<ModelRequest> requests = new CopyOnWriteArrayList<>();
     private String providerId = DEFAULT_PROVIDER_ID;
     private String modelId = DEFAULT_MODEL_ID;
     private long sequence;
@@ -104,11 +108,23 @@ public final class FakeStreamingModelClient implements StreamingModelClient {
         return this;
     }
 
+    public Optional<ModelRequest> lastRequest() {
+        if (requests.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(requests.get(requests.size() - 1));
+    }
+
+    public List<ModelRequest> requests() {
+        return List.copyOf(requests);
+    }
+
     @Override
     public void stream(ModelRequest request, CancellationToken cancellationToken, ModelStreamSink sink) {
         Objects.requireNonNull(request, "request must not be null");
         Objects.requireNonNull(cancellationToken, "cancellationToken must not be null");
         Objects.requireNonNull(sink, "sink must not be null");
+        requests.add(request);
         stopCurrentStream = false;
         while (!actions.isEmpty() && !stopCurrentStream) {
             if (cancellationToken.isCancellationRequested()) {
