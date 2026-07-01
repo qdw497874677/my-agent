@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 19-multi-turn-runtime-context-02-PLAN.md
-last_updated: "2026-07-01T14:21:12.123Z"
+stopped_at: Completed 19-multi-turn-runtime-context-03-PLAN.md
+last_updated: "2026-07-01T14:31:19.041Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 19 (multi-turn-runtime-context) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-01
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 18-streaming-bubble-lifecycle P04 | 7m30s | 3 tasks | 3 files |
 | Phase 19-multi-turn-runtime-context P01 | 8m23s | 2 tasks | 4 files |
 | Phase 19-multi-turn-runtime-context P02 | 794s | 2 tasks | 4 files |
+| Phase 19-multi-turn-runtime-context P03 | 356s | 2 tasks | 5 files |
 
 ### v1.2 Roadmap
 
@@ -218,6 +219,10 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 19-multi-turn-runtime-context]: Keep current prompt sourcing in RunInput while SessionContext.messages carries assembler-produced prior messages only.
 - [Phase 19-multi-turn-runtime-context]: Expose context observability as primitive count/truncation metadata on worker-start audit details, never as message text.
 - [Phase 19-multi-turn-runtime-context]: Wire context assembly in Spring composition roots, including local/dev, instead of assembling context in Vaadin UI state.
+- [Phase 19-multi-turn-runtime-context]: Use an infrastructure-local OpenAiChatMessage record so provider chat semantics do not leak into Domain/App contracts.
+- [Phase 19-multi-turn-runtime-context]: Build OpenAI provider messages from SessionContext.messages first, then append current RunInput as the final user message exactly once.
+- [Phase 19-multi-turn-runtime-context]: Ignore unsupported or blank historical roles at the provider boundary and map only user/assistant roles to Spring AI messages.
+- [Phase 19-multi-turn-runtime-context]: Keep Spring AI UserMessage/AssistantMessage imports isolated to pi-agent-infrastructure-model-openai.
 
 ### Pending Todos
 
@@ -231,8 +236,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-01T14:21:12.119Z
-Stopped at: Completed 19-multi-turn-runtime-context-02-PLAN.md
+Last session: 2026-07-01T14:31:19.035Z
+Stopped at: Completed 19-multi-turn-runtime-context-03-PLAN.md
 Resume file: None
 
 ---
