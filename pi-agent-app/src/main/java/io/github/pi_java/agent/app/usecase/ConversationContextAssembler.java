@@ -30,6 +30,8 @@ public final class ConversationContextAssembler {
 
     private static final Set<String> DIAGNOSTIC_METADATA_MARKERS = Set.of(
             "audit", "provider", "credential", "approval", "policy", "diagnostic", "tool", "error");
+    private static final Set<String> SENSITIVE_METADATA_MARKERS = Set.of(
+            "authorization", "bearer", "secret", "token", "password", "api_key", "apikey", "credential");
 
     private final ConversationQueryService conversationQueryService;
     private final ConversationContextPolicy policy;
@@ -123,6 +125,9 @@ public final class ConversationContextAssembler {
         if (hasSensitiveText(message.text())) {
             return false;
         }
+        if (hasSensitiveMetadata(message.metadata())) {
+            return false;
+        }
         if (message.role() == ConversationMessageRole.USER) {
             return message.status() == ConversationMessageStatus.COMPLETED;
         }
@@ -137,10 +142,18 @@ public final class ConversationContextAssembler {
     }
 
     private static boolean hasDiagnosticMetadata(Map<String, Object> metadata) {
+        return hasMarkedMetadata(metadata, DIAGNOSTIC_METADATA_MARKERS);
+    }
+
+    private static boolean hasSensitiveMetadata(Map<String, Object> metadata) {
+        return hasMarkedMetadata(metadata, SENSITIVE_METADATA_MARKERS);
+    }
+
+    private static boolean hasMarkedMetadata(Map<String, Object> metadata, Set<String> markers) {
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             String key = lower(entry.getKey());
             String value = lower(String.valueOf(entry.getValue()));
-            for (String marker : DIAGNOSTIC_METADATA_MARKERS) {
+            for (String marker : markers) {
                 if (key.contains(marker) || value.contains(marker)) {
                     return true;
                 }

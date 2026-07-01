@@ -113,6 +113,40 @@ class ConversationContextAssemblerTest {
     }
 
     @Test
+    void assemblerExcludesUnsafeRolesStatusesVisibilityRedactionAndCredentialLikeHistory() {
+        RecordingConversationQueryService queryService = new RecordingConversationQueryService(List.of(
+                message("m1", "run-1", ConversationMessageRole.USER, ConversationMessageStatus.COMPLETED, "Safe prior question"),
+                message("m2", "run-1", ConversationMessageRole.ASSISTANT, ConversationMessageStatus.COMPLETED, "Safe prior answer"),
+                message("m3", "run-1", ConversationMessageRole.TOOL, ConversationMessageStatus.COMPLETED, "tool says ok"),
+                message("m4", "run-1", ConversationMessageRole.ERROR, ConversationMessageStatus.FAILED, "NullPointerException stack"),
+                message("m5", "run-1", ConversationMessageRole.ERROR, ConversationMessageStatus.COMPLETED, "provider raw payload", true, false, Map.of("kind", "provider")),
+                message("m6", "run-1", ConversationMessageRole.ERROR, ConversationMessageStatus.COMPLETED, "policy audit trail", true, false, Map.of("kind", "audit")),
+                message("m7", "run-1", ConversationMessageRole.USER, ConversationMessageStatus.FAILED, "failed user text"),
+                message("m8", "run-1", ConversationMessageRole.ASSISTANT, ConversationMessageStatus.CANCELLED, "cancelled assistant text"),
+                message("m9", "run-1", ConversationMessageRole.USER, ConversationMessageStatus.COMPLETED, "hidden user", false, false, Map.of()),
+                message("m10", "run-1", ConversationMessageRole.ASSISTANT, ConversationMessageStatus.COMPLETED, "redacted assistant", true, true, Map.of()),
+                message("m11", "run-1", ConversationMessageRole.USER, ConversationMessageStatus.COMPLETED, "api_key=sk-should-not-pass"),
+                message("m12", "run-1", ConversationMessageRole.ASSISTANT, ConversationMessageStatus.COMPLETED, "safe text", true, false, Map.of("authorization", "Bearer secret")),
+                message("m13", "run-current", ConversationMessageRole.USER, ConversationMessageStatus.COMPLETED, "current prompt")));
+        ConversationContextAssembler assembler = new ConversationContextAssembler(queryService, ConversationContextPolicy.defaults());
+
+        ConversationContextAssembler.Result result = assembler.assemble(requestContext(), "session-1", "run-current");
+
+        assertThat(result.messages())
+                .extracting(SessionEntryPayload.MessageEntry::content)
+                .containsExactly("Safe prior question", "Safe prior answer");
+        assertThat(result.messages())
+                .extracting(SessionEntryPayload.MessageEntry::content)
+                .doesNotContain("tool says ok", "NullPointerException stack", "provider raw payload", "policy audit trail",
+                        "failed user text", "cancelled assistant text", "hidden user", "redacted assistant",
+                        "api_key=sk-should-not-pass", "safe text", "current prompt");
+        assertThat(result.metadata().includedCount()).isEqualTo(2);
+        assertThat(result.metadata().excludedCount()).isEqualTo(11);
+        assertThat(result.metadata().droppedCount()).isZero();
+        assertThat(result.metadata().truncated()).isFalse();
+    }
+
+    @Test
     void assemblerDropsOlderMessagesForRecentAndCharacterBudgets() {
         RecordingConversationQueryService queryService = new RecordingConversationQueryService(List.of(
                 message("m1", "run-1", ConversationMessageRole.USER, ConversationMessageStatus.COMPLETED, "older"),

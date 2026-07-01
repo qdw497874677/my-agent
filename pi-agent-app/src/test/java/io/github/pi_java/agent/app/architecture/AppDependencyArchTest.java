@@ -42,6 +42,9 @@ class AppDependencyArchTest {
                 .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationQueryService")
                 .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.DefaultConversationQueryService")
                 .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationTranscriptAssembler")
+                .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationContextAssembler")
+                .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationContextPolicy")
+                .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationContextMetadata")
                 .or().haveFullyQualifiedName("io.github.pi_java.agent.app.usecase.ConversationRunView")
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "org.springframework..",
@@ -49,6 +52,12 @@ class AppDependencyArchTest {
                         "org.springframework.jdbc..",
                         "java.sql..",
                         "org.sqlite..",
+                        "org.springframework.ai..",
+                        "com.openai..",
+                        "dev.langchain4j..",
+                        "software.amazon.awssdk..",
+                        "io.modelcontextprotocol..",
+                        "io.github.pi_java.agent.domain.provider..",
                         "io.github.pi_java.agent.infrastructure..",
                         "io.github.pi_java.agent.adapter..")
                 .check(applicationClasses);
