@@ -11,7 +11,12 @@ import io.github.pi_java.agent.app.port.persistence.AuditRepository;
 import io.github.pi_java.agent.app.port.persistence.RunEventStore;
 import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
 import io.github.pi_java.agent.app.port.persistence.SessionRepository;
+import io.github.pi_java.agent.app.usecase.ConversationContextAssembler;
+import io.github.pi_java.agent.app.usecase.ConversationContextPolicy;
+import io.github.pi_java.agent.app.usecase.ConversationQueryService;
+import io.github.pi_java.agent.app.usecase.ConversationTranscriptAssembler;
 import io.github.pi_java.agent.app.usecase.ConversationRunView;
+import io.github.pi_java.agent.app.usecase.DefaultConversationQueryService;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
@@ -98,6 +103,36 @@ public class LocalDevRuntimeBeanConfiguration {
     @Primary
     TransactionTemplate localTransactionTemplate() {
         return new TransactionTemplate(new NoopTransactionManager());
+    }
+
+    @Bean
+    @Primary
+    ConversationTranscriptAssembler localConversationTranscriptAssembler() {
+        return new ConversationTranscriptAssembler();
+    }
+
+    @Bean
+    @Primary
+    ConversationQueryService localConversationQueryService(
+            SessionRepository sessionRepository,
+            RunProjectionRepository runProjectionRepository,
+            RunEventStore runEventStore,
+            ConversationTranscriptAssembler assembler) {
+        return new DefaultConversationQueryService(sessionRepository, runProjectionRepository, runEventStore, assembler);
+    }
+
+    @Bean
+    @Primary
+    ConversationContextPolicy localConversationContextPolicy() {
+        return ConversationContextPolicy.defaults();
+    }
+
+    @Bean
+    @Primary
+    ConversationContextAssembler localConversationContextAssembler(
+            ConversationQueryService conversationQueryService,
+            ConversationContextPolicy conversationContextPolicy) {
+        return new ConversationContextAssembler(conversationQueryService, conversationContextPolicy);
     }
 
     private static final class NoopTransactionManager implements PlatformTransactionManager {

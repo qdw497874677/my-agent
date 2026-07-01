@@ -63,7 +63,6 @@ public class DefaultRunDispatcher implements RunDispatcher {
     private final AgentDefinition agentDefinition;
     private final RuntimeLimits runtimeLimits;
     private final ConversationContextAssembler conversationContextAssembler;
-    private final ConversationContextPolicy conversationContextPolicy;
 
     public DefaultRunDispatcher(
             RunQueue runQueue,
@@ -155,7 +154,7 @@ public class DefaultRunDispatcher implements RunDispatcher {
         this.agentDefinition = Objects.requireNonNull(agentDefinition, "agentDefinition must not be null");
         this.runtimeLimits = Objects.requireNonNull(runtimeLimits, "runtimeLimits must not be null");
         this.conversationContextAssembler = Objects.requireNonNull(conversationContextAssembler, "conversationContextAssembler must not be null");
-        this.conversationContextPolicy = Objects.requireNonNull(conversationContextPolicy, "conversationContextPolicy must not be null");
+        Objects.requireNonNull(conversationContextPolicy, "conversationContextPolicy must not be null");
     }
 
     @Override
@@ -184,10 +183,10 @@ public class DefaultRunDispatcher implements RunDispatcher {
             if (!runQueue.markRunning(runId, startedAt)) {
                 return;
             }
-            runProjectionRepository.markRunning(runId, startedAt);
-            auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, Map.of("workerId", workerId));
             validateModelRef(agentDefinition.modelRef());
             ConversationContextAssembler.Result contextResult = conversationContextAssembler.assemble(requestContext, queuedRun.sessionId(), runId);
+            runProjectionRepository.markRunning(runId, startedAt);
+            auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, workerStartedDetails(workerId, contextResult.metadata()));
             RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun, contextResult.messages()), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
             RunHandle handle = runRuntimeWithTimeout(context, runId);
             Instant finishedAt = clock.instant();
@@ -296,6 +295,17 @@ public class DefaultRunDispatcher implements RunDispatcher {
 
     private static SessionContext sessionContext(QueuedRun run, List<SessionEntryPayload.MessageEntry> messages) {
         return new SessionContext(messages, List.of(), List.of(), List.of(), List.of(), java.util.Optional.of(workspaceScope(run)), List.of());
+    }
+
+    private static Map<String, Object> workerStartedDetails(String workerId, ConversationContextMetadata metadata) {
+        return Map.of(
+                "workerId", workerId,
+                "contextIncludedCount", metadata.includedCount(),
+                "contextDroppedCount", metadata.droppedCount(),
+                "contextExcludedCount", metadata.excludedCount(),
+                "contextMaxChars", metadata.maxTotalCharacters(),
+                "contextResultChars", metadata.resultingCharacters(),
+                "contextTruncated", metadata.truncated());
     }
 
     private static ConversationContextAssembler emptyConversationContextAssembler() {

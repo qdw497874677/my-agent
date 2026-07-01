@@ -15,6 +15,8 @@ import io.github.pi_java.agent.app.usecase.DefaultRunQueryService;
 import io.github.pi_java.agent.app.usecase.DefaultRunTerminalEventPublisher;
 import io.github.pi_java.agent.app.usecase.DefaultSessionCommandService;
 import io.github.pi_java.agent.app.usecase.DefaultSessionQueryService;
+import io.github.pi_java.agent.app.usecase.ConversationContextAssembler;
+import io.github.pi_java.agent.app.usecase.ConversationContextPolicy;
 import io.github.pi_java.agent.app.usecase.ConversationQueryService;
 import io.github.pi_java.agent.app.usecase.ConversationTranscriptAssembler;
 import io.github.pi_java.agent.app.usecase.DefaultConversationQueryService;
@@ -176,6 +178,18 @@ public class CloudRuntimeBeanConfiguration {
     }
 
     @Bean
+    ConversationContextPolicy conversationContextPolicy() {
+        return ConversationContextPolicy.defaults();
+    }
+
+    @Bean
+    ConversationContextAssembler conversationContextAssembler(
+            ConversationQueryService conversationQueryService,
+            ConversationContextPolicy conversationContextPolicy) {
+        return new ConversationContextAssembler(conversationQueryService, conversationContextPolicy);
+    }
+
+    @Bean
     RunDispatcher runDispatcher(
             RunQueue runQueue,
             RunProjectionRepository runProjectionRepository,
@@ -185,11 +199,14 @@ public class CloudRuntimeBeanConfiguration {
             AuditRepository auditRepository,
             AgentRuntime agentRuntime,
             Clock clock,
+            ConversationContextAssembler conversationContextAssembler,
+            ConversationContextPolicy conversationContextPolicy,
             ObjectProvider<PiTelemetry> piTelemetry,
             @Value("${pi.runtime.run-timeout-ms:30000}") long runTimeoutMs,
             @Value("${pi.runtime.default-model-ref:openai-compatible:${pi.providers.openai-compatible.default-model-id:gpt-4.1-mini}}") String defaultModelRef) {
         RunDispatcher defaultDispatcher = new DefaultRunDispatcher(runQueue, runProjectionRepository, runEventStore, runTerminalEventPublisher,
-                cancellationRegistry, auditRepository, agentRuntime, clock, Duration.ofMillis(runTimeoutMs), defaultModelRef);
+                cancellationRegistry, auditRepository, agentRuntime, clock, Duration.ofMillis(runTimeoutMs), defaultModelRef,
+                conversationContextAssembler, conversationContextPolicy);
         PiTelemetry telemetry = piTelemetry.getIfAvailable();
         return telemetry == null ? defaultDispatcher : new TelemetryRunDispatcher(defaultDispatcher, telemetry);
     }

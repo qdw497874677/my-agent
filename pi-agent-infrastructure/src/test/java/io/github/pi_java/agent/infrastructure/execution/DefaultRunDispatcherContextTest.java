@@ -72,6 +72,17 @@ class DefaultRunDispatcherContextTest {
         assertThat(context.sessionContext().messages())
                 .extracting(SessionEntryPayload.MessageEntry::role)
                 .containsExactly("user", "assistant");
+        Map<String, Object> startedDetails = fixture.audit.detailsFor("run.worker.started");
+        assertThat(startedDetails)
+                .containsEntry("contextIncludedCount", 2)
+                .containsEntry("contextDroppedCount", 0)
+                .containsEntry("contextExcludedCount", 1)
+                .containsEntry("contextMaxChars", 12_000)
+                .containsEntry("contextResultChars", 38)
+                .containsEntry("contextTruncated", false);
+        assertThat(startedDetails.values())
+                .allSatisfy(value -> assertThat(String.valueOf(value))
+                        .doesNotContain("first prior question", "first prior answer", "current prompt should stay current", "secret"));
     }
 
     @Test
@@ -215,6 +226,8 @@ class DefaultRunDispatcherContextTest {
 
     private static final class RecordingAuditRepository implements AuditRepository {
         private final List<String> actions = new ArrayList<>();
-        @Override public void record(RequestContext context, String action, String resourceType, String resourceId, String sessionId, String runId, Map<String, Object> details) { actions.add(action); }
+        private final Map<String, Map<String, Object>> detailsByAction = new java.util.HashMap<>();
+        @Override public void record(RequestContext context, String action, String resourceType, String resourceId, String sessionId, String runId, Map<String, Object> details) { actions.add(action); detailsByAction.put(action, Map.copyOf(details)); }
+        private Map<String, Object> detailsFor(String action) { return detailsByAction.getOrDefault(action, Map.of()); }
     }
 }
