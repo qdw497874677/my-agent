@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: verifying
-stopped_at: Phase 19 context gathered
-last_updated: "2026-07-01T11:14:11.417Z"
-last_activity: 2026-06-30
+status: executing
+stopped_at: Completed 19-multi-turn-runtime-context-01-PLAN.md
+last_updated: "2026-07-01T14:05:53.285Z"
+last_activity: 2026-07-01
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 18
+  completed_plans: 15
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 18 — streaming-bubble-lifecycle
+**Current focus:** Phase 19 — multi-turn-runtime-context
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-06-30
+Phase: 19 (multi-turn-runtime-context) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 18-streaming-bubble-lifecycle P02 | 15m14s | 3 tasks | 5 files |
 | Phase 18-streaming-bubble-lifecycle P03 | 9m48s | 3 tasks | 6 files |
 | Phase 18-streaming-bubble-lifecycle P04 | 7m30s | 3 tasks | 3 files |
+| Phase 19-multi-turn-runtime-context P01 | 8m23s | 2 tasks | 4 files |
 
 ### v1.2 Roadmap
 
@@ -209,6 +210,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 18-streaming-bubble-lifecycle]: Phase 18 browser verification defaults to Playwright --list so CI stays no-key and does not require a live server.
 - [Phase 18-streaming-bubble-lifecycle]: Fake-runtime helpers use only public session/run/status/events/cancel APIs with dev headers, not test-only backend endpoints or database access.
 - [Phase 18-streaming-bubble-lifecycle]: Live browser assertions target semantic selectors and stream state/mode contracts rather than screenshots or millisecond timing.
+- [Phase 19-multi-turn-runtime-context]: Keep multi-turn context selection and budgeting in App usecase code, not Vaadin, provider adapters, JDBC, or infrastructure.
+- [Phase 19-multi-turn-runtime-context]: Represent prior context with existing Domain SessionEntryPayload.MessageEntry role/content values.
+- [Phase 19-multi-turn-runtime-context]: Drop unsafe history entries instead of inserting redaction placeholders into model context.
 
 ### Pending Todos
 
@@ -222,9 +226,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-01T11:14:11.413Z
-Stopped at: Phase 19 context gathered
-Resume file: .planning/phases/19-multi-turn-runtime-context/19-CONTEXT.md
+Last session: 2026-07-01T14:05:53.279Z
+Stopped at: Completed 19-multi-turn-runtime-context-01-PLAN.md
+Resume file: None
 
 ---
 *State reset: 2026-06-28 after v1.2 roadmap creation*

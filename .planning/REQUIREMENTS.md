@@ -30,11 +30,11 @@
 
 ### Multi-Turn Runtime Context
 
-- [ ] **CTX-01**: Next message in a selected session includes bounded prior user and assistant turns in model context.
-- [ ] **CTX-02**: Context assembly applies a configurable budget for recent turns, characters, or token approximation and records whether history was truncated.
-- [ ] **CTX-03**: Tool, audit, provider, credential, and other sensitive data is excluded or redacted before any context is sent to a model.
+- [x] **CTX-01**: Next message in a selected session includes bounded prior user and assistant turns in model context.
+- [x] **CTX-02**: Context assembly applies a configurable budget for recent turns, characters, or token approximation and records whether history was truncated.
+- [x] **CTX-03**: Tool, audit, provider, credential, and other sensitive data is excluded or redacted before any context is sent to a model.
 - [ ] **CTX-04**: Tests prove the current prompt appears exactly once and prior turns are available to the fake model.
-- [ ] **CTX-05**: Model context assembly is implemented in App/runtime seams, not in Vaadin component state.
+- [x] **CTX-05**: Model context assembly is implemented in App/runtime seams, not in Vaadin component state.
 
 ### Provider, Model, and Local Profile UX
 
@@ -99,11 +99,11 @@
 | STRM-03 | Phase 18 | Complete |
 | STRM-04 | Phase 18 | Complete |
 | STRM-05 | Phase 18 | Complete |
-| CTX-01 | Phase 19 | Pending |
-| CTX-02 | Phase 19 | Pending |
-| CTX-03 | Phase 19 | Pending |
+| CTX-01 | Phase 19 | Complete |
+| CTX-02 | Phase 19 | Complete |
+| CTX-03 | Phase 19 | Complete |
 | CTX-04 | Phase 19 | Pending |
-| CTX-05 | Phase 19 | Pending |
+| CTX-05 | Phase 19 | Complete |
 | PROV-01 | Phase 20 | Pending |
 | PROV-02 | Phase 20 | Pending |
 | PROV-03 | Phase 20 | Pending |
