@@ -83,7 +83,7 @@ public interface OpenAiSpringAiModelFactory {
             List<OpenAiStreamEvent> events = new CopyOnWriteArrayList<>();
             CountDownLatch done = new CountDownLatch(1);
             AtomicReference<Throwable> failure = new AtomicReference<>();
-            Disposable disposable = model.stream(new Prompt(toSpringAiMessages(messages))).subscribe(response -> events.addAll(toEvents(response)),
+            Disposable disposable = model.stream(new Prompt(OpenAiSpringAiModelFactory.toSpringAiMessages(messages))).subscribe(response -> events.addAll(toEvents(response)),
                     throwable -> {
                         failure.set(throwable);
                         done.countDown();
@@ -104,16 +104,6 @@ public interface OpenAiSpringAiModelFactory {
                 events.add(OpenAiStreamEvent.error(failure.get()));
             }
             return events;
-        }
-
-        private List<Message> toSpringAiMessages(List<OpenAiChatMessage> messages) {
-            return messages.stream()
-                    .<Message>map(message -> switch (message.role()) {
-                        case "user" -> new UserMessage(message.content());
-                        case "assistant" -> new AssistantMessage(message.content());
-                        default -> throw new IllegalArgumentException("Unsupported OpenAI chat role: " + message.role());
-                    })
-                    .toList();
         }
 
         private List<OpenAiStreamEvent> toEvents(ChatResponse response) {
@@ -138,5 +128,15 @@ public interface OpenAiSpringAiModelFactory {
             }
             return events;
         }
+    }
+
+    static List<Message> toSpringAiMessages(List<OpenAiChatMessage> messages) {
+        return messages.stream()
+                .<Message>map(message -> switch (message.role()) {
+                    case "user" -> new UserMessage(message.content());
+                    case "assistant" -> new AssistantMessage(message.content());
+                    default -> throw new IllegalArgumentException("Unsupported OpenAI chat role: " + message.role());
+                })
+                .toList();
     }
 }

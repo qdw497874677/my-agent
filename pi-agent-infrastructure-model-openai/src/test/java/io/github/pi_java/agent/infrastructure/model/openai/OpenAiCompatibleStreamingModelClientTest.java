@@ -20,6 +20,9 @@ import io.github.pi_java.agent.domain.runtime.RunInput;
 import io.github.pi_java.agent.domain.session.SessionContext;
 import io.github.pi_java.agent.domain.session.SessionEntryPayload;
 import io.github.pi_java.agent.domain.workspace.WorkspaceScope;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -88,6 +91,22 @@ class OpenAiCompatibleStreamingModelClientTest {
         assertThat(factory.capturedMessages()).extracting(OpenAiChatMessage::content)
                 .containsExactly("prior question", "prior answer", "complete the task");
         assertThat(factory.capturedMessages()).noneMatch(message -> message.content().contains("system secret"));
+    }
+
+    @Test
+    void springAiPromptMessagesPreserveInfrastructureRolesAndOrder() {
+        List<Message> springAiMessages = OpenAiSpringAiModelFactory.toSpringAiMessages(List.of(
+                OpenAiChatMessage.user("prior question"),
+                OpenAiChatMessage.assistant("prior answer"),
+                OpenAiChatMessage.user("current question")));
+
+        assertThat(springAiMessages).hasSize(3);
+        assertThat(springAiMessages.get(0)).isInstanceOf(UserMessage.class);
+        assertThat(springAiMessages.get(0).getText()).isEqualTo("prior question");
+        assertThat(springAiMessages.get(1)).isInstanceOf(AssistantMessage.class);
+        assertThat(springAiMessages.get(1).getText()).isEqualTo("prior answer");
+        assertThat(springAiMessages.get(2)).isInstanceOf(UserMessage.class);
+        assertThat(springAiMessages.get(2).getText()).isEqualTo("current question");
     }
 
     @Test
