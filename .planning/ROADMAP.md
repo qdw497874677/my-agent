@@ -118,7 +118,7 @@ Plans:
 
 **Requirements:** CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 
-**Plans:** 4/4 plans complete
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 19-multi-turn-runtime-context-01-PLAN.md — App context policy, metadata, and safe transcript-to-message assembler.
@@ -179,7 +179,7 @@ Plans:
 | 16. Conversation Read Model and Recent Sessions | v1.2 | 4/4 | Completed | 2026-06-28 |
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
-| 19. Multi-Turn Runtime Context | v1.2 | 4/4 | Complete   | 2026-07-01 |
+| 19. Multi-Turn Runtime Context | v1.2 | 5/5 | Complete   | 2026-07-03 |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 0/TBD | Not started | — |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
 

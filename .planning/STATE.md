@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: verifying
-stopped_at: Completed 19-multi-turn-runtime-context-04-PLAN.md
-last_updated: "2026-07-01T14:43:30.234Z"
-last_activity: 2026-07-01
+status: executing
+stopped_at: Completed 19-multi-turn-runtime-context-05-PLAN.md
+last_updated: "2026-07-03T02:37:02.818Z"
+last_activity: 2026-07-03
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 19
+  completed_plans: 19
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 19 (multi-turn-runtime-context) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-01
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-03
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 19-multi-turn-runtime-context P02 | 794s | 2 tasks | 4 files |
 | Phase 19-multi-turn-runtime-context P03 | 356s | 2 tasks | 5 files |
 | Phase 19-multi-turn-runtime-context P04 | 441s | 2 tasks | 6 files |
+| Phase 19-multi-turn-runtime-context P05 | 3m37s | 3 tasks | 3 files |
 
 ### v1.2 Roadmap
 
@@ -227,6 +228,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 19-multi-turn-runtime-context]: Keep fake model request capture as testkit-only accessors without changing production ModelClient or StreamingModelClient contracts.
 - [Phase 19-multi-turn-runtime-context]: Treat credential-like transcript metadata as model-context sensitive even when visible text is otherwise safe.
 - [Phase 19-multi-turn-runtime-context]: Leave Domain architecture gate unchanged because the existing broad rule already rejects Spring AI, OpenAI, Vaadin, App, Infra, Adapter, and persistence dependencies.
+- [Phase 19-multi-turn-runtime-context]: Expose OpenAiChatMessage as a public infrastructure-local record because OpenAiStreamSource is public and external test/config modules implement it.
+- [Phase 19-multi-turn-runtime-context]: Keep adapter-web fake provider on the messages-based OpenAiStreamSource signature instead of reintroducing any string-prompt stream path.
 
 ### Pending Todos
 
@@ -240,8 +243,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-01T14:43:30.229Z
-Stopped at: Completed 19-multi-turn-runtime-context-04-PLAN.md
+Last session: 2026-07-03T02:36:39.907Z
+Stopped at: Completed 19-multi-turn-runtime-context-05-PLAN.md
 Resume file: None
 
 ---
