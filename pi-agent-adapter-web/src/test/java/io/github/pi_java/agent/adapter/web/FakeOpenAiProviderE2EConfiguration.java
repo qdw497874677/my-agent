@@ -1,6 +1,8 @@
 package io.github.pi_java.agent.adapter.web;
 
 import io.github.pi_java.agent.domain.model.ModelUsage;
+import io.github.pi_java.agent.domain.runtime.CancellationToken;
+import io.github.pi_java.agent.infrastructure.model.openai.OpenAiChatMessage;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiSpringAiModelFactory;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiStreamEvent;
 import io.github.pi_java.agent.infrastructure.model.openai.OpenAiStreamSource;
@@ -20,7 +22,7 @@ public class FakeOpenAiProviderE2EConfiguration {
 
     private static final class FakeOpenAiStreamSource implements OpenAiStreamSource {
         @Override
-        public Iterable<OpenAiStreamEvent> stream(String prompt, io.github.pi_java.agent.domain.runtime.CancellationToken cancellationToken) {
+        public Iterable<OpenAiStreamEvent> stream(List<OpenAiChatMessage> messages, CancellationToken cancellationToken) {
             return List.of(
                     OpenAiStreamEvent.text("fake-openai "),
                     OpenAiStreamEvent.text("delta"),
