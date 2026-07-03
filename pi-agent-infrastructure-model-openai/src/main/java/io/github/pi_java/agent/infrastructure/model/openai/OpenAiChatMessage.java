@@ -2,8 +2,8 @@ package io.github.pi_java.agent.infrastructure.model.openai;
 
 import java.util.Objects;
 
-record OpenAiChatMessage(String role, String content) {
-    OpenAiChatMessage {
+public record OpenAiChatMessage(String role, String content) {
+    public OpenAiChatMessage {
         role = requireNonBlank(role, "role").toLowerCase();
         content = requireNonBlank(content, "content");
         if (!role.equals("user") && !role.equals("assistant")) {
@@ -11,11 +11,11 @@ record OpenAiChatMessage(String role, String content) {
         }
     }
 
-    static OpenAiChatMessage user(String content) {
+    public static OpenAiChatMessage user(String content) {
         return new OpenAiChatMessage("user", content);
     }
 
-    static OpenAiChatMessage assistant(String content) {
+    public static OpenAiChatMessage assistant(String content) {
         return new OpenAiChatMessage("assistant", content);
     }
 
