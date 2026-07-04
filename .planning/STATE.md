@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Console 对话产品化
 status: verifying
 stopped_at: Completed 20-provider-model-and-local-profile-stability-05-PLAN.md
-last_updated: "2026-07-04T12:05:04.031Z"
+last_updated: "2026-07-04T12:15:16.856Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 6
@@ -25,8 +25,8 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 ## Current Position
 
-Phase: 20 (provider-model-and-local-profile-stability) — EXECUTING
-Plan: 5 of 5
+Phase: 21
+Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-07-04
 

@@ -189,7 +189,7 @@ Plans:
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
 | 19. Multi-Turn Runtime Context | v1.2 | 5/5 | Complete    | 2026-07-03 |
-| 20. Provider/Model and Local Profile Stability | v1.2 | 5/5 | Complete   | 2026-07-04 |
+| 20. Provider/Model and Local Profile Stability | v1.2 | 5/5 | Complete    | 2026-07-04 |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
 
 ## Coverage Validation
