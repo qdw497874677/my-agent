@@ -180,6 +180,37 @@ class WebConsoleProviderModelBarTest {
         }
     }
 
+    @Test
+    void selectingCustomModelPersistsImmediatelyForFutureRuns() {
+        ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
+        ConsoleView view = consoleView(store, new ProviderConfigController(store));
+        long beforeVersion = store.version();
+
+        modelSelector(view).setValue("custom-local-model");
+
+        assertThat(store.version()).isGreaterThan(beforeVersion);
+        assertThat(store.current().modelId()).isEqualTo("custom-local-model");
+        assertThat(onlyDescendantWithAttribute(view, "data-role", "model-selector")).isNotNull();
+    }
+
+    @Test
+    void changingModelDuringActiveRunShowsNextRunOnlyNoticeWithoutResettingStream() {
+        ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
+        ConsoleView view = consoleView(store, new ProviderConfigController(store));
+        view.markRunRunning("session-active", "run-active");
+        int messageCountBefore = view.chatPanel().messageCount();
+        String composerStatusBefore = view.chatPanel().composerStatusText();
+
+        modelSelector(view).setValue("future-run-model");
+
+        Element scope = onlyDescendantWithAttribute(view, "data-role", "model-selection-scope").getElement();
+        assertThat(scope.getTextRecursively()).containsIgnoringCase("next run");
+        assertThat(scope.getAttribute("data-selection-scope")).isEqualTo("next-run");
+        assertThat(view.chatPanel().messageCount()).isEqualTo(messageCountBefore);
+        assertThat(view.chatPanel().composerStatusText()).isEqualTo(composerStatusBefore);
+        assertThat(store.current().modelId()).isEqualTo("future-run-model");
+    }
+
     private ConsoleView consoleView(ProviderConfigStore store, ProviderConfigController controller) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
                 new NoopBridge(), new RunEventRenderer(), store, controller);
@@ -201,6 +232,11 @@ class WebConsoleProviderModelBarTest {
 
     private static void clickRefresh(ConsoleView view) {
         ((Button) onlyDescendantWithAttribute(view, "data-action", "refresh-models")).click();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ComboBox<String> modelSelector(ConsoleView view) {
+        return (ComboBox<String>) onlyDescendantWithAttribute(view, "data-role", "model-selector");
     }
 
     private static Component onlyDescendantWithAttribute(Component root, String attribute, String value) {
