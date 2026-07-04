@@ -211,6 +211,26 @@ class WebConsoleProviderModelBarTest {
         assertThat(store.current().modelId()).isEqualTo("future-run-model");
     }
 
+    @Test
+    void selectedModelSnapshotIsCopiedIntoNextRunMetadata() {
+        ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
+        CapturingBridge bridge = new CapturingBridge();
+        ConsoleView view = new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
+                bridge, new RunEventRenderer(), store, new ProviderConfigController(store));
+
+        modelSelector(view).setValue("future-run-model");
+        ConsoleView.RunSubmissionPlan plan = view.planChatSubmission("hello selected model");
+
+        assertThat(plan).isNotNull();
+        assertThat(bridge.lastRequest).isNotNull();
+        assertThat(bridge.lastRequest.metadata())
+                .containsEntry("selectedModelRef", "openai-compatible:future-run-model")
+                .containsEntry("resolvedProviderId", "openai-compatible")
+                .containsEntry("resolvedModelId", "future-run-model")
+                .containsEntry("fallbackMode", "NONE")
+                .containsEntry("readinessState", "READY");
+    }
+
     private ConsoleView consoleView(ProviderConfigStore store, ProviderConfigController controller) {
         return new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
                 new NoopBridge(), new RunEventRenderer(), store, controller);
@@ -292,7 +312,7 @@ class WebConsoleProviderModelBarTest {
         }
     }
 
-    private static final class NoopBridge implements ConsoleRunExecutionBridge {
+    private static class NoopBridge implements ConsoleRunExecutionBridge {
         @Override
         public SessionResponse createSession() {
             return new SessionResponse("tenant", "user", "session", "workspace", null, "ACTIVE", Instant.now(), Instant.now(), Map.of());
@@ -311,6 +331,16 @@ class WebConsoleProviderModelBarTest {
         @Override
         public RunStatusResponse cancelRun(String sessionId, String runId, CancelRunRequest request) {
             return new RunStatusResponse(sessionId, runId, "cancelled", true, Instant.now(), "trace", "correlation");
+        }
+    }
+
+    private static final class CapturingBridge extends NoopBridge {
+        private CreateRunRequest lastRequest;
+
+        @Override
+        public RunResponse createRun(String sessionId, CreateRunRequest request) {
+            this.lastRequest = request;
+            return super.createRun(sessionId, request);
         }
     }
 }
