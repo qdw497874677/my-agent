@@ -28,7 +28,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 - [x] **Phase 17: Console Session Restore UX** — Make the chat-first Console load recent sessions, restore selected transcripts as bubbles, and continue the active session. (completed 2026-06-29)
 - [x] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states. (completed 2026-06-30)
 - [x] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries. (completed 2026-07-01)
-- [ ] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior.
+- [x] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior. (completed 2026-07-04)
 - [ ] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries.
 
 ## Phase Details
@@ -143,14 +143,14 @@ Plans:
 
 **Requirements:** SESS-05, PROV-01, PROV-02, PROV-03, PROV-04, PROV-05, PROV-06
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 20-provider-model-and-local-profile-stability-01-PLAN.md — Compact provider/model readiness and explicit refresh feedback states.
 - [x] 20-provider-model-and-local-profile-stability-02-PLAN.md — Persisted model selection, next-run-only copy, no-provider block, and explicit fallback labels.
 - [x] 20-provider-model-and-local-profile-stability-03-PLAN.md — Safe run provider/model/fallback metadata contracts plus JDBC/SQLite persistence.
 - [x] 20-provider-model-and-local-profile-stability-04-PLAN.md — Run creation, queue, dispatch, and runtime wiring for selected model snapshots and fallback facts.
-- [ ] 20-provider-model-and-local-profile-stability-05-PLAN.md — Same-DB SQLite local profile restart proof and Phase 21 verification handoff.
+- [x] 20-provider-model-and-local-profile-stability-05-PLAN.md — Same-DB SQLite local profile restart proof and Phase 21 verification handoff.
 
 **Success Criteria:**
 1. Console model area shows provider/model readiness and actionable errors.
@@ -189,7 +189,7 @@ Plans:
 | 17. Console Session Restore UX | v1.2 | 6/6 | Complete   | 2026-06-29 |
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
 | 19. Multi-Turn Runtime Context | v1.2 | 5/5 | Complete    | 2026-07-03 |
-| 20. Provider/Model and Local Profile Stability | v1.2 | 4/5 | In Progress|  |
+| 20. Provider/Model and Local Profile Stability | v1.2 | 5/5 | Complete   | 2026-07-04 |
 | 21. Verification, Security, and Regression Hardening | v1.2 | 0/TBD | Not started | — |
 
 ## Coverage Validation

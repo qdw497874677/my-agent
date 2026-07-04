@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: executing
-stopped_at: Completed 20-provider-model-and-local-profile-stability-04-PLAN.md
-last_updated: "2026-07-04T10:45:42.306Z"
+status: verifying
+stopped_at: Completed 20-provider-model-and-local-profile-stability-05-PLAN.md
+last_updated: "2026-07-04T12:05:04.031Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 Phase: 20 (provider-model-and-local-profile-stability) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-04
 
 Progress: [░░░░░░░░░░] 0%
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 20-provider-model-and-local-profile-stability P01 | 845 | 2 tasks | 5 files |
 | Phase 20-provider-model-and-local-profile-stability P02 | 776 | 2 tasks | 5 files |
 | Phase 20-provider-model-and-local-profile-stability P04 | 901 | 2 tasks | 8 files |
+| Phase 20-provider-model-and-local-profile-stability P05 | 623s | 2 tasks | 4 files |
 
 ### v1.2 Roadmap
 
@@ -243,6 +244,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 20-provider-model-and-local-profile-stability]: Use RunProviderMetadata as the App/queue snapshot boundary so provider configuration, API keys, and adapter-web types do not leak into dispatch contracts.
 - [Phase 20-provider-model-and-local-profile-stability]: Create a per-run AgentDefinition copy in DefaultRunDispatcher when queued metadata specifies a selected modelRef, preserving the constructor default only for legacy/no-snapshot runs.
 - [Phase 20-provider-model-and-local-profile-stability]: Keep local fallback labeling explicit through safe provider/model refs such as local-dev:not-configured, without adding automatic paid-provider fallback routing.
+- [Phase 20-provider-model-and-local-profile-stability]: Same-DB restart proof recreates SQLite persistence/store/query/config objects instead of reusing in-memory maps or Vaadin component state.
+- [Phase 20-provider-model-and-local-profile-stability]: LocalDevStores reconstructs persisted model-delta events after SQLite restart when direct polymorphic RunEvent deserialization is unavailable.
+- [Phase 20-provider-model-and-local-profile-stability]: Phase 21 handoff keeps deferred provider/local-profile ideas explicit: no automatic paid-provider fallback, no multi-provider routing, no provider-specific context-window policy, and no conversation search/rename/archive/pin/delete.
 
 ### Pending Todos
 
@@ -256,8 +260,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T10:45:42.302Z
-Stopped at: Completed 20-provider-model-and-local-profile-stability-04-PLAN.md
+Last session: 2026-07-04T12:05:04.025Z
+Stopped at: Completed 20-provider-model-and-local-profile-stability-05-PLAN.md
 Resume file: None
 
 ---

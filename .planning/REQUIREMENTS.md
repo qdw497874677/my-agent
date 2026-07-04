@@ -18,7 +18,7 @@
 - [x] **SESS-02**: User can select a historical session and see previous user and assistant turns restored as chat bubbles.
 - [x] **SESS-03**: User can continue a selected historical session without accidentally creating a new session.
 - [ ] **SESS-04**: Restored transcript comes from typed persisted data/read models, not Vaadin in-memory state or raw run-event maps.
-- [ ] **SESS-05**: User can refresh/reopen the Console and recover persisted sessions and their conversation transcript in local profile.
+- [x] **SESS-05**: User can refresh/reopen the Console and recover persisted sessions and their conversation transcript in local profile.
 
 ### Streaming Bubble Pipeline
 
@@ -93,7 +93,7 @@
 | SESS-02 | Phase 17 | Complete |
 | SESS-03 | Phase 17 | Complete |
 | SESS-04 | Phase 16 | Pending |
-| SESS-05 | Phase 20 | Pending |
+| SESS-05 | Phase 20 | Complete |
 | STRM-01 | Phase 18 | Complete |
 | STRM-02 | Phase 18 | Complete |
 | STRM-03 | Phase 18 | Complete |
