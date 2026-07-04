@@ -36,6 +36,7 @@ import io.github.pi_java.agent.client.conversation.ConversationTranscriptRespons
 import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
@@ -85,6 +86,8 @@ public class ConsoleView extends Div {
     private Span providerStatus;
     private Span modelRefreshStatus;
     private Span modelSelectionScopeStatus;
+    private Span fallbackModeStatus;
+    private final boolean explicitLocalFallbackMode;
     private String selectedAgentId = DEFAULT_AGENT_ID;
     private String selectedSessionId;
     private String activeRunId;
@@ -165,7 +168,20 @@ public class ConsoleView extends Div {
             ProviderConfigStore providerConfigStore,
             ProviderConfigController providerConfigController) {
         this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer,
-                providerConfigStore, providerConfigController, null);
+                providerConfigStore, providerConfigController, null, false);
+    }
+
+    public ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer,
+            ProviderConfigStore providerConfigStore,
+            ProviderConfigController providerConfigController,
+            boolean explicitLocalFallbackMode) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer,
+                providerConfigStore, providerConfigController, null, explicitLocalFallbackMode);
     }
 
     public ConsoleView(
@@ -177,12 +193,27 @@ public class ConsoleView extends Div {
             ProviderConfigStore providerConfigStore,
             ProviderConfigController providerConfigController,
             ConsoleLiveRunEventSubscriber liveRunEventSubscriber) {
+        this(httpClient, eventStreamClient, agentCatalogQueryService, executionBridge, runEventRenderer,
+                providerConfigStore, providerConfigController, liveRunEventSubscriber, false);
+    }
+
+    private ConsoleView(
+            ConsoleHttpClient httpClient,
+            EventStreamClient eventStreamClient,
+            AgentCatalogQueryService agentCatalogQueryService,
+            ConsoleRunExecutionBridge executionBridge,
+            RunEventRenderer runEventRenderer,
+            ProviderConfigStore providerConfigStore,
+            ProviderConfigController providerConfigController,
+            ConsoleLiveRunEventSubscriber liveRunEventSubscriber,
+            boolean explicitLocalFallbackMode) {
         this.httpClient = httpClient;
         this.eventStreamClient = eventStreamClient;
         this.agentCatalogQueryService = agentCatalogQueryService;
         this.executionBridge = executionBridge;
         this.runEventRenderer = runEventRenderer;
         this.liveRunEventSubscriber = liveRunEventSubscriber;
+        this.explicitLocalFallbackMode = explicitLocalFallbackMode;
         this.providerConfigStore = providerConfigStore;
         this.providerConfigController = providerConfigController;
         this.sessionListPanel = new SessionListPanel();
@@ -357,7 +388,11 @@ public class ConsoleView extends Div {
             modelSelectionScopeStatus.getElement().setAttribute("data-role", "model-selection-scope");
             updateModelSelectionScopeStatus(false);
 
-            Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus, modelSelectionScopeStatus);
+            fallbackModeStatus = new Span();
+            fallbackModeStatus.getElement().setAttribute("data-role", "fallback-label");
+            updateFallbackModeStatus();
+
+            Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus, modelSelectionScopeStatus, fallbackModeStatus);
             bar.addClassName("pi-console-model-bar");
             bar.getStyle().set("display", "flex");
             bar.getStyle().set("gap", "0.5rem");
@@ -401,6 +436,20 @@ public class ConsoleView extends Div {
                 : t("console.modelSelector.appliesFutureRuns"));
     }
 
+    private void updateFallbackModeStatus() {
+        if (fallbackModeStatus == null) {
+            return;
+        }
+        fallbackModeStatus.setVisible(explicitLocalFallbackMode);
+        if (explicitLocalFallbackMode) {
+            fallbackModeStatus.getElement().setAttribute("data-fallback-mode", "local");
+            fallbackModeStatus.setText(t("console.modelSelector.localFallback"));
+        } else {
+            fallbackModeStatus.getElement().removeAttribute("data-fallback-mode");
+            fallbackModeStatus.setText("");
+        }
+    }
+
     private String localizedRefreshMessage(ProviderConfigController.ModelListResponse response) {
         String state = response.state() == null ? "error" : response.state();
         return switch (state) {
@@ -428,6 +477,31 @@ public class ConsoleView extends Div {
         return value == null || value.isBlank() ? fallback : value.trim();
     }
 
+    private Map<String, Object> runMetadataSnapshot() {
+        java.util.LinkedHashMap<String, Object> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("source", "vaadin-console");
+        if (providerConfigStore == null) {
+            return Map.copyOf(metadata);
+        }
+        ProviderConfig config = providerConfigStore.current();
+        RunProviderMetadata snapshot = RunProviderMetadata.selectedSnapshot(config.providerId(), config.modelId(), config.isReady());
+        putIfPresent(metadata, "requestedModelRef", snapshot.requestedModelRef());
+        putIfPresent(metadata, "selectedModelRef", snapshot.selectedModelRef());
+        putIfPresent(metadata, "resolvedProviderId", snapshot.resolvedProviderId());
+        putIfPresent(metadata, "resolvedModelId", snapshot.resolvedModelId());
+        putIfPresent(metadata, "providerId", snapshot.resolvedProviderId());
+        putIfPresent(metadata, "modelId", snapshot.resolvedModelId());
+        putIfPresent(metadata, "fallbackMode", snapshot.fallbackMode());
+        putIfPresent(metadata, "readinessState", snapshot.readinessState());
+        return Map.copyOf(metadata);
+    }
+
+    private static void putIfPresent(Map<String, Object> values, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            values.put(key, value);
+        }
+    }
+
     private void handleAgentAction(String agentId, String actionId) {
         selectedAgentId = requireText(agentId, "agentId");
         showConsolePanel("chat");
@@ -445,6 +519,10 @@ public class ConsoleView extends Div {
 
     public RunSubmissionPlan planChatSubmission(String text) {
         String message = requireText(text, "text");
+        if (!providerReadyForSend() && !explicitLocalFallbackMode) {
+            showProviderBlockedSend();
+            return null;
+        }
         chatPanel.appendUserMessage(message);
         boolean needsSession = selectedSessionId == null;
         String sessionId = needsSession ? executionBridge.createSession().sessionId() : selectedSessionId;
@@ -454,7 +532,7 @@ public class ConsoleView extends Div {
                 "chat",
                 Map.of("text", message),
                 "console-default",
-                Map.of("source", "vaadin-console"));
+                runMetadataSnapshot());
         RunResponse run = executionBridge.createRun(sessionId, request);
         String runId = run.runId();
         activeRunId = runId;
@@ -468,6 +546,9 @@ public class ConsoleView extends Div {
         runContextPanel.showRunning(sessionId, runId);
         chatPanel.showComposerRunStatus("Run status: " + run.status(), isCancellable(run.status()));
         appendRunEvents(executionBridge.listEvents(sessionId, runId, 0));
+        if (explicitLocalFallbackMode) {
+            chatPanel.markLocalFallbackMode(t("chat.localFallback.label"));
+        }
         subscribeToLiveRunEvents(runId);
         return new RunSubmissionPlan(
                 needsSession ? httpClient.createSessionPath() : null,
@@ -681,6 +762,17 @@ public class ConsoleView extends Div {
 
     private boolean hasActiveRun() {
         return activeRunId != null && !activeRunId.isBlank();
+    }
+
+    private boolean providerReadyForSend() {
+        return providerConfigStore == null || providerConfigStore.current().isReady();
+    }
+
+    private void showProviderBlockedSend() {
+        ProviderConfig current = providerConfigStore == null ? ProviderConfig.defaults() : providerConfigStore.current();
+        updateProviderStatus(false, current.providerId(), current.modelId());
+        updateRefreshStatus("blocked", t("console.modelSelector.sendBlockedNotReady"));
+        chatPanel.showComposerRunStatus(t("console.modelSelector.sendBlockedNotReady"), false);
     }
 
     private void subscribeToLiveRunEvents(String runId) {

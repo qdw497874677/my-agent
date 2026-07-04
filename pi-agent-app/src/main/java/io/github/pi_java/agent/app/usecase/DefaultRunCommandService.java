@@ -9,6 +9,7 @@ import io.github.pi_java.agent.app.port.persistence.AuditRepository;
 import io.github.pi_java.agent.app.port.persistence.RunProjectionRepository;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
 
@@ -51,8 +52,9 @@ public final class DefaultRunCommandService implements RunCommandService {
         String runId = runIdSupplier.get();
         runProjectionRepository.createRun(context, sessionId, runId, request);
         Instant now = clock.instant();
+        RunProviderMetadata providerMetadata = safeProviderMetadata(request.metadata());
         runQueue.enqueue(new QueuedRun(runId, sessionId, context.tenantId(), context.userId(), request.workspaceId(),
-                context.traceId(), context.correlationId(), request.inputType(), request.input(), now, 0));
+                context.traceId(), context.correlationId(), request.inputType(), request.input(), providerMetadata, now, 0));
         auditRepository.record(context, "run.create", "run", runId, sessionId, runId,
                 Map.of("workspaceId", request.workspaceId(), "inputType", request.inputType()));
         return runProjectionRepository.findRun(context, sessionId, runId)
@@ -89,5 +91,47 @@ public final class DefaultRunCommandService implements RunCommandService {
 
     private static String normalizeReason(String reason) {
         return reason == null || reason.isBlank() ? "cancelled" : reason;
+    }
+
+    private static RunProviderMetadata safeProviderMetadata(Map<String, Object> metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return RunProviderMetadata.EMPTY;
+        }
+        return new RunProviderMetadata(
+                string(metadata.get("requestedModelRef")),
+                string(metadata.get("selectedModelRef")),
+                firstString(metadata, "resolvedProviderId", "providerId", "provider_id"),
+                firstString(metadata, "resolvedModelId", "modelId", "model_id"),
+                string(metadata.get("fallbackMode")),
+                string(metadata.get("readinessState")),
+                redactSummary(string(metadata.get("safeErrorSummary"))));
+    }
+
+    private static String firstString(Map<String, Object> metadata, String... keys) {
+        for (String key : keys) {
+            String value = string(metadata.get(key));
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private static String string(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = value.toString();
+        return text.isBlank() ? null : text;
+    }
+
+    private static String redactSummary(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value
+                .replaceAll("(?i)bearer\\s+[^\\s,;]+", "Bearer [REDACTED]")
+                .replaceAll("(?i)(api[_-]?key\\s*[=:]\\s*)[^\\s,;]+", "$1[REDACTED]")
+                .replaceAll("sk-[A-Za-z0-9._-]+", "[REDACTED]");
     }
 }

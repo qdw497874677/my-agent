@@ -19,6 +19,20 @@ public record RunProviderMetadata(
 
     public static final RunProviderMetadata EMPTY = new RunProviderMetadata(null, null, null, null, null, null, null);
 
+    public static RunProviderMetadata selectedSnapshot(String providerId, String modelId, boolean ready) {
+        String normalizedProvider = blankToNull(providerId);
+        String normalizedModel = blankToNull(modelId);
+        String modelRef = normalizedProvider == null || normalizedModel == null ? null : normalizedProvider + ":" + normalizedModel;
+        return new RunProviderMetadata(
+                modelRef,
+                modelRef,
+                normalizedProvider,
+                normalizedModel,
+                ready ? "NONE" : "local",
+                ready ? "READY" : "NOT_CONFIGURED",
+                null);
+    }
+
     public boolean isEmpty() {
         return isBlank(requestedModelRef)
                 && isBlank(selectedModelRef)
@@ -31,5 +45,9 @@ public record RunProviderMetadata(
 
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }
