@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 20-provider-model-and-local-profile-stability-01-PLAN.md
-last_updated: "2026-07-04T10:20:29.012Z"
+stopped_at: Completed 20-provider-model-and-local-profile-stability-02-PLAN.md
+last_updated: "2026-07-04T10:44:07.266Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 24
-  completed_plans: 21
+  completed_plans: 22
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 20 (provider-model-and-local-profile-stability) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 19-multi-turn-runtime-context P05 | 3m37s | 3 tasks | 3 files |
 | Phase 20-provider-model-and-local-profile-stability P03 | 695s | 2 tasks | 9 files |
 | Phase 20-provider-model-and-local-profile-stability P01 | 845 | 2 tasks | 5 files |
+| Phase 20-provider-model-and-local-profile-stability P02 | 776 | 2 tasks | 5 files |
 
 ### v1.2 Roadmap
 
@@ -236,6 +237,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 20-provider-model-and-local-profile-stability]: Use additive JSONB for cloud runs and additive TEXT JSON for SQLite local profile to preserve compatibility with existing rows and upgrade-in-place local databases.
 - [Phase 20-provider-model-and-local-profile-stability]: Keep provider metadata in client/app run projection contracts while excluding raw API keys, bearer headers, provider config snapshots, request bodies, and provider SDK objects.
 - [Phase 20-provider-model-and-local-profile-stability]: Render provider/model readiness as compact inline spans with stable data attributes instead of adding an operations panel or notification-only feedback.
+- [Phase 20-provider-model-and-local-profile-stability]: Block no-provider Console sends at the Vaadin adapter boundary before user-message append, session creation, or run creation.
+- [Phase 20-provider-model-and-local-profile-stability]: Expose explicit local fallback as stable UI metadata instead of automatic paid-provider fallback or hidden demo behavior.
 
 ### Pending Todos
 
@@ -249,8 +252,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T10:20:28.958Z
-Stopped at: Completed 20-provider-model-and-local-profile-stability-01-PLAN.md
+Last session: 2026-07-04T10:44:07.260Z
+Stopped at: Completed 20-provider-model-and-local-profile-stability-02-PLAN.md
 Resume file: None
 
 ---
