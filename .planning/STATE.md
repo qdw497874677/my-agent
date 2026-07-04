@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 20-provider-model-and-local-profile-stability-02-PLAN.md
-last_updated: "2026-07-04T10:44:07.266Z"
+stopped_at: Completed 20-provider-model-and-local-profile-stability-04-PLAN.md
+last_updated: "2026-07-04T10:45:42.306Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 20 (provider-model-and-local-profile-stability) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 20-provider-model-and-local-profile-stability P03 | 695s | 2 tasks | 9 files |
 | Phase 20-provider-model-and-local-profile-stability P01 | 845 | 2 tasks | 5 files |
 | Phase 20-provider-model-and-local-profile-stability P02 | 776 | 2 tasks | 5 files |
+| Phase 20-provider-model-and-local-profile-stability P04 | 901 | 2 tasks | 8 files |
 
 ### v1.2 Roadmap
 
@@ -239,6 +240,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 20-provider-model-and-local-profile-stability]: Render provider/model readiness as compact inline spans with stable data attributes instead of adding an operations panel or notification-only feedback.
 - [Phase 20-provider-model-and-local-profile-stability]: Block no-provider Console sends at the Vaadin adapter boundary before user-message append, session creation, or run creation.
 - [Phase 20-provider-model-and-local-profile-stability]: Expose explicit local fallback as stable UI metadata instead of automatic paid-provider fallback or hidden demo behavior.
+- [Phase 20-provider-model-and-local-profile-stability]: Use RunProviderMetadata as the App/queue snapshot boundary so provider configuration, API keys, and adapter-web types do not leak into dispatch contracts.
+- [Phase 20-provider-model-and-local-profile-stability]: Create a per-run AgentDefinition copy in DefaultRunDispatcher when queued metadata specifies a selected modelRef, preserving the constructor default only for legacy/no-snapshot runs.
+- [Phase 20-provider-model-and-local-profile-stability]: Keep local fallback labeling explicit through safe provider/model refs such as local-dev:not-configured, without adding automatic paid-provider fallback routing.
 
 ### Pending Todos
 
@@ -252,8 +256,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T10:44:07.260Z
-Stopped at: Completed 20-provider-model-and-local-profile-stability-02-PLAN.md
+Last session: 2026-07-04T10:45:42.302Z
+Stopped at: Completed 20-provider-model-and-local-profile-stability-04-PLAN.md
 Resume file: None
 
 ---
