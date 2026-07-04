@@ -84,6 +84,7 @@ public class ConsoleView extends Div {
     private ComboBox<String> modelSelector;
     private Span providerStatus;
     private Span modelRefreshStatus;
+    private Span modelSelectionScopeStatus;
     private String selectedAgentId = DEFAULT_AGENT_ID;
     private String selectedSessionId;
     private String activeRunId;
@@ -339,6 +340,8 @@ public class ConsoleView extends Div {
                 providerConfigStore.update(new ProviderConfig(
                         current.enabled(), current.baseUrl(), current.apiKey(),
                         event.getValue(), current.providerId(), current.completionsPath()));
+                updateProviderStatus(providerConfigStore.current().isReady(), current.providerId(), event.getValue());
+                updateModelSelectionScopeStatus(hasActiveRun());
             });
 
             providerStatus = new Span();
@@ -350,7 +353,11 @@ public class ConsoleView extends Div {
             modelRefreshStatus.getElement().setAttribute("data-role", "model-refresh-status");
             updateRefreshStatus("idle", t("console.modelSelector.refreshIdle"));
 
-            Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus);
+            modelSelectionScopeStatus = new Span();
+            modelSelectionScopeStatus.getElement().setAttribute("data-role", "model-selection-scope");
+            updateModelSelectionScopeStatus(false);
+
+            Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus, modelSelectionScopeStatus);
             bar.addClassName("pi-console-model-bar");
             bar.getStyle().set("display", "flex");
             bar.getStyle().set("gap", "0.5rem");
@@ -382,6 +389,16 @@ public class ConsoleView extends Div {
         String normalized = state == null || state.isBlank() ? "idle" : state.trim();
         modelRefreshStatus.getElement().setAttribute("data-refresh-state", normalized);
         modelRefreshStatus.setText(message == null || message.isBlank() ? t("console.modelSelector.refreshIdle") : message);
+    }
+
+    private void updateModelSelectionScopeStatus(boolean nextRunOnly) {
+        if (modelSelectionScopeStatus == null) {
+            return;
+        }
+        modelSelectionScopeStatus.getElement().setAttribute("data-selection-scope", nextRunOnly ? "next-run" : "future-runs");
+        modelSelectionScopeStatus.setText(nextRunOnly
+                ? t("console.modelSelector.appliesNextRun")
+                : t("console.modelSelector.appliesFutureRuns"));
     }
 
     private String localizedRefreshMessage(ProviderConfigController.ModelListResponse response) {
@@ -508,6 +525,7 @@ public class ConsoleView extends Div {
         selectedSessionId = requireText(sessionId, "sessionId");
         activeRunId = requireText(runId, "runId");
         activeRunNextAfterSequence = 0;
+        updateModelSelectionScopeStatus(false);
         runContextPanel.showRunning(selectedSessionId, activeRunId);
         chatPanel.showComposerRunStatus("Running run " + activeRunId + " in session " + selectedSessionId, true);
     }
@@ -659,6 +677,10 @@ public class ConsoleView extends Div {
 
     private boolean liveStreamingAvailable() {
         return liveRunEventSubscriber != null && liveRunEventSubscriber.available();
+    }
+
+    private boolean hasActiveRun() {
+        return activeRunId != null && !activeRunId.isBlank();
     }
 
     private void subscribeToLiveRunEvents(String runId) {
