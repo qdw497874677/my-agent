@@ -133,7 +133,10 @@ class WebConsoleProviderModelBarTest {
             Element refreshStatus = onlyDescendantWithAttribute(view, "data-role", "model-refresh-status").getElement();
             assertThat(refreshStatus.getAttribute("data-refresh-state")).isEqualTo("success");
             assertThat(refreshStatus.getTextRecursively()).contains("1").containsIgnoringCase("model");
-            assertThat(((ComboBox<?>) onlyDescendantWithAttribute(view, "data-role", "model-selector")).getListDataView().getItems())
+            List<String> selectorItems = ((ComboBox<?>) onlyDescendantWithAttribute(view, "data-role", "model-selector")).getListDataView().getItems()
+                    .map(String.class::cast)
+                    .toList();
+            assertThat(selectorItems)
                     .containsExactly("alpha");
         }
 
