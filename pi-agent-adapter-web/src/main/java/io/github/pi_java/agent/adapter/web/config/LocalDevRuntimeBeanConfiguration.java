@@ -28,8 +28,20 @@ import io.github.pi_java.agent.client.run.RunStatusResponse;
 import io.github.pi_java.agent.client.session.CreateSessionRequest;
 import io.github.pi_java.agent.client.session.SessionHistoryResponse;
 import io.github.pi_java.agent.client.session.SessionResponse;
+import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
+import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
+import io.github.pi_java.agent.domain.common.PlatformIds.SessionId;
+import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TenantId;
+import io.github.pi_java.agent.domain.common.PlatformIds.TraceId;
+import io.github.pi_java.agent.domain.common.PlatformIds.UserId;
+import io.github.pi_java.agent.domain.common.PlatformIds.WorkspaceId;
+import io.github.pi_java.agent.domain.event.EventVisibility;
 import io.github.pi_java.agent.domain.event.RunEvent;
+import io.github.pi_java.agent.domain.event.RunEventPayload;
 import io.github.pi_java.agent.domain.event.RunEventType;
+import io.github.pi_java.agent.domain.event.RedactionMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -195,7 +207,7 @@ public class LocalDevRuntimeBeanConfiguration {
             for (Map<String, String> row : persistence.loadEvents()) {
                 String runId = row.get("run_id");
                 try {
-                    RunEvent event = JSON.readValue(row.get("payload_json"), RunEvent.class);
+                    RunEvent event = parseRunEvent(row);
                     events.computeIfAbsent(runId, ignored -> new CopyOnWriteArrayList<>()).add(event);
                 } catch (Exception ignored) { }
             }
@@ -451,6 +463,65 @@ public class LocalDevRuntimeBeanConfiguration {
                     string(metadata.get("fallbackMode")),
                     string(metadata.get("readinessState")),
                     redactSummary(string(metadata.get("safeErrorSummary"))));
+        }
+
+        private static RunEvent parseRunEvent(Map<String, String> row) throws Exception {
+            String json = row.get("payload_json");
+            try {
+                return JSON.readValue(json, RunEvent.class);
+            } catch (Exception ignored) {
+                Map<String, Object> values = parseJsonMap(json);
+                Map<String, Object> payloadValues = objectMap(values.get("payload"));
+                RunEventType type = RunEventType.valueOf(row.get("event_type"));
+                RunEventPayload payload = switch (type) {
+                    case MODEL_DELTA -> new RunEventPayload.ModelDeltaPayload(
+                            firstText(payloadValues, "modelRef", "model_ref", "model"),
+                            textOrEmpty(payloadValues.get("textDelta")),
+                            string(payloadValues.get("providerId")),
+                            string(payloadValues.get("modelId")),
+                            null,
+                            null,
+                            null);
+                    default -> new RunEventPayload.ExtensionPayload("local.event", "1", Map.of("eventType", type.name()));
+                };
+                return new RunEvent(
+                        row.get("event_id"),
+                        new TenantId(row.get("tenant_id")),
+                        new UserId(row.get("user_id")),
+                        new SessionId(row.get("session_id")),
+                        new RunId(row.get("run_id")),
+                        new StepId(firstText(objectMap(values.get("stepId")), "value", "id", "stepId", "step-none")),
+                        new WorkspaceId(firstText(objectMap(values.get("workspaceId")), "value", "id", "workspaceId", "workspace")),
+                        Long.parseLong(row.get("sequence")),
+                        Instant.parse(row.get("timestamp")),
+                        type,
+                        new TraceId(firstText(objectMap(values.get("traceId")), "value", "id", "traceId", "0123456789abcdef0123456789abcdef")),
+                        new CorrelationId(firstText(objectMap(values.get("correlationId")), "value", "id", "correlationId", "correlation-local")),
+                        new CausationId(firstText(objectMap(values.get("causationId")), "value", "id", "causationId", "causation-local")),
+                        payload,
+                        EventVisibility.USER,
+                        new RedactionMetadata(false, false, java.util.Set.of(), "local-restart"));
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Map<String, Object> objectMap(Object value) {
+            return value instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
+        }
+
+        private static String firstText(Map<String, Object> values, String... keysAndFallback) {
+            for (int i = 0; i < keysAndFallback.length - 1; i++) {
+                String value = string(values.get(keysAndFallback[i]));
+                if (value != null) {
+                    return value;
+                }
+            }
+            return keysAndFallback[keysAndFallback.length - 1];
+        }
+
+        private static String textOrEmpty(Object value) {
+            String text = string(value);
+            return text == null ? "" : text;
         }
 
         private static RunProviderMetadata parseProviderMetadata(String json) {
