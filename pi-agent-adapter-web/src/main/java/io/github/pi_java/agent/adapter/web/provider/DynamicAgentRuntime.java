@@ -3,6 +3,7 @@ package io.github.pi_java.agent.adapter.web.provider;
 import io.github.pi_java.agent.app.port.model.ResolvedSecret;
 import io.github.pi_java.agent.app.port.model.SecretResolver;
 import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.common.PlatformIds.CausationId;
 import io.github.pi_java.agent.domain.common.PlatformIds.CorrelationId;
@@ -68,16 +69,19 @@ public class DynamicAgentRuntime implements AgentRuntime {
     public RunHandle start(RunContext context) {
         ModelDeltaPublishingSink sink = new ModelDeltaPublishingSink(context, eventSink);
         ProviderConfig config = configStore.current();
+        RunProviderMetadata runModel = runModelSnapshot(context);
         if (!config.isReady()) {
             sink.publishText(
                     "我已收到：" + inputText(context) + "\n\n当前还没有配置可用模型提供商。请在“管理治理 → 提供商”里配置 base URL、API Key 和模型，配置后我会调用真实模型回复。",
-                    "local-dev",
-                    "not-configured",
-                    "local-dev:not-configured");
+                    firstText(runModel.resolvedProviderId(), "local-dev"),
+                    firstText(runModel.resolvedModelId(), "not-configured"),
+                    firstText(runModel.selectedModelRef(), runModel.requestedModelRef(), "local-dev:not-configured"));
             return new RunHandle(context.workspaceScope().runId(), RunStatus.SUCCEEDED, Optional.empty());
         }
-        sink.publishText("收到，我正在调用 " + config.modelId() + " 处理。\n\n", config.providerId(), config.modelId(),
-                config.providerId() + ":" + config.modelId());
+        String providerId = firstText(runModel.resolvedProviderId(), providerFrom(context.agentDefinition().modelRef()), config.providerId());
+        String modelId = firstText(runModel.resolvedModelId(), modelFrom(context.agentDefinition().modelRef()), config.modelId());
+        String modelRef = firstText(runModel.selectedModelRef(), runModel.requestedModelRef(), providerId + ":" + modelId);
+        sink.publishText("收到，我正在调用 " + modelId + " 处理。\n\n", providerId, modelId, modelRef);
         StreamingModelClient client = resolveClient(config);
         AgentDefinition definition = context.agentDefinition();
         ProviderModelRef.parse(definition.modelRef());
@@ -128,6 +132,29 @@ public class DynamicAgentRuntime implements AgentRuntime {
             cachedVersion = version;
             return cachedClient;
         }
+    }
+
+    private static RunProviderMetadata runModelSnapshot(RunContext context) {
+        ProviderModelRef parsed = ProviderModelRef.parse(context.agentDefinition().modelRef());
+        return new RunProviderMetadata(context.agentDefinition().modelRef(), context.agentDefinition().modelRef(),
+                parsed.providerId(), parsed.modelId(), null, null, null);
+    }
+
+    private static String providerFrom(String modelRef) {
+        return ProviderModelRef.parse(modelRef).providerId();
+    }
+
+    private static String modelFrom(String modelRef) {
+        return ProviderModelRef.parse(modelRef).modelId();
+    }
+
+    private static String firstText(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 
     private record StaticSecretResolver(String apiKey) implements SecretResolver {

@@ -18,6 +18,7 @@ import io.github.pi_java.agent.app.usecase.ConversationQueryService;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
 import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.domain.agent.AgentDefinition;
 import io.github.pi_java.agent.domain.agent.InteractionMode;
 import io.github.pi_java.agent.domain.agent.RuntimeLimits;
@@ -183,11 +184,13 @@ public class DefaultRunDispatcher implements RunDispatcher {
             if (!runQueue.markRunning(runId, startedAt)) {
                 return;
             }
-            validateModelRef(agentDefinition.modelRef());
+            String modelRef = effectiveModelRef(queuedRun);
+            validateModelRef(modelRef);
+            AgentDefinition runAgentDefinition = agentDefinitionFor(modelRef);
             ConversationContextAssembler.Result contextResult = conversationContextAssembler.assemble(requestContext, queuedRun.sessionId(), runId);
             runProjectionRepository.markRunning(runId, startedAt);
             auditRepository.record(requestContext, "run.worker.started", "run", runId, queuedRun.sessionId(), runId, workerStartedDetails(workerId, contextResult.metadata()));
-            RunContext context = new RunContext(agentDefinition, runInput(queuedRun), sessionContext(queuedRun, contextResult.messages()), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
+            RunContext context = new RunContext(runAgentDefinition, runInput(queuedRun), sessionContext(queuedRun, contextResult.messages()), workspaceScope(queuedRun), runtimeLimits, token, queuedRun.traceId(), startedAt);
             RunHandle handle = runRuntimeWithTimeout(context, runId);
             Instant finishedAt = clock.instant();
             if (token.isCancellationRequested()) {
@@ -328,6 +331,39 @@ public class DefaultRunDispatcher implements RunDispatcher {
 
     private static RequestContext requestContext(QueuedRun run) {
         return new RequestContext(new SecurityPrincipalContext(run.tenantId(), run.userId(), Set.of()), new CorrelationContext(run.traceId(), run.correlationId(), run.runId()));
+    }
+
+    private String effectiveModelRef(QueuedRun run) {
+        RunProviderMetadata metadata = run.providerMetadata();
+        if (metadata != null) {
+            String selected = text(metadata.selectedModelRef());
+            if (selected != null) {
+                return selected;
+            }
+            String requested = text(metadata.requestedModelRef());
+            if (requested != null) {
+                return requested;
+            }
+            String providerId = text(metadata.resolvedProviderId());
+            String modelId = text(metadata.resolvedModelId());
+            if (providerId != null && modelId != null) {
+                return providerId + ":" + modelId;
+            }
+        }
+        return agentDefinition.modelRef();
+    }
+
+    private AgentDefinition agentDefinitionFor(String modelRef) {
+        if (agentDefinition.modelRef().equals(modelRef)) {
+            return agentDefinition;
+        }
+        return new AgentDefinition(agentDefinition.agentId(), agentDefinition.displayName(), agentDefinition.instructions(), modelRef,
+                agentDefinition.allowedToolScopes(), agentDefinition.policyRefs(), agentDefinition.runtimeLimits(),
+                agentDefinition.supportedInputModes(), agentDefinition.workspacePolicyRef(), agentDefinition.outputPolicyRef());
+    }
+
+    private static String text(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private static AgentDefinition defaultAgentDefinition(Duration runTimeout, String modelRef) {
