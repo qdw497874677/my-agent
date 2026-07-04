@@ -1,5 +1,7 @@
 package io.github.pi_java.agent.app.usecase;
 
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
+
 import java.time.Instant;
 import java.util.Map;
 
@@ -24,12 +26,18 @@ public record ConversationRunView(
         String runId,
         Instant createdAt,
         Map<String, Object> input,
-        String status) {
+        String status,
+        RunProviderMetadata providerMetadata) {
+
+    public ConversationRunView(String runId, Instant createdAt, Map<String, Object> input, String status) {
+        this(runId, createdAt, input, status, RunProviderMetadata.EMPTY);
+    }
 
     public ConversationRunView {
         if (runId == null || runId.isBlank()) {
             throw new IllegalArgumentException("runId must not be blank");
         }
         input = input == null ? Map.of() : Map.copyOf(input);
+        providerMetadata = providerMetadata == null ? RunProviderMetadata.EMPTY : providerMetadata;
     }
 }

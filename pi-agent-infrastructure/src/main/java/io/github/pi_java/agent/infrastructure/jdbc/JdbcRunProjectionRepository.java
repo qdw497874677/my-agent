@@ -6,6 +6,7 @@ import io.github.pi_java.agent.app.usecase.ConversationRunView;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunResultResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
@@ -34,8 +35,8 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
         Instant now = Instant.now();
         jdbcTemplate.update("""
                         INSERT INTO runs(run_id, session_id, tenant_id, user_id, workspace_id, status, input_type, input,
-                            terminal_result, failure, trace_id, correlation_id, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            terminal_result, failure, trace_id, correlation_id, created_at, updated_at, provider_metadata)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                 runId,
                 sessionId,
@@ -50,7 +51,8 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
                 context.traceId(),
                 context.correlationId(),
                 Timestamp.from(now),
-                Timestamp.from(now));
+                Timestamp.from(now),
+                JdbcJson.jsonb(toProviderMetadataMap(safeProviderMetadata(request.metadata()))));
     }
 
     @Override
@@ -169,7 +171,7 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
         int pageSize = limit > 0 ? limit : 20;
         int fetchSize = pageSize + 1;
         List<ConversationRunView> rows = jdbcTemplate.query("""
-                        SELECT run_id, created_at, input, status FROM runs
+                        SELECT run_id, created_at, input, status, provider_metadata FROM runs
                         WHERE tenant_id = ? AND user_id = ? AND session_id = ?
                         ORDER BY created_at ASC, run_id ASC
                         LIMIT ?
@@ -178,7 +180,8 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
                         rs.getString("run_id"),
                         rs.getTimestamp("created_at").toInstant(),
                         JdbcJson.readMap(rs.getObject("input")),
-                        rs.getString("status")),
+                        rs.getString("status"),
+                        providerMetadata(rs.getObject("provider_metadata"))),
                 context.tenantId(), context.userId(), sessionId, fetchSize);
 
         boolean hasMore = rows.size() > pageSize;
@@ -201,7 +204,83 @@ public class JdbcRunProjectionRepository implements RunProjectionRepository {
                 rs.getString("trace_id"),
                 rs.getString("correlation_id"),
                 rs.getTimestamp("created_at").toInstant(),
-                rs.getTimestamp("updated_at").toInstant());
+                rs.getTimestamp("updated_at").toInstant(),
+                providerMetadata(rs.getObject("provider_metadata")));
+    }
+
+    private static RunProviderMetadata providerMetadata(Object value) {
+        Map<String, Object> metadata = JdbcJson.readMap(value);
+        return new RunProviderMetadata(
+                string(metadata.get("requestedModelRef")),
+                string(metadata.get("selectedModelRef")),
+                string(metadata.get("resolvedProviderId")),
+                string(metadata.get("resolvedModelId")),
+                string(metadata.get("fallbackMode")),
+                string(metadata.get("readinessState")),
+                string(metadata.get("safeErrorSummary")));
+    }
+
+    private static Map<String, Object> toProviderMetadataMap(RunProviderMetadata metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return Map.of();
+        }
+        java.util.LinkedHashMap<String, Object> values = new java.util.LinkedHashMap<>();
+        putIfPresent(values, "requestedModelRef", metadata.requestedModelRef());
+        putIfPresent(values, "selectedModelRef", metadata.selectedModelRef());
+        putIfPresent(values, "resolvedProviderId", metadata.resolvedProviderId());
+        putIfPresent(values, "resolvedModelId", metadata.resolvedModelId());
+        putIfPresent(values, "fallbackMode", metadata.fallbackMode());
+        putIfPresent(values, "readinessState", metadata.readinessState());
+        putIfPresent(values, "safeErrorSummary", metadata.safeErrorSummary());
+        return values;
+    }
+
+    public static RunProviderMetadata safeProviderMetadata(Map<String, Object> metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return RunProviderMetadata.EMPTY;
+        }
+        return new RunProviderMetadata(
+                string(metadata.get("requestedModelRef")),
+                string(metadata.get("selectedModelRef")),
+                firstString(metadata, "resolvedProviderId", "providerId", "provider_id"),
+                firstString(metadata, "resolvedModelId", "modelId", "model_id"),
+                string(metadata.get("fallbackMode")),
+                string(metadata.get("readinessState")),
+                redactSummary(string(metadata.get("safeErrorSummary"))));
+    }
+
+    private static String firstString(Map<String, Object> metadata, String... keys) {
+        for (String key : keys) {
+            String value = string(metadata.get(key));
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private static void putIfPresent(Map<String, Object> values, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            values.put(key, value);
+        }
+    }
+
+    private static String string(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = value.toString();
+        return text.isBlank() ? null : text;
+    }
+
+    private static String redactSummary(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value
+                .replaceAll("(?i)bearer\\s+[^\\s,;]+", "Bearer [REDACTED]")
+                .replaceAll("(?i)(api[_-]?key\\s*[=:]\\s*)[^\\s,;]+", "$1[REDACTED]")
+                .replaceAll("sk-[A-Za-z0-9._-]+", "[REDACTED]");
     }
 
     private static boolean isTerminal(String status) {
