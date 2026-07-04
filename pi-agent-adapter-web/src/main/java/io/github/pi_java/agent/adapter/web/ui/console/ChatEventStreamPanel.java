@@ -227,6 +227,29 @@ public class ChatEventStreamPanel extends Div {
         markAssistantTerminal(sessionId, runId, stepId, ConversationMessageStatus.FAILED, safeSummary);
     }
 
+    public void markLocalFallbackMode(String label) {
+        String text = label == null || label.isBlank() ? t("chat.localFallback.label") : label.trim();
+        Div target = activeAssistantLine;
+        if (target == null && !liveAssistantBubbles.isEmpty()) {
+            target = liveAssistantBubbles.values().stream()
+                    .reduce((first, second) -> second)
+                    .map(LiveAssistantBubble::line)
+                    .orElse(null);
+        }
+        if (target == null) {
+            return;
+        }
+        target.getElement().setAttribute("data-fallback-mode", "local");
+        if (target.getChildren().noneMatch(child -> "fallback-label".equals(child.getElement().getAttribute("data-role")))) {
+            Span fallback = new Span(text);
+            fallback.getElement().setAttribute("data-role", "fallback-label");
+            fallback.getElement().setAttribute("data-fallback-mode", "local");
+            fallback.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+            fallback.getStyle().set("font-weight", "600");
+            target.add(fallback);
+        }
+    }
+
     public int inputMinRows() {
         return input.getMinRows();
     }

@@ -75,7 +75,9 @@ class WebConsoleNoProviderFallbackTest {
         assertThat(plan).isNotNull();
         assertThat(bridge.createSessionCalls).isEqualTo(1);
         assertThat(bridge.createRunCalls).isEqualTo(1);
-        assertThat(onlyDescendantWithAttribute(view, "data-fallback-mode", "local")).isNotNull();
+        assertThat(descendants(view).stream()
+                .filter(component -> "local".equals(component.getElement().getAttribute("data-fallback-mode"))))
+                .isNotEmpty();
         Element label = onlyDescendantWithAttribute(view.chatPanel(), "data-role", "fallback-label").getElement();
         assertThat(label.getTextRecursively()).containsIgnoringCase("local fallback");
     }
