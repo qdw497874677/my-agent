@@ -80,6 +80,7 @@ public class SqliteLocalPersistence {
             addColumnIfMissing(conn, "local_runs", "input_json", "TEXT");
             addColumnIfMissing(conn, "local_runs", "trace_id", "TEXT");
             addColumnIfMissing(conn, "local_runs", "correlation_id", "TEXT");
+            addColumnIfMissing(conn, "local_runs", "provider_metadata_json", "TEXT");
             addColumnIfMissing(conn, "local_events", "session_id", "TEXT NOT NULL DEFAULT ''");
             addColumnIfMissing(conn, "local_events", "tenant_id", "TEXT NOT NULL DEFAULT ''");
             addColumnIfMissing(conn, "local_events", "user_id", "TEXT NOT NULL DEFAULT ''");
@@ -184,11 +185,24 @@ public class SqliteLocalPersistence {
     public void saveRun(String runId, String sessionId, String tenantId, String userId, String workspaceId,
                         String status, String createdAt, String updatedAt, String resultJson, String failureJson,
                         String inputJson, String traceId, String correlationId) {
+        saveRun(runId, sessionId, tenantId, userId, workspaceId, status, createdAt, updatedAt, resultJson, failureJson,
+                inputJson, traceId, correlationId, null);
+    }
+
+    /**
+     * Phase 20 Plan 03: stores safe provider/model/fallback metadata in the
+     * local profile using additive SQLite schema. The JSON must already be
+     * redacted and limited to safe run facts; raw provider config and secrets do
+     * not belong in this column.
+     */
+    public void saveRun(String runId, String sessionId, String tenantId, String userId, String workspaceId,
+                        String status, String createdAt, String updatedAt, String resultJson, String failureJson,
+                        String inputJson, String traceId, String correlationId, String providerMetadataJson) {
         try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(
-                     "INSERT OR REPLACE INTO local_runs (run_id, session_id, tenant_id, user_id, workspace_id, " +
-                             "status, created_at, updated_at, result_json, failure_json, input_json, trace_id, correlation_id) " +
-                             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
+                      "INSERT OR REPLACE INTO local_runs (run_id, session_id, tenant_id, user_id, workspace_id, " +
+                              "status, created_at, updated_at, result_json, failure_json, input_json, trace_id, correlation_id, " +
+                              "provider_metadata_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")) {
             ps.setString(1, runId);
             ps.setString(2, sessionId);
             ps.setString(3, tenantId);
@@ -202,6 +216,7 @@ public class SqliteLocalPersistence {
             ps.setString(11, inputJson);
             ps.setString(12, traceId);
             ps.setString(13, correlationId);
+            ps.setString(14, providerMetadataJson);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);

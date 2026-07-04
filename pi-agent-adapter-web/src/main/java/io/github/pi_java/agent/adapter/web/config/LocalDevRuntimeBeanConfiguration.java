@@ -21,6 +21,7 @@ import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.conversation.SessionSummaryDto;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
 import io.github.pi_java.agent.client.run.RunDetailResponse;
+import io.github.pi_java.agent.client.run.RunProviderMetadata;
 import io.github.pi_java.agent.client.run.RunResponse;
 import io.github.pi_java.agent.client.run.RunResultResponse;
 import io.github.pi_java.agent.client.run.RunStatusResponse;
@@ -184,9 +185,11 @@ public class LocalDevRuntimeBeanConfiguration {
                             row.get("tenant_id"), row.get("user_id"), row.get("session_id"), runId,
                             row.get("workspace_id"), row.get("status"),
                             row.get("trace_id"), row.get("correlation_id"),
-                            Instant.parse(row.get("created_at")), Instant.parse(row.get("updated_at")));
+                            Instant.parse(row.get("created_at")), Instant.parse(row.get("updated_at")),
+                            parseProviderMetadata(row.get("provider_metadata_json")));
                     runs.put(runId, new RunRecord(resp, parseJsonMap(row.get("input_json")),
-                            parseJsonMap(row.get("result_json")), parseJsonMap(row.get("failure_json"))));
+                            parseJsonMap(row.get("result_json")), parseJsonMap(row.get("failure_json")),
+                            resp.providerMetadata()));
                 } catch (Exception ignored) { }
             }
             for (Map<String, String> row : persistence.loadEvents()) {
@@ -220,13 +223,15 @@ public class LocalDevRuntimeBeanConfiguration {
         void createRun(RequestContext context, String sessionId, String runId, CreateRunRequest request) {
             Instant now = Instant.now();
             RunResponse response = new RunResponse(context.tenantId(), context.userId(), sessionId, runId,
-                    request.workspaceId(), "QUEUED", context.traceId(), context.correlationId(), now, now);
+                    request.workspaceId(), "QUEUED", context.traceId(), context.correlationId(), now, now,
+                    safeProviderMetadata(request.metadata()));
             Map<String, Object> input = request.input() == null ? Map.of() : request.input();
-            runs.put(runId, new RunRecord(response, input, Map.of(), Map.of()));
+            runs.put(runId, new RunRecord(response, input, Map.of(), Map.of(), response.providerMetadata()));
             if (persistence != null) {
                 persistence.saveRun(runId, sessionId, context.tenantId(), context.userId(), request.workspaceId(),
                         "QUEUED", now.toString(), now.toString(), null, null,
-                        toJson(input), context.traceId(), context.correlationId());
+                        toJson(input), context.traceId(), context.correlationId(),
+                        toJson(toProviderMetadataMap(response.providerMetadata())));
             }
         }
 
@@ -357,7 +362,8 @@ public class LocalDevRuntimeBeanConfiguration {
                             record.response().runId(),
                             record.response().createdAt(),
                             record.input(),
-                            record.response().status()))
+                            record.response().status(),
+                            record.providerMetadata()))
                     .toList();
             return new PageResponse<>(views, pageSize, null, null, false);
         }
@@ -421,15 +427,97 @@ public class LocalDevRuntimeBeanConfiguration {
                 RunResponse current = existing.response();
                 RunResponse next = new RunResponse(current.tenantId(), current.userId(), current.sessionId(),
                         current.runId(), current.workspaceId(), status, current.traceId(), current.correlationId(),
-                        current.createdAt(), updatedAt);
+                        current.createdAt(), updatedAt, existing.providerMetadata());
                 if (persistence != null) {
                     persistence.saveRun(runId, current.sessionId(), current.tenantId(), current.userId(),
                             current.workspaceId(), status, current.createdAt().toString(), updatedAt.toString(),
                             toJson(nextResult), toJson(nextFailure),
-                            toJson(existing.input()), current.traceId(), current.correlationId());
+                            toJson(existing.input()), current.traceId(), current.correlationId(),
+                            toJson(toProviderMetadataMap(existing.providerMetadata())));
                 }
-                return new RunRecord(next, existing.input(), nextResult, nextFailure);
+                return new RunRecord(next, existing.input(), nextResult, nextFailure, existing.providerMetadata());
             });
+        }
+
+        private static RunProviderMetadata safeProviderMetadata(Map<String, Object> metadata) {
+            if (metadata == null || metadata.isEmpty()) {
+                return RunProviderMetadata.EMPTY;
+            }
+            return new RunProviderMetadata(
+                    string(metadata.get("requestedModelRef")),
+                    string(metadata.get("selectedModelRef")),
+                    firstString(metadata, "resolvedProviderId", "providerId", "provider_id"),
+                    firstString(metadata, "resolvedModelId", "modelId", "model_id"),
+                    string(metadata.get("fallbackMode")),
+                    string(metadata.get("readinessState")),
+                    redactSummary(string(metadata.get("safeErrorSummary"))));
+        }
+
+        private static RunProviderMetadata parseProviderMetadata(String json) {
+            return providerMetadata(parseJsonMap(json));
+        }
+
+        private static RunProviderMetadata providerMetadata(Map<String, Object> metadata) {
+            if (metadata == null || metadata.isEmpty()) {
+                return RunProviderMetadata.EMPTY;
+            }
+            return new RunProviderMetadata(
+                    string(metadata.get("requestedModelRef")),
+                    string(metadata.get("selectedModelRef")),
+                    string(metadata.get("resolvedProviderId")),
+                    string(metadata.get("resolvedModelId")),
+                    string(metadata.get("fallbackMode")),
+                    string(metadata.get("readinessState")),
+                    string(metadata.get("safeErrorSummary")));
+        }
+
+        private static Map<String, Object> toProviderMetadataMap(RunProviderMetadata metadata) {
+            if (metadata == null || metadata.isEmpty()) {
+                return Map.of();
+            }
+            Map<String, Object> values = new LinkedHashMap<>();
+            putIfPresent(values, "requestedModelRef", metadata.requestedModelRef());
+            putIfPresent(values, "selectedModelRef", metadata.selectedModelRef());
+            putIfPresent(values, "resolvedProviderId", metadata.resolvedProviderId());
+            putIfPresent(values, "resolvedModelId", metadata.resolvedModelId());
+            putIfPresent(values, "fallbackMode", metadata.fallbackMode());
+            putIfPresent(values, "readinessState", metadata.readinessState());
+            putIfPresent(values, "safeErrorSummary", metadata.safeErrorSummary());
+            return values;
+        }
+
+        private static String firstString(Map<String, Object> metadata, String... keys) {
+            for (String key : keys) {
+                String value = string(metadata.get(key));
+                if (value != null) {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        private static void putIfPresent(Map<String, Object> values, String key, String value) {
+            if (value != null && !value.isBlank()) {
+                values.put(key, value);
+            }
+        }
+
+        private static String string(Object value) {
+            if (value == null) {
+                return null;
+            }
+            String text = value.toString();
+            return text.isBlank() ? null : text;
+        }
+
+        private static String redactSummary(String value) {
+            if (value == null) {
+                return null;
+            }
+            return value
+                    .replaceAll("(?i)bearer\\s+[^\\s,;]+", "Bearer [REDACTED]")
+                    .replaceAll("(?i)(api[_-]?key\\s*[=:]\\s*)[^\\s,;]+", "$1[REDACTED]")
+                    .replaceAll("sk-[A-Za-z0-9._-]+", "[REDACTED]");
         }
 
         private static boolean isTerminal(String status) {
@@ -459,7 +547,8 @@ public class LocalDevRuntimeBeanConfiguration {
             }
         }
 
-        private record RunRecord(RunResponse response, Map<String, Object> input, Map<String, Object> result, Map<String, Object> failure) {
+        private record RunRecord(RunResponse response, Map<String, Object> input, Map<String, Object> result,
+                                 Map<String, Object> failure, RunProviderMetadata providerMetadata) {
         }
     }
 
