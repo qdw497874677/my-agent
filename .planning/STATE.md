@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 20-provider-model-and-local-profile-stability-03-PLAN.md
-last_updated: "2026-07-04T10:17:50.378Z"
+stopped_at: Completed 20-provider-model-and-local-profile-stability-01-PLAN.md
+last_updated: "2026-07-04T10:20:29.012Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 24
-  completed_plans: 20
+  completed_plans: 21
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 20 (provider-model-and-local-profile-stability) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 19-multi-turn-runtime-context P04 | 441s | 2 tasks | 6 files |
 | Phase 19-multi-turn-runtime-context P05 | 3m37s | 3 tasks | 3 files |
 | Phase 20-provider-model-and-local-profile-stability P03 | 695s | 2 tasks | 9 files |
+| Phase 20-provider-model-and-local-profile-stability P01 | 845 | 2 tasks | 5 files |
 
 ### v1.2 Roadmap
 
@@ -234,6 +235,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 20-provider-model-and-local-profile-stability]: Represent run provider/model/fallback facts as a typed RunProviderMetadata DTO instead of an arbitrary public Map so only approved safe fields can be persisted and rendered.
 - [Phase 20-provider-model-and-local-profile-stability]: Use additive JSONB for cloud runs and additive TEXT JSON for SQLite local profile to preserve compatibility with existing rows and upgrade-in-place local databases.
 - [Phase 20-provider-model-and-local-profile-stability]: Keep provider metadata in client/app run projection contracts while excluding raw API keys, bearer headers, provider config snapshots, request bodies, and provider SDK objects.
+- [Phase 20-provider-model-and-local-profile-stability]: Render provider/model readiness as compact inline spans with stable data attributes instead of adding an operations panel or notification-only feedback.
 
 ### Pending Todos
 
@@ -247,8 +249,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T10:17:50.372Z
-Stopped at: Completed 20-provider-model-and-local-profile-stability-03-PLAN.md
+Last session: 2026-07-04T10:20:28.958Z
+Stopped at: Completed 20-provider-model-and-local-profile-stability-01-PLAN.md
 Resume file: None
 
 ---
