@@ -82,6 +82,8 @@ public class ConsoleView extends Div {
     private ProviderConfigStore providerConfigStore;
     private ProviderConfigController providerConfigController;
     private ComboBox<String> modelSelector;
+    private Span providerStatus;
+    private Span modelRefreshStatus;
     private String selectedAgentId = DEFAULT_AGENT_ID;
     private String selectedSessionId;
     private String activeRunId;
@@ -319,13 +321,16 @@ public class ConsoleView extends Div {
             Button refreshModels = new Button(getTranslation("console.modelSelector.refresh"));
             refreshModels.getElement().setAttribute("data-action", "refresh-models");
             refreshModels.addClickListener(event -> {
-                if (providerConfigController == null) return;
-                try {
-                    var response = providerConfigController.listModels();
-                    if (response.models() != null && !response.models().isEmpty()) {
-                        modelSelector.setItems(response.models());
-                    }
-                } catch (Exception ignored) { }
+                if (providerConfigController == null) {
+                    updateRefreshStatus("not_configured", t("console.modelSelector.refreshNotConfigured"));
+                    return;
+                }
+                var response = providerConfigController.listModels();
+                if (response.models() != null && !response.models().isEmpty()) {
+                    modelSelector.setItems(response.models());
+                }
+                updateProviderStatus(response.ready(), response.providerId(), response.selectedModel());
+                updateRefreshStatus(response.state(), localizedRefreshMessage(response));
             });
 
             modelSelector.addValueChangeListener(event -> {
@@ -336,24 +341,74 @@ public class ConsoleView extends Div {
                         event.getValue(), current.providerId(), current.completionsPath()));
             });
 
-            Span status = new Span();
-            status.getElement().setAttribute("data-role", "provider-status");
-            status.setText(providerConfigStore.current().isReady()
-                    ? getTranslation("console.modelSelector.ready")
-                    : getTranslation("console.modelSelector.notConfigured"));
+            providerStatus = new Span();
+            providerStatus.getElement().setAttribute("data-role", "provider-status");
+            ProviderConfig current = providerConfigStore.current();
+            updateProviderStatus(current.isReady(), current.providerId(), current.modelId());
 
-            Div bar = new Div(modelSelector, refreshModels, status);
+            modelRefreshStatus = new Span();
+            modelRefreshStatus.getElement().setAttribute("data-role", "model-refresh-status");
+            updateRefreshStatus("idle", t("console.modelSelector.refreshIdle"));
+
+            Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus);
             bar.addClassName("pi-console-model-bar");
             bar.getStyle().set("display", "flex");
             bar.getStyle().set("gap", "0.5rem");
             bar.getStyle().set("align-items", "flex-end");
             bar.getStyle().set("justify-content", "center");
+            bar.getStyle().set("flex-wrap", "wrap");
             bar.getStyle().set("max-width", "820px");
             bar.getStyle().set("margin", "0 auto 1rem");
             bar.setWidthFull();
             return bar;
         }
         return new Div();
+    }
+
+    private void updateProviderStatus(boolean ready, String providerId, String selectedModel) {
+        if (providerStatus == null) {
+            return;
+        }
+        providerStatus.getElement().setAttribute("data-provider-ready", Boolean.toString(ready));
+        providerStatus.setText(ready
+                ? t("console.modelSelector.readyWithModel", display(providerId, "provider"), display(selectedModel, "model"))
+                : t("console.modelSelector.notConfiguredAction"));
+    }
+
+    private void updateRefreshStatus(String state, String message) {
+        if (modelRefreshStatus == null) {
+            return;
+        }
+        String normalized = state == null || state.isBlank() ? "idle" : state.trim();
+        modelRefreshStatus.getElement().setAttribute("data-refresh-state", normalized);
+        modelRefreshStatus.setText(message == null || message.isBlank() ? t("console.modelSelector.refreshIdle") : message);
+    }
+
+    private String localizedRefreshMessage(ProviderConfigController.ModelListResponse response) {
+        String state = response.state() == null ? "error" : response.state();
+        return switch (state) {
+            case "success" -> t("console.modelSelector.refreshSuccess", response.modelCount());
+            case "empty" -> t("console.modelSelector.refreshEmpty");
+            case "not_configured" -> t("console.modelSelector.refreshNotConfigured");
+            case "error" -> t("console.modelSelector.refreshError", safeRefreshDetail(response));
+            default -> response.message() == null || response.message().isBlank()
+                    ? t("console.modelSelector.refreshIdle")
+                    : response.message();
+        };
+    }
+
+    private static String safeRefreshDetail(ProviderConfigController.ModelListResponse response) {
+        String detail = response.message() == null || response.message().isBlank() ? response.error() : response.message();
+        if (detail == null || detail.isBlank()) {
+            return "details redacted";
+        }
+        return detail.replaceAll("(?i)bearer\\s+[A-Za-z0-9._~+/=-]+", "Bearer [REDACTED]")
+                .replaceAll("(?i)bearer\\s+\\[REDACTED]", "[REDACTED credential]")
+                .replaceAll("(?i)sk-[A-Za-z0-9._-]+", "[REDACTED]");
+    }
+
+    private static String display(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value.trim();
     }
 
     private void handleAgentAction(String agentId, String actionId) {
