@@ -41,9 +41,9 @@
 - [ ] **PROV-01**: User can see provider/model readiness and actionable errors from the Console model area.
 - [ ] **PROV-02**: User can refresh model choices and see success, empty, and error states without silent failures.
 - [ ] **PROV-03**: Model selection persists locally and affects only subsequent runs.
-- [ ] **PROV-04**: Each run records the actual provider, model, and fallback mode used for history and debugging.
+- [x] **PROV-04**: Each run records the actual provider, model, and fallback mode used for history and debugging.
 - [ ] **PROV-05**: No-provider fallback is clearly labeled as local fallback, not a real model answer.
-- [ ] **PROV-06**: SQLite local profile persists sessions, transcripts, run metadata, provider config, and survives restart for Console continuation.
+- [x] **PROV-06**: SQLite local profile persists sessions, transcripts, run metadata, provider config, and survives restart for Console continuation.
 
 ### Security, Boundaries, and Verification
 
@@ -107,9 +107,9 @@
 | PROV-01 | Phase 20 | Pending |
 | PROV-02 | Phase 20 | Pending |
 | PROV-03 | Phase 20 | Pending |
-| PROV-04 | Phase 20 | Pending |
+| PROV-04 | Phase 20 | Complete |
 | PROV-05 | Phase 20 | Pending |
-| PROV-06 | Phase 20 | Pending |
+| PROV-06 | Phase 20 | Complete |
 | VER-01 | Phase 21 | Pending |
 | VER-02 | Phase 21 | Pending |
 | VER-03 | Phase 21 | Pending |
