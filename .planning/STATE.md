@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
-status: verifying
-stopped_at: Completed 20-provider-model-and-local-profile-stability-05-PLAN.md
-last_updated: "2026-07-04T12:15:16.856Z"
-last_activity: 2026-07-04
+status: executing
+stopped_at: Completed 21-verification-security-and-regression-hardening-03-PLAN.md
+last_updated: "2026-07-05T06:50:16.974Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
+  total_plans: 29
+  completed_plans: 25
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-06-28)
 
 **Core value:** 让云上 Agent 能稳定接入和扩展模型、工具、插件、MCP、Memory、Workspace 与业务系统，并以统一 Runtime 运行、观测和治理。  
-**Current focus:** Phase 20 — provider-model-and-local-profile-stability
+**Current focus:** Phase 21 — verification-security-and-regression-hardening
 
 ## Current Position
 
-Phase: 21
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-07-04
+Phase: 21 (verification-security-and-regression-hardening) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-05
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 20-provider-model-and-local-profile-stability P02 | 776 | 2 tasks | 5 files |
 | Phase 20-provider-model-and-local-profile-stability P04 | 901 | 2 tasks | 8 files |
 | Phase 20-provider-model-and-local-profile-stability P05 | 623s | 2 tasks | 4 files |
+| Phase 21-verification-security-and-regression-hardening P03 | 269s | 3 tasks | 6 files |
 
 ### v1.2 Roadmap
 
@@ -247,6 +248,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 20-provider-model-and-local-profile-stability]: Same-DB restart proof recreates SQLite persistence/store/query/config objects instead of reusing in-memory maps or Vaadin component state.
 - [Phase 20-provider-model-and-local-profile-stability]: LocalDevStores reconstructs persisted model-delta events after SQLite restart when direct polymorphic RunEvent deserialization is unavailable.
 - [Phase 20-provider-model-and-local-profile-stability]: Phase 21 handoff keeps deferred provider/local-profile ideas explicit: no automatic paid-provider fallback, no multi-provider routing, no provider-specific context-window policy, and no conversation search/rename/archive/pin/delete.
+- [Phase 21-verification-security-and-regression-hardening]: VER-03 uses explicit no-dependency ArchUnit rules in Client, App, and Domain so broad allowed package rules cannot permit SQL/JDBC, UI, provider SDK, adapter, or infrastructure leakage.
+- [Phase 21-verification-security-and-regression-hardening]: OpenAI/Spring AI provider-specific contracts remain infrastructure-only and are blocked from client DTO/API, App orchestration, and Domain/runtime contracts.
 
 ### Pending Todos
 
@@ -260,8 +263,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-04T12:05:04.025Z
-Stopped at: Completed 20-provider-model-and-local-profile-stability-05-PLAN.md
+Last session: 2026-07-05T06:50:16.969Z
+Stopped at: Completed 21-verification-security-and-regression-hardening-03-PLAN.md
 Resume file: None
 
 ---
