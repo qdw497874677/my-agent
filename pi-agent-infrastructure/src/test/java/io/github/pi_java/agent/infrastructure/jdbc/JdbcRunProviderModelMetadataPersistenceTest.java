@@ -26,7 +26,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
-class RunProviderModelMetadataPersistenceTest {
+class JdbcRunProviderModelMetadataPersistenceTest {
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
