@@ -62,3 +62,35 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn -pl pi-agent-infrastructure -am
 ```
 
 `JdbcConversationReadModelIntegrationTest` requires Docker/Testcontainers for PostgreSQL. When Docker is unavailable, treat this command as a CI-ENV SKIP rather than a product failure, and rely on the local SQLite gate above for always-runnable VER-02 coverage.
+
+## VER-05 Incremental Slow Stream Gate
+
+Run the controlled slow-stream incremental gate with Java 21:
+
+```bash
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn -pl pi-agent-adapter-web -am -Dtest=WebConsoleSlowStreamIncrementalTest test
+```
+
+`WebConsoleSlowStreamIncrementalTest` proves that fake slow-stream assistant text reaches the `ChatEventStreamPanel` primary assistant bubble before terminal completion. The test drives a deterministic reducer/panel sequence with a `model.delta` partial value, asserts that the bubble contains the partial assistant text while `data-stream-state` is still `streaming` and no terminal event has been observed, then emits `run.completed` and asserts the same bubble becomes `completed`.
+
+This gate must fail if assistant text is buffered and only replayed after completion, because the before-terminal checkpoint requires visible partial text before the terminal event is drained.
+
+## VER-04 Browser Product Path Gate
+
+Run the local syntax/list gate for the consolidated Phase 21 Console browser product path spec:
+
+```bash
+npx playwright test e2e/phase-21-console-product-path-regression.spec.ts --list
+```
+
+This `--list` command is the local/no-key gate. It validates that the Playwright spec is registered across the configured browser projects and can be run on developer machines without starting a Vaadin server or configuring provider credentials.
+
+Run the live browser gate against a running server before release sign-off:
+
+```bash
+PI_E2E_PORT=18080 npx playwright test e2e/phase-21-console-product-path-regression.spec.ts --project=chromium
+```
+
+The live command requires a running server on `PI_E2E_PORT` and exercises the Kimi-style Console product path through fake-runtime seeded conversations and streams: recent session card restore, the continued active session banner, same-session follow-up send, one assistant bubble for slow streams, cancellation preserving partial output, failed provider/error state rendering, and negative assertions that main chat content does not expose raw runtime-event strings.
+
+VER-04 is not fully satisfied by --list alone. Release/CI owners should treat `--list` as the always-runnable syntax gate and the live `--project=chromium` command as the product-path browser gate when the Vaadin server is available.
