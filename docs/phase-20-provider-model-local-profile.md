@@ -11,7 +11,7 @@ Phase 20 stabilizes the no-key local development loop for provider/model selecti
 - `data-role="model-refresh-status"` identifies visible refresh/blocked-send feedback.
   - `data-refresh-state="idle|success|empty|error|blocked"` is the refresh state hook.
 - `data-role="model-selection-scope"` identifies the copy explaining selection applies to the next run while a run is active.
-  - `data-selection-scope="current|next-run"` is the scope hook.
+  - `data-selection-scope="future-runs|next-run"` is the scope hook.
 - `data-role="fallback-label"` identifies explicit local fallback labels in the model area and restored assistant bubble metadata.
   - `data-fallback-mode="local"` marks intentionally enabled local fallback.
 
