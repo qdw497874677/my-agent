@@ -29,7 +29,7 @@ The roadmap preserves the project’s Java/Vaadin/COLA direction: no React/Next.
 - [x] **Phase 18: Streaming Bubble Lifecycle** — Convert run/model events into one live assistant bubble with pending, delta, terminal, error, and cancel states. (completed 2026-06-30)
 - [x] **Phase 19: Multi-Turn Runtime Context** — Feed bounded selected-session transcript context into model execution while preserving redaction and provider-neutral boundaries. (completed 2026-07-01)
 - [x] **Phase 20: Provider/Model and Local Profile Stability** — Productize provider/model readiness, model snapshots, fallback labeling, and SQLite local persistence/restart behavior. (completed 2026-07-04)
-- [ ] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries.
+- [x] **Phase 21: Verification, Security, and Regression Hardening** — Prove restore, streaming, context, cancellation, provider errors, ownership filters, and architecture boundaries. (completed 2026-07-05)
 
 ## Phase Details
 
@@ -190,7 +190,7 @@ Plans:
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
 | 19. Multi-Turn Runtime Context | v1.2 | 5/5 | Complete    | 2026-07-03 |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 5/5 | Complete    | 2026-07-04 |
-| 21. Verification, Security, and Regression Hardening | v1.2 | 4/5 | In Progress|  |
+| 21. Verification, Security, and Regression Hardening | v1.2 | 5/5 | Complete   | 2026-07-05 |
 
 ## Coverage Validation
 
