@@ -190,7 +190,7 @@ Plans:
 | 18. Streaming Bubble Lifecycle | v1.2 | 4/4 | Complete    | 2026-06-30 |
 | 19. Multi-Turn Runtime Context | v1.2 | 5/5 | Complete    | 2026-07-03 |
 | 20. Provider/Model and Local Profile Stability | v1.2 | 5/5 | Complete    | 2026-07-04 |
-| 21. Verification, Security, and Regression Hardening | v1.2 | 2/5 | In Progress|  |
+| 21. Verification, Security, and Regression Hardening | v1.2 | 3/5 | In Progress|  |
 
 ## Coverage Validation
 

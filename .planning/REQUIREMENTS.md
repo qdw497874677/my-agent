@@ -47,7 +47,7 @@
 
 ### Security, Boundaries, and Verification
 
-- [ ] **VER-01**: Automated tests cover no-key fallback, configured-provider path, recent-session restore, same-session continuation, streaming coalescing, cancellation/error states, and provider errors.
+- [x] **VER-01**: Automated tests cover no-key fallback, configured-provider path, recent-session restore, same-session continuation, streaming coalescing, cancellation/error states, and provider errors.
 - [x] **VER-02**: Repository/query tests prevent cross-tenant, cross-user, cross-session, or cross-run transcript/event leakage.
 - [x] **VER-03**: Architecture tests preserve COLA boundaries and keep Vaadin, Spring AI, SQLite, and provider SDK types out of Domain/App contracts where prohibited.
 - [ ] **VER-04**: Browser tests verify the Kimi-style Console product path with stable selectors and no raw runtime-event noise in the main chat.
@@ -110,7 +110,7 @@
 | PROV-04 | Phase 20 | Complete |
 | PROV-05 | Phase 20 | Complete |
 | PROV-06 | Phase 20 | Complete |
-| VER-01 | Phase 21 | Pending |
+| VER-01 | Phase 21 | Complete |
 | VER-02 | Phase 21 | Complete |
 | VER-03 | Phase 21 | Complete |
 | VER-04 | Phase 21 | Pending |

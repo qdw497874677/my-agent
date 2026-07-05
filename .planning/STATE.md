@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 21-verification-security-and-regression-hardening-02-PLAN.md
-last_updated: "2026-07-05T06:52:15.912Z"
+stopped_at: Completed 21-verification-security-and-regression-hardening-01-PLAN.md
+last_updated: "2026-07-05T06:56:58.199Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 21 (verification-security-and-regression-hardening) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-07-05
 
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 20-provider-model-and-local-profile-stability P05 | 623s | 2 tasks | 4 files |
 | Phase 21-verification-security-and-regression-hardening P03 | 269s | 3 tasks | 6 files |
 | Phase 21-verification-security-and-regression-hardening P02 | 424 | 2 tasks | 3 files |
+| Phase 21-verification-security-and-regression-hardening P01 | 624 | 2 tasks | 2 files |
 
 ### v1.2 Roadmap
 
@@ -253,6 +254,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 21-verification-security-and-regression-hardening]: OpenAI/Spring AI provider-specific contracts remain infrastructure-only and are blocked from client DTO/API, App orchestration, and Domain/runtime contracts.
 - [Phase 21-verification-security-and-regression-hardening]: Keep VER-02 local proof in adapter-web SQLite repositories so developers can run ownership leakage checks without Docker.
 - [Phase 21-verification-security-and-regression-hardening]: Rename the JDBC provider metadata regression test to JdbcRunProviderModelMetadataPersistenceTest so the local RunProviderModelMetadataPersistenceTest selector does not collide with Docker/Testcontainers infrastructure tests.
+- [Phase 21-verification-security-and-regression-hardening]: Use one named adapter-web Java gate as the VER-01 release entry point, reusing existing Console/provider/streaming seams instead of adding network/provider dependencies.
+- [Phase 21-verification-security-and-regression-hardening]: Keep configured-provider VER-01 deterministic by asserting safe run request metadata snapshots from fake provider/model config rather than real provider credentials.
 
 ### Pending Todos
 
@@ -266,8 +269,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-05T06:52:15.907Z
-Stopped at: Completed 21-verification-security-and-regression-hardening-02-PLAN.md
+Last session: 2026-07-05T06:56:18.821Z
+Stopped at: Completed 21-verification-security-and-regression-hardening-01-PLAN.md
 Resume file: None
 
 ---
