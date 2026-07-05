@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Console 对话产品化
 status: executing
-stopped_at: Completed 21-verification-security-and-regression-hardening-01-PLAN.md
-last_updated: "2026-07-05T06:56:58.199Z"
+stopped_at: Completed 21-verification-security-and-regression-hardening-04-PLAN.md
+last_updated: "2026-07-05T07:05:43.153Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: `.planning/PROJECT.md` (updated 2026-06-28)
 ## Current Position
 
 Phase: 21 (verification-security-and-regression-hardening) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-05
 
@@ -79,6 +79,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 21-verification-security-and-regression-hardening P03 | 269s | 3 tasks | 6 files |
 | Phase 21-verification-security-and-regression-hardening P02 | 424 | 2 tasks | 3 files |
 | Phase 21-verification-security-and-regression-hardening P01 | 624 | 2 tasks | 2 files |
+| Phase 21-verification-security-and-regression-hardening P04 | 233 | 2 tasks | 2 files |
 
 ### v1.2 Roadmap
 
@@ -256,6 +257,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 21-verification-security-and-regression-hardening]: Rename the JDBC provider metadata regression test to JdbcRunProviderModelMetadataPersistenceTest so the local RunProviderModelMetadataPersistenceTest selector does not collide with Docker/Testcontainers infrastructure tests.
 - [Phase 21-verification-security-and-regression-hardening]: Use one named adapter-web Java gate as the VER-01 release entry point, reusing existing Console/provider/streaming seams instead of adding network/provider dependencies.
 - [Phase 21-verification-security-and-regression-hardening]: Keep configured-provider VER-01 deterministic by asserting safe run request metadata snapshots from fake provider/model config rather than real provider credentials.
+- [Phase 21-verification-security-and-regression-hardening]: VER-04 uses one consolidated Phase 21 Playwright spec to cover the Kimi-style Console product path across restore, continuation, streaming, cancellation, and failure paths.
+- [Phase 21-verification-security-and-regression-hardening]: Keep the local VER-04 gate as Playwright --list/no-key while documenting the live Chromium command as the release gate that requires a running Vaadin server.
 
 ### Pending Todos
 
@@ -269,8 +272,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-05T06:56:18.821Z
-Stopped at: Completed 21-verification-security-and-regression-hardening-01-PLAN.md
+Last session: 2026-07-05T07:05:43.148Z
+Stopped at: Completed 21-verification-security-and-regression-hardening-04-PLAN.md
 Resume file: None
 
 ---
