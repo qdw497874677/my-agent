@@ -24,6 +24,8 @@ This gate must run without provider keys, Docker, or external network. It uses d
 
 The configured-provider path seeds a fake ready provider/model selection and asserts the run request carries safe snapshot metadata such as `selectedModelRef`, `resolvedProviderId`, `resolvedModelId`, `fallbackMode`, and `readinessState`. It must not require real provider credentials.
 
+Release owners should treat this command as the focused VER-01 go/no-go gate before running broader ownership, architecture, browser, and slow-stream Phase 21 checks.
+
 ## VER-03 Architecture Gates
 
 Run the complete architecture boundary gate with Java 21:
