@@ -75,6 +75,8 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 mvn -pl pi-agent-adapter-web -am -D
 
 This gate must fail if assistant text is buffered and only replayed after completion, because the before-terminal checkpoint requires visible partial text before the terminal event is drained.
 
+Release owners should keep this gate paired with VER-04 browser coverage so component-level incremental semantics and live Console product-path streaming stay aligned.
+
 ## VER-04 Browser Product Path Gate
 
 Run the local syntax/list gate for the consolidated Phase 21 Console browser product path spec:
