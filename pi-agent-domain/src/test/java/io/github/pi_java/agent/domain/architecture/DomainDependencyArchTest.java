@@ -23,12 +23,14 @@ class DomainDependencyArchTest {
                         "io.modelcontextprotocol..",
                         "org.springframework.ai..",
                         "com.fasterxml.jackson.annotation..",
+                        "org.sqlite..",
                         "java.sql..",
                         "javax.sql..",
                         "dev.langchain4j..",
                         "com.openai..",
                         "software.amazon.awssdk..",
                         "io.github.pi_java.agent.app..",
+                        "io.github.pi_java.agent.infrastructure.model.openai..",
                         "io.github.pi_java.agent.infrastructure..",
                         "io.github.pi_java.agent.adapter.."
                 )

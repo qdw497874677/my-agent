@@ -27,6 +27,27 @@ class AppDependencyArchTest {
                 .check(applicationClasses);
     }
 
+    @Test
+    void app_production_classes_must_not_depend_on_runtime_implementations_or_ui_frameworks() {
+        JavaClasses applicationClasses = new ClassFileImporter()
+                .importPackages("io.github.pi_java.agent");
+
+        noClasses().that().resideInAPackage("io.github.pi_java.agent.app..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "org.sqlite..",
+                        "java.sql..",
+                        "com.vaadin..",
+                        "org.springframework.ai..",
+                        "com.openai..",
+                        "dev.langchain4j..",
+                        "software.amazon.awssdk..",
+                        "io.github.pi_java.agent.infrastructure.model.openai..",
+                        "io.github.pi_java.agent.infrastructure..",
+                        "io.github.pi_java.agent.adapter.."
+                )
+                .check(applicationClasses);
+    }
+
     // Phase 16: explicitly lock the conversation read-model boundary so the new
     // ConversationQueryService / DefaultConversationQueryService / assembler,
     // the ConversationRunView orchestration type, and the ownership-aware
