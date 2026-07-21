@@ -20,7 +20,8 @@ const routes: Phase15OrientationRoute[] = [
     routeName: 'console',
     navItem: 'console',
     primaryContent: [
-      { name: 'three-column workbench', selector: '[data-layout="three-column-workbench"]' },
+      { name: 'chat home', selector: '[data-layout="chat-home"]' },
+      { name: 'provider/model configuration', selector: '[data-role="model-selector"], [data-role="provider-status"]' },
       { name: 'chat stream column', selector: '[data-column="chat-event-stream"]' },
     ],
     primaryActions: [

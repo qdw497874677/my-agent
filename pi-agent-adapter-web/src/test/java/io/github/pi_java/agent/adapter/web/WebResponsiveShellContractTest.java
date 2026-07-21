@@ -32,7 +32,7 @@ class WebResponsiveShellContractTest {
     void routeRegistryContainsConsoleAndAdminNavigation() {
         List<PiRouteNavItem> items = PiRouteNavRegistry.items();
 
-        assertThat(items).hasSize(8);
+        assertThat(items).hasSize(9);
         assertThat(items).extracting(PiRouteNavItem::route).containsExactly(
                 "console",
                 "admin/governance",
@@ -41,11 +41,12 @@ class WebResponsiveShellContractTest {
                 "admin/governance/operations",
                 "admin/governance/policy-decisions",
                 "admin/governance/audits",
-                "admin/governance/approvals");
+                "admin/governance/approvals",
+                "admin/governance/providers");
         assertThat(PiRouteNavRegistry.topLevelItems()).extracting(PiRouteNavItem::navLabel)
                 .containsExactly("Console", "Admin");
         assertThat(PiRouteNavRegistry.adminItems()).extracting(PiRouteNavItem::navLabel)
-                .containsExactly("Overview", "Registry", "Operations", "Policy Decisions", "Audits", "Approvals");
+                .containsExactly("Overview", "Registry", "Operations", "Policy Decisions", "Audits", "Approvals", "Providers");
 
         PiRouteNavItem approvals = PiRouteNavRegistry.findByRoute("/admin/governance/approvals").orElseThrow();
         assertThat(approvals.title()).isEqualTo("Pi Admin Approval Queue");
@@ -62,7 +63,10 @@ class WebResponsiveShellContractTest {
         assertThat(hasAttribute(shell, "data-shell-drawer-trigger")).isTrue();
         assertThat(hasAttribute(shell, "data-shell-drawer-close")).isTrue();
         assertThat(hasAttribute(shell, "data-nav")).isTrue();
-        assertThat(countAttribute(shell, "data-nav-item")).isEqualTo(8);
+        assertThat(PiRouteNavRegistry.items()).hasSize(9);
+        assertThat(attributeValues(shell, "data-nav-item"))
+                .hasSize(2)
+                .containsExactly("console", "admin/governance/providers");
         assertThat(hasAttribute(shell, "data-page-title")).isTrue();
 
         Div routedContent = new Div();
@@ -138,7 +142,68 @@ class WebResponsiveShellContractTest {
         assertThat(css).contains("data-shell-drawer-close");
         assertThat(css).contains("data-nav-item");
         assertThat(hasAttribute(shell, "data-primary-action")).isTrue();
-        assertThat(countAttribute(shell, "data-nav-item")).isEqualTo(8);
+        assertThat(PiRouteNavRegistry.items()).hasSize(9);
+        assertThat(attributeValues(shell, "data-nav-item"))
+                .hasSize(2)
+                .containsExactly("console", "admin/governance/providers");
+    }
+
+    @Test
+    void consoleControlAndStatusChipThemeVariablesAreScopedToConsoleHome() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+
+        assertThat(css).contains(".pi-console-home vaadin-button,\n.pi-console-home button {");
+        assertThat(css).contains(".pi-console-home vaadin-combo-box,\n.pi-console-home vaadin-text-area {");
+        assertThat(css).contains(".pi-console-home [data-status-chip],\n.pi-console-home .pi-status-chip,\n.pi-console-home .pi-risk-chip {");
+        assertThat(css).contains(".pi-console-home [data-status-chip],\n.pi-console-home [data-role=\"fallback-label\"],\n.pi-console-home [data-card-label] {");
+        assertThat(css).doesNotContain("vaadin-button,\nbutton {\n  --vaadin-button-background");
+        assertThat(css).doesNotContain("vaadin-combo-box,\nvaadin-text-area {\n  --vaadin-input-field-background");
+    }
+
+    @Test
+    void consoleViewportContainmentKeepsOnlyTheEventFeedScrollable() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+
+        assertThat(css)
+                .as("Console must contain its route inside the shared shell without changing Admin page scrolling")
+                .contains(".pi-shell:has(.pi-console-home)")
+                .contains("grid-template-rows: auto minmax(0, 1fr)")
+                .contains("height: 100dvh")
+                .contains("overflow: hidden")
+                .contains(".pi-console-workbench.pi-console-home")
+                .contains("grid-template-rows: auto auto auto minmax(0, 1fr)")
+                .contains(".pi-console-workbench.pi-console-home .pi-console-panel-chat")
+                .contains("height: 100%")
+                .contains(".pi-console-chat")
+                .contains("grid-template-rows: minmax(0, 1fr) auto")
+                .contains(".pi-console-event-feed")
+                .contains("overflow-y: auto")
+                .contains("line-height: 1.06");
+        assertThat(css)
+                .as("the prior fixed chat height must not compete with the Console viewport grid")
+                .doesNotContain("height: clamp(26rem, 52dvh, 32rem)")
+                .doesNotContain("min-height: 26rem");
+    }
+
+    @Test
+    void ampShellVisualsAreScopedToTheConsoleRoute() throws IOException {
+        String css = Files.readString(THEME_STYLES);
+
+        assertThat(css)
+                .contains(".pi-shell:has(.pi-console-home) .pi-shell-header")
+                .contains(".pi-shell:has(.pi-console-home) .pi-shell-drawer")
+                .contains(".pi-shell:has(.pi-console-home) .pi-shell-nav-item")
+                .contains(".pi-shell:has(.pi-console-home) .pi-page-title")
+                .contains("body:has(.pi-console-home)")
+                .contains("background: var(--pi-mobile-shell-muted);")
+                .contains("border-bottom: 1px solid var(--pi-mobile-shell-border);")
+                .contains("background: var(--pi-mobile-shell-surface);")
+                .contains("border-radius: 0.75rem;\n  color: #172033;")
+                .contains("font-size: clamp(1.1rem, 2vw, 1.5rem);");
+        assertThat(css)
+                .doesNotContain("body {\n  overflow-x: hidden;\n  max-width: 100vw;\n  background:\n    radial-gradient")
+                .doesNotContain(".pi-shell {\n  display: grid;\n  grid-template-rows: auto 1fr;\n  min-height: 100vh;\n  width: 100%;\n  max-width: 100vw;\n  background: transparent;")
+                .doesNotContain(".pi-shell-header {\n  position: sticky;\n  top: 0;\n  z-index: 10;\n  display: grid;\n  grid-template-columns: auto minmax(0, 1fr) auto auto;\n  align-items: center;\n  gap: var(--pi-mobile-space-sm);\n  padding: calc(var(--pi-mobile-safe-area-top) + var(--pi-mobile-space-sm)) var(--pi-mobile-space-md) var(--pi-mobile-space-sm);\n  border-bottom: 1px solid var(--pi-amp-line-soft);");
     }
 
     private static void assertRoute(Class<? extends Component> routeClass, String route, String routeName) {
@@ -154,8 +219,16 @@ class WebResponsiveShellContractTest {
                 || component.getChildren().anyMatch(child -> hasAttribute(child, attribute));
     }
 
-    private static long countAttribute(Component component, String attribute) {
-        long self = component.getElement().hasAttribute(attribute) ? 1 : 0;
-        return self + component.getChildren().mapToLong(child -> countAttribute(child, attribute)).sum();
+    private static List<String> attributeValues(Component component, String attribute) {
+        List<String> values = new java.util.ArrayList<>();
+        collectAttributeValues(component, attribute, values);
+        return values;
+    }
+
+    private static void collectAttributeValues(Component component, String attribute, List<String> values) {
+        if (component.getElement().hasAttribute(attribute)) {
+            values.add(component.getElement().getAttribute(attribute));
+        }
+        component.getChildren().forEach(child -> collectAttributeValues(child, attribute, values));
     }
 }

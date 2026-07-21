@@ -15,6 +15,7 @@ import io.github.pi_java.agent.domain.session.SessionEntryPayload;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -60,7 +61,10 @@ public final class OpenAiCompatibleStreamingModelClient implements StreamingMode
         }
 
         boolean emitted = false;
-        for (OpenAiStreamEvent event : events) {
+        Iterator<OpenAiStreamEvent> iterator = events.iterator();
+        try {
+            while (iterator.hasNext()) {
+                OpenAiStreamEvent event = iterator.next();
             if (event instanceof OpenAiStreamEvent.OnSubscribe onSubscribe) {
                 onSubscribe.action().run();
                 continue;
@@ -92,6 +96,19 @@ public final class OpenAiCompatibleStreamingModelClient implements StreamingMode
                 sink.accept(error(sequence, started, modelRef,
                         OpenAiProviderErrorMapper.fromThrowable(errorEvent.throwable(), secret.rawValue(), !emitted)));
                 return;
+            }
+        }
+        } finally {
+            closeIfPossible(iterator);
+        }
+    }
+
+    private static void closeIfPossible(Iterator<OpenAiStreamEvent> iterator) {
+        if (iterator instanceof AutoCloseable closeable) {
+            try {
+                closeable.close();
+            } catch (Exception ignored) {
+                // Stream cleanup must not mask the terminal model event already emitted to the caller.
             }
         }
     }

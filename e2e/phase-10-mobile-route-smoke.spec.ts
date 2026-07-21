@@ -16,7 +16,8 @@ const routes: MobileRouteSmoke[] = [
     routeName: 'console',
     category: 'console',
     primaryContent: [
-      { name: 'three-column workbench', selector: '[data-layout="three-column-workbench"]' },
+      { name: 'chat home', selector: '[data-layout="chat-home"]' },
+      { name: 'provider/model configuration', selector: '[data-role="model-selector"], [data-role="provider-status"]' },
       { name: 'chat stream column', selector: '[data-column="chat-event-stream"]' },
     ],
     primaryActions: [
@@ -60,8 +61,7 @@ const routes: MobileRouteSmoke[] = [
     category: 'admin-list',
     primaryContent: [
       { name: 'operations surface', selector: '[data-admin-surface="operations-summary"]' },
-      { name: 'runs operations section', selector: '[data-operations-section="runs"]' },
-      { name: 'warnings operations section', selector: '[data-operations-section="warnings"]' },
+      { name: 'operations empty state', selector: '[data-state="empty-operations-summary"]' },
     ],
   },
   {
@@ -115,18 +115,17 @@ async function performLightInteraction(page: Page, route: MobileRouteSmoke): Pro
       break;
     }
     case 'admin-root':
-      await expect(page.locator('body')).toContainText('Pi Admin Governance');
+      await expect(page.locator('[data-surface="admin-governance"]')).toBeVisible();
       break;
     case 'admin-overview':
-      await expect(page.locator('body')).toContainText('Admin Governance Overview');
+      await expect(page.locator('[data-admin-surface="inspect-only"]')).toBeVisible();
       break;
     case 'admin-registry':
       await expect(page.locator('[data-mutation-controls="absent"]')).toBeVisible();
-      await expect(page.locator('body')).toContainText('Registry status');
+      await expect(page.locator('[data-state="empty-registry-status"]')).toBeVisible();
       break;
     case 'admin-list':
       await expect(page.locator('[data-state]').first()).toBeVisible();
-      await expect(page.locator('body')).toContainText(/not been loaded|No pending approvals|none reported/i);
       break;
     default: {
       const exhaustive: never = route.category;

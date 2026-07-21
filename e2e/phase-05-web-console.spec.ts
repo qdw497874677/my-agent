@@ -15,10 +15,10 @@ test.describe('Phase 5 Agent Web Console and Runtime Cockpit', () => {
     await attachKeyScreenshot(page, 'console-shell');
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-layout="three-column-workbench"]').first()).toBeVisible();
-    await expect(page.locator('[data-column="sessions"]').first()).toBeVisible();
+    await expect(page.locator('[data-layout="chat-home"]').first()).toBeVisible();
+    await expect(page.locator('[data-role="model-selector"], [data-role="provider-status"]').first()).toBeVisible();
     await expect(page.locator('[data-column="chat-event-stream"]').first()).toBeVisible();
-    await expect(page.locator('[data-column="run-context"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="show-console-panel"]')).toHaveCount(0);
     await expect(page.locator('[data-role="chat-input"]').first()).toBeVisible();
     await expect(page.locator('[data-action="send-chat"]').first()).toBeVisible();
 

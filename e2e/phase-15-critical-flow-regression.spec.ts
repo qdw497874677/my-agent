@@ -146,10 +146,10 @@ test.describe('Phase 15 Admin critical inspection release gate', () => {
 test.describe('Phase 15 desktop Console/Admin regression release summary', () => {
   test('desktop Console keeps primary workbench content and actions without overflow', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-layout="three-column-workbench"]').first()).toBeVisible();
-    await expect(page.locator('[data-column="sessions"]').first()).toBeVisible();
+    await expect(page.locator('[data-layout="chat-home"]').first()).toBeVisible();
+    await expect(page.locator('[data-role="model-selector"], [data-role="provider-status"]').first()).toBeVisible();
     await expect(page.locator('[data-column="chat-event-stream"]').first()).toBeVisible();
-    await expect(page.locator('[data-column="run-context"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="show-console-panel"]')).toHaveCount(0);
     await expect(page.locator('[data-role="chat-input"]').first()).toBeVisible();
     await expect(page.locator('[data-action="send-chat"]').first()).toBeVisible();
     await expectNoPageHorizontalOverflow(page);
@@ -167,11 +167,6 @@ test.describe('Phase 15 desktop Console/Admin regression release summary', () =>
   }
 });
 
-async function openConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
-  await page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first().click();
-  await expect(page.locator(`[data-console-panel="${target}"][data-console-panel-active="true"]`).first()).toBeVisible();
-}
-
 async function countRunEvents(feed: Locator): Promise<number> {
   return feed.locator('[data-event-category], [data-event-type], [data-run-event]').count();
 }
@@ -180,7 +175,8 @@ async function expectRuntimeInspectionSurface(page: Page, feed: Locator): Promis
   await expect(
     feed.locator('[data-event-category="tool"], [data-event-category="approval"], [data-event-category="model"], [data-event-category="policy"]').first()
       .or(page.locator('[data-panel="approvals"]').first())
-      .or(page.locator('[data-console-panel="run-context"]').first()),
+      .or(page.locator('[data-action="cancel-run-primary"]').first())
+      .or(page.locator('[data-role="event-feed"]').first()),
     'Phase 15 critical flow should expose runtime/tool/approval inspection surfaces',
   ).toBeVisible();
 }

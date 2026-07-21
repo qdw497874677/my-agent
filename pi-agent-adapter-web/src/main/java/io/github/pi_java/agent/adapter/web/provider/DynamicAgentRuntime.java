@@ -81,7 +81,6 @@ public class DynamicAgentRuntime implements AgentRuntime {
         String providerId = firstText(runModel.resolvedProviderId(), providerFrom(context.agentDefinition().modelRef()), config.providerId());
         String modelId = firstText(runModel.resolvedModelId(), modelFrom(context.agentDefinition().modelRef()), config.modelId());
         String modelRef = firstText(runModel.selectedModelRef(), runModel.requestedModelRef(), providerId + ":" + modelId);
-        sink.publishText("收到，我正在调用 " + modelId + " 处理。\n\n", providerId, modelId, modelRef);
         StreamingModelClient client = resolveClient(config);
         AgentDefinition definition = context.agentDefinition();
         ProviderModelRef.parse(definition.modelRef());

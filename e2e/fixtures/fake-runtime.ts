@@ -1,8 +1,8 @@
 import { APIRequestContext, expect, Page, test } from '@playwright/test';
 
 export const devHeaders = {
-  'X-Pi-Dev-Tenant': 'e2e-tenant',
-  'X-Pi-Dev-User': 'e2e-user',
+  'X-Pi-Dev-Tenant': 'console',
+  'X-Pi-Dev-User': 'vaadin-console',
 };
 
 export function mobileToolApprovalHint(): string {
@@ -141,7 +141,7 @@ export async function createRestoredConversation(request: APIRequestContext): Pr
   return {
     ...run,
     prompt,
-    assistantPattern: /model reply|completed|fallback|assistant|response/i,
+    assistantPattern: /Streaming fake answer|Terminal fake result/i,
   };
 }
 

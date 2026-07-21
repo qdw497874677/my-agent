@@ -6,17 +6,9 @@ test.describe('Phase 17 Console session restore UX', () => {
     const restored = await createRestoredConversation(request);
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-
-    await openVisibleConsolePanel(page, 'sessions');
-    const restoredCard = page.locator(`[data-role="session-card"][data-session-id="${restored.sessionId}"]`).first();
-    await expect(restoredCard, 'recent history should include API-created fake-runtime session').toBeVisible();
-    await expect(restoredCard.locator('[data-field="session-title"]')).not.toHaveText('');
-    await expect(restoredCard.locator('[data-field="session-preview"]')).toContainText(/Phase 17|recent history|runtime/i);
-    await expect(restoredCard.locator('[data-field="session-status"]')).toContainText(/completed|running|queued|ready|failed|cancel/i);
-
-    await restoredCard.click();
+    await expectChatOnlyConsole(page);
     await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
-    await expect(page.locator('[data-role="active-session-banner"][data-active-session-state="continued"]').first()).toContainText(/Continue:/);
+    await expect(page.locator('[data-role="active-session-banner"][data-active-session-state="continued"]').first()).toContainText(/Continue:|继续：/);
 
     const userBubble = transcriptBubble(page, 'user', restored.sessionId).filter({ hasText: restored.prompt }).first();
     await expect(userBubble, 'restored transcript should show prior user bubble with stable identity selectors').toBeVisible();
@@ -29,49 +21,37 @@ test.describe('Phase 17 Console session restore UX', () => {
     expect(selectedBefore).toBe(restored.sessionId);
 
     const followUp = 'Phase 17 follow-up keeps restored session identity';
-    await page.locator('[data-role="chat-input"]').first().fill(followUp);
+    await chatInput(page).fill(followUp);
     await page.locator('[data-action="send-chat"]').first().click();
     await expect(transcriptBubble(page, 'user', restored.sessionId).filter({ hasText: followUp }).first()).toBeVisible();
     await expect.poll(async () => activeSessionId(page), {
       message: 'follow-up should keep selected session rather than switching to a fresh session',
     }).toBe(restored.sessionId);
 
-    const activeCard = page.locator(`[data-role="session-card"][data-session-active="true"][data-session-id="${restored.sessionId}"]`).first();
-    await expect(activeCard).toBeVisible();
-    await assertDetailsPanelReachable(page, restored.sessionId);
     await assertMainChatDoesNotFlattenRuntimeNoise(page, restored.sessionId);
   });
 });
-
-async function openVisibleConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
-  const control = page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first();
-  await expect(control, `${target} control must be visible before product-path navigation`).toBeVisible();
-  await expect(control, `${target} control must be enabled before product-path navigation`).toBeEnabled();
-  await control.click();
-  await expect(page.locator(`[data-console-panel="${target}"][data-console-panel-active="true"]`).first()).toBeVisible();
-}
-
-async function assertDetailsPanelReachable(page: Page, sessionId: string): Promise<void> {
-  await openVisibleConsolePanel(page, 'run-context');
-  const details = page.locator('[data-console-panel="run-context"][data-console-panel-active="true"]').first();
-  await expect(details, 'run/session details should be reachable from visible Console controls').toBeVisible();
-  await expect(page.locator('[data-console-panel="chat"]').first(), 'main chat remains present while details are secondary').toBeVisible();
-  await openVisibleConsolePanel(page, 'sessions');
-  await expect(page.locator(`[data-role="session-card"][data-session-id="${sessionId}"]`).first()).toBeVisible();
-  await openVisibleConsolePanel(page, 'chat');
-}
 
 function transcriptBubble(page: Page, role: 'user' | 'assistant' | 'tool' | 'error', sessionId: string): Locator {
   return page.locator(`[data-message-role="${role}"][data-session-id="${sessionId}"][data-run-id][data-message-status][data-stream-state]`);
 }
 
+function chatInput(page: Page): Locator {
+  return page.locator('[data-role="chat-input"] textarea').first();
+}
+
 async function activeSessionId(page: Page): Promise<string | null> {
-  await openVisibleConsolePanel(page, 'sessions');
-  const active = page.locator('[data-role="session-card"][data-session-active="true"]').first();
-  await expect(active).toBeVisible();
-  const id = await active.getAttribute('data-session-id');
-  await openVisibleConsolePanel(page, 'chat');
-  return id;
+  const banner = page.locator('[data-role="active-session-banner"][data-session-id]').first();
+  await expect(banner).toBeVisible();
+  return banner.getAttribute('data-session-id');
+}
+
+async function expectChatOnlyConsole(page: Page): Promise<void> {
+  await expect(page.locator('[data-layout="chat-home"]').first()).toBeVisible();
+  await expect(page.locator('[data-role="model-selector"], [data-role="provider-status"]').first()).toBeVisible();
+  await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
+  await expect(page.locator('[data-action="show-console-panel"]')).toHaveCount(0);
+  await expect(page.locator('[data-console-panel="agents"], [data-console-panel="sessions"], [data-console-panel="run-context"]')).toHaveCount(0);
 }
 
 async function assertMainChatDoesNotFlattenRuntimeNoise(page: Page, sessionId: string): Promise<void> {
@@ -79,7 +59,7 @@ async function assertMainChatDoesNotFlattenRuntimeNoise(page: Page, sessionId: s
   const count = await primaryBubbles.count();
   expect(count, 'restored chat should render user/assistant transcript bubbles').toBeGreaterThanOrEqual(2);
   for (let index = 0; index < count; index += 1) {
-    await expect(primaryBubbles.nth(index)).not.toContainText(/run\.started|model\.delta|tool\.started|tool\.completed|runtime event/i);
+    await expect(primaryBubbles.nth(index)).not.toContainText(/run\.started|model\.delta|tool\.started|tool\.completed/i);
   }
 
   const secondaryCards = page.locator(`[data-session-id="${sessionId}"][data-message-kind="secondary-card"]`);

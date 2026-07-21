@@ -1,7 +1,8 @@
 package io.github.pi_java.agent.adapter.web.provider;
 
-import io.github.pi_java.agent.adapter.web.provider.ProviderConfig;
-
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,8 +19,24 @@ public class SqliteLocalPersistence {
     private final String jdbcUrl;
 
     public SqliteLocalPersistence(String dbPath) {
+        ensureParentDirectory(dbPath);
         this.jdbcUrl = "jdbc:sqlite:" + dbPath;
         initSchema();
+    }
+
+    private static void ensureParentDirectory(String dbPath) {
+        if (dbPath == null || dbPath.isBlank() || ":memory:".equals(dbPath.trim())) {
+            return;
+        }
+        Path parent = Path.of(dbPath).toAbsolutePath().getParent();
+        if (parent == null) {
+            return;
+        }
+        try {
+            Files.createDirectories(parent);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create SQLite parent directory: " + parent, e);
+        }
     }
 
     private Connection open() throws SQLException {

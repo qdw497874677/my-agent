@@ -5,10 +5,15 @@ import io.github.pi_java.agent.app.port.plugin.PluginGovernanceCatalog;
 import io.github.pi_java.agent.app.port.plugin.PluginMutationStatus;
 import io.github.pi_java.agent.app.port.plugin.PluginSourceStatus;
 import io.github.pi_java.agent.app.port.tool.ToolExecutionGateway;
+import io.github.pi_java.agent.adapter.web.provider.ProviderConfig;
+import io.github.pi_java.agent.adapter.web.provider.ProviderConfigStore;
 import io.github.pi_java.agent.domain.common.PlatformIds.RunId;
 import io.github.pi_java.agent.domain.common.PlatformIds.StepId;
+import io.github.pi_java.agent.domain.error.PiError;
+import io.github.pi_java.agent.domain.event.EventVisibility;
 import io.github.pi_java.agent.domain.event.EventSink;
 import io.github.pi_java.agent.domain.model.ModelFinishReason;
+import io.github.pi_java.agent.domain.model.ProviderErrorSummary;
 import io.github.pi_java.agent.domain.runtime.AgentRuntime;
 import io.github.pi_java.agent.domain.runtime.RunContext;
 import io.github.pi_java.agent.domain.runtime.RunHandle;
@@ -57,6 +62,20 @@ public class WebConsoleE2EFixtureConfiguration {
     @Primary
     AgentRuntime webConsoleE2ERuntime(EventSink eventSink, ToolExecutionGateway toolExecutionGateway) {
         return new ScriptedWebConsoleRuntime(eventSink, toolExecutionGateway);
+    }
+
+    @Bean
+    @Primary
+    ProviderConfigStore webConsoleE2EProviderConfigStore(@Value("${pi.local.db-path:target/playwright-e2e-local.db}") String dbPath) {
+        ProviderConfigStore store = new ProviderConfigStore(dbPath);
+        store.update(new ProviderConfig(
+                true,
+                "https://e2e.fake.invalid/v1",
+                "sk-fake-playwright-secret",
+                "gpt-fake-playwright",
+                "openai-compatible",
+                "/chat/completions"));
+        return store;
     }
 
     @Bean
@@ -187,6 +206,35 @@ public class WebConsoleE2EFixtureConfiguration {
                 model.text("Terminal fake result with governed tool summary.");
                 model.finish(ModelFinishReason.STOP);
                 tools.register("builtin.info", new ToolResult(call.toolCallId(), true, "redacted fake tool result", null, Instant.parse("2026-06-15T00:00:01Z")));
+                return new GeneralAgentLoop(model, toolExecutionGateway, io.github.pi_java.agent.testkit.FakePolicy.allow(), eventSink, ids,
+                        new DeterministicClock(Instant.parse("2026-06-15T00:00:00Z"))).start(context);
+            } else if (input.contains("phase 18 slow streaming lifecycle")) {
+                FakeStreamingModelClient model = new FakeStreamingModelClient();
+                model.text("Alpha ");
+                model.thenRun(token -> sleep(Duration.ofSeconds(5)));
+                model.text("Beta ");
+                model.text("Gamma");
+                model.finish(ModelFinishReason.STOP);
+                return new GeneralAgentLoop(model, toolExecutionGateway, io.github.pi_java.agent.testkit.FakePolicy.allow(), eventSink, ids,
+                        new DeterministicClock(Instant.parse("2026-06-15T00:00:00Z"))).start(context);
+            } else if (input.contains("phase 18 slow streaming failure")) {
+                FakeStreamingModelClient model = new FakeStreamingModelClient();
+                model.text("partial provider response ");
+                model.providerError(new ProviderErrorSummary(
+                        new PiError(PiError.Category.MODEL, "E2E_PROVIDER_UNAVAILABLE", PiError.Severity.ERROR,
+                                EventVisibility.USER, true, true, true),
+                        "E2E_PROVIDER_UNAVAILABLE",
+                        "provider unavailable after partial response",
+                        503,
+                        true,
+                        true,
+                        true));
+                return new GeneralAgentLoop(model, toolExecutionGateway, io.github.pi_java.agent.testkit.FakePolicy.allow(), eventSink, ids,
+                        new DeterministicClock(Instant.parse("2026-06-15T00:00:00Z"))).start(context);
+            } else if (input.contains("phase 18 slow streaming cancel")) {
+                FakeStreamingModelClient model = new FakeStreamingModelClient();
+                model.text("partial cancellable response");
+                model.thenRun(token -> sleep(Duration.ofSeconds(3)));
                 return new GeneralAgentLoop(model, toolExecutionGateway, io.github.pi_java.agent.testkit.FakePolicy.allow(), eventSink, ids,
                         new DeterministicClock(Instant.parse("2026-06-15T00:00:00Z"))).start(context);
             } else {

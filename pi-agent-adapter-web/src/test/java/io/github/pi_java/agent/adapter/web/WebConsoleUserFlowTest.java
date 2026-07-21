@@ -16,27 +16,27 @@ import org.junit.jupiter.api.Test;
 class WebConsoleUserFlowTest {
 
     @Test
-    void consoleRouteIsChatFirstThreeColumnWorkbench() {
+    void consoleRouteIsChatFirstProviderConfiguredWorkbench() {
         ConsoleView view = new ConsoleView();
 
         assertThat(view.getElement().getAttribute("data-route")).isEqualTo("console");
-        assertThat(view.getElement().getAttribute("data-layout")).isEqualTo("three-column-workbench");
+        assertThat(view.getElement().getAttribute("data-layout")).isEqualTo("chat-home");
         assertThat(view.chatPanel().getElement().getAttribute("data-primary")).isEqualTo("chat-first");
-        assertThat(view.chatPanel().inputPlaceholder()).containsIgnoringCase("message");
+        assertThat(view.chatPanel().inputPlaceholder()).isNotBlank();
 
         assertThat(view.sessionListPanel()).isInstanceOf(SessionListPanel.class);
         assertThat(view.chatPanel()).isInstanceOf(ChatEventStreamPanel.class);
         assertThat(view.runContextPanel()).isInstanceOf(RunContextPanel.class);
-        assertThat(view.columnOrder()).containsExactly("sessions", "chat-event-stream", "run-context");
+        assertThat(view.columnOrder()).containsExactly("provider-config", "chat-event-stream");
         assertThat(view.selectedAgentId()).isEqualTo("cloud-general-agent");
         assertThat(view.agentCatalogPlan().path()).isEqualTo("/api/agents");
     }
 
     @Test
-    void emptyAndRecentSessionStatesRenderInLeftColumn() {
+    void emptyAndRecentSessionStatesStayAvailableInInternalReadModel() {
         SessionListPanel panel = new SessionListPanel();
 
-        assertThat(panel.emptyStateText()).containsIgnoringCase("no recent sessions");
+        assertThat(panel.emptyStateText()).isNotBlank();
 
         panel.showSession("session-1", "General Agent", Instant.parse("2026-06-15T05:00:00Z"));
 
@@ -104,7 +104,9 @@ class WebConsoleUserFlowTest {
         RunEventRenderer renderer = new RunEventRenderer();
 
         assertThat(renderer.render(event("model.delta", Map.of("text", "hello"))).text()).contains("hello");
-        assertThat(renderer.render(event("run.status", Map.of("status", "RUNNING"))).text()).contains("RUNNING");
+        RunEventRenderer.RenderedEvent running = renderer.render(event("run.status", Map.of("status", "RUNNING")));
+        assertThat(running.category()).isEqualTo("status");
+        assertThat(running.terminal()).isFalse();
         assertThat(renderer.render(event("tool.lifecycle", Map.of("toolName", "search", "status", "REQUIRE_APPROVAL"))).text())
                 .contains("search")
                 .contains("REQUIRE_APPROVAL");

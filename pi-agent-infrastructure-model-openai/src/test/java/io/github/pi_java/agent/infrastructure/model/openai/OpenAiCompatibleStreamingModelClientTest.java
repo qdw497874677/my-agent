@@ -24,16 +24,25 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OpenAiCompatibleStreamingModelClientTest {
 
@@ -129,6 +138,53 @@ class OpenAiCompatibleStreamingModelClientTest {
         assertThat(chunks.get(3)).isInstanceOf(ModelStreamChunk.Usage.class);
         assertThat(chunks.get(4)).isInstanceOf(ModelStreamChunk.Finished.class);
         assertThat(((ModelStreamChunk.Finished) chunks.get(4)).finishReason()).isEqualTo(ModelFinishReason.TOOL_CALLS);
+    }
+
+    @Test
+    void queueBackedSpringAiBridgeYieldsFirstChunkBeforeFluxCompletes() throws Exception {
+        Sinks.Many<OpenAiStreamEvent> sink = Sinks.many().unicast().onBackpressureBuffer();
+        OpenAiSpringAiModelFactory.QueueBackedOpenAiStreamIterator iterator = new OpenAiSpringAiModelFactory.QueueBackedOpenAiStreamIterator(
+                sink.asFlux(), new CancellationToken());
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<OpenAiStreamEvent> first = executor.submit(iterator::next);
+
+            sink.tryEmitNext(OpenAiStreamEvent.text("Hel"));
+
+            assertThat(first.get(1, TimeUnit.SECONDS)).isEqualTo(OpenAiStreamEvent.text("Hel"));
+        } finally {
+            sink.tryEmitComplete();
+            iterator.close();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void queueBackedSpringAiBridgeCloseCancelsUpstreamSubscription() {
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+        Flux<OpenAiStreamEvent> flux = Flux.create(sink -> {
+            sink.onCancel(() -> cancelled.set(true));
+            sink.next(OpenAiStreamEvent.text("A"));
+        });
+        OpenAiSpringAiModelFactory.QueueBackedOpenAiStreamIterator iterator = new OpenAiSpringAiModelFactory.QueueBackedOpenAiStreamIterator(
+                flux, new CancellationToken());
+
+        assertThat(iterator.next()).isEqualTo(OpenAiStreamEvent.text("A"));
+        iterator.close();
+
+        assertThat(cancelled).isTrue();
+    }
+
+    @Test
+    void clientClosesStreamIteratorWhenSinkThrows() {
+        AtomicBoolean closed = new AtomicBoolean(false);
+        OpenAiCompatibleStreamingModelClient client = new OpenAiCompatibleStreamingModelClient(
+                providerProperties(), secretResolver("sk-secret-value"), config -> (messages, cancellationToken) -> () -> new AutoCloseableIterator(closed));
+
+        assertThatThrownBy(() -> client.stream(request(), new CancellationToken(), chunk -> {
+            throw new IllegalStateException("sink failed");
+        })).isInstanceOf(IllegalStateException.class);
+        assertThat(closed).isTrue();
     }
 
     @Test
@@ -230,6 +286,31 @@ class OpenAiCompatibleStreamingModelClientTest {
 
         private List<OpenAiChatMessage> capturedMessages() {
             return capturedMessages;
+        }
+    }
+
+    private static final class AutoCloseableIterator implements Iterator<OpenAiStreamEvent>, AutoCloseable {
+        private final AtomicBoolean closed;
+        private boolean consumed;
+
+        private AutoCloseableIterator(AtomicBoolean closed) {
+            this.closed = closed;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !consumed;
+        }
+
+        @Override
+        public OpenAiStreamEvent next() {
+            consumed = true;
+            return OpenAiStreamEvent.text("boom");
+        }
+
+        @Override
+        public void close() {
+            closed.set(true);
         }
     }
 }

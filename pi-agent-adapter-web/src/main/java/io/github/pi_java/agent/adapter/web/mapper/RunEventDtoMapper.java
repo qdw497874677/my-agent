@@ -80,7 +80,10 @@ public final class RunEventDtoMapper {
         Map<String, Object> values = new LinkedHashMap<>();
         for (RecordComponent component : payload.getClass().getRecordComponents()) {
             try {
-                values.put(component.getName(), component.getAccessor().invoke(payload));
+                Object value = component.getAccessor().invoke(payload);
+                if (value != null) {
+                    values.put(component.getName(), safeValue(value));
+                }
             } catch (ReflectiveOperationException ex) {
                 throw new IllegalStateException("Failed to map event payload component " + component.getName(), ex);
             }
@@ -132,7 +135,10 @@ public final class RunEventDtoMapper {
         Map<String, Object> safe = new LinkedHashMap<>();
         values.forEach((key, value) -> {
             if (!isSensitiveKey(key)) {
-                safe.put(key, safeValue(value));
+                Object safeValue = safeValue(value);
+                if (safeValue != null) {
+                    safe.put(key, safeValue);
+                }
             }
         });
         return Map.copyOf(safe);
@@ -156,7 +162,10 @@ public final class RunEventDtoMapper {
             map.forEach((nestedKey, nestedValue) -> {
                 String key = String.valueOf(nestedKey);
                 if (!isSensitiveKey(key)) {
-                    nested.put(key, safeValue(nestedValue));
+                    Object safeNestedValue = safeValue(nestedValue);
+                    if (safeNestedValue != null) {
+                        nested.put(key, safeNestedValue);
+                    }
                 }
             });
             return Map.copyOf(nested);

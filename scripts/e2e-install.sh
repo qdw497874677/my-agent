@@ -9,4 +9,4 @@ for arg in "$@"; do
   esac
 done
 
-node node_modules/@playwright/test/cli.js install chromium firefox webkit "${ARGS[@]}"
+node node_modules/@playwright/test/cli.js install chromium firefox webkit ${ARGS+"${ARGS[@]}"}

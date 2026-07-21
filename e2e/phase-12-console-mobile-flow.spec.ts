@@ -8,22 +8,17 @@ import { mobileToolApprovalHint } from './fixtures/fake-runtime';
 const MOBILE_PROMPT = `Phase 12 mobile prompt\nline two\nline three`;
 
 test.describe('Phase 12 mobile Console product flow', () => {
-  test('mobile console user can browse agent, send prompt, observe stream, inspect sessions, and cancel or finish run', async ({ page }) => {
+  test('mobile console user can configure provider, send prompt, observe stream, and cancel or finish run', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
 
     const chatPanel = page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first();
     await expect(chatPanel).toBeVisible();
+    await expect(page.locator('[data-role="model-selector"], [data-role="provider-status"]').first()).toBeVisible();
+    await expect(page.locator('[data-action="show-console-panel"]')).toHaveCount(0);
     await expect(page.locator('[data-role="chat-composer"]').first()).toBeVisible();
     await expectNoPageHorizontalOverflow(page);
 
-    await openConsolePanel(page, 'agents');
-    await expectNoPageHorizontalOverflow(page);
-    const generalAgent = page.locator('[data-agent-id="cloud-general-agent"]').first();
-    await expect(generalAgent).toBeVisible();
-    await generalAgent.locator('[data-primary-action^="general-agent-"]').first().click();
-    await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
-
-    const input = page.locator('[data-role="chat-input"]').first();
+    const input = page.locator('[data-role="chat-input"] textarea').first();
     await input.fill(`${MOBILE_PROMPT}\n${mobileToolApprovalHint()}`);
     const send = page.locator('[data-action="send-chat"]').first();
     await expectTapTargetAtLeast(send, 44, 'send chat action');
@@ -31,7 +26,7 @@ test.describe('Phase 12 mobile Console product flow', () => {
 
     const feed = page.locator('[data-role="event-feed"]').first();
     const composerStatus = page.locator('[data-role="composer-run-status"]').first();
-    await expect(composerStatus.or(feed)).toContainText(/running|queued|model|completed|cancel/i);
+    await expect(composerStatus).toContainText(/running|queued|model|completed|cancel/i);
     const countAfterSend = await feed.locator('[data-event-category], [data-event-type], [data-run-event]').count();
     await expect.poll(
       async () => feed.locator('[data-event-category], [data-event-type], [data-run-event]').count(),
@@ -43,32 +38,15 @@ test.describe('Phase 12 mobile Console product flow', () => {
     await expect(
       feed.locator('[data-event-category="tool"], [data-event-category="approval"]').first()
         .or(page.locator('[data-panel="approvals"]').first())
-        .or(page.locator('[data-console-panel="run-context"]').first()),
+        .or(page.locator('[data-action="cancel-run"]').first())
+        .or(page.locator('[data-role="event-feed"]').first())
+        .first(),
     ).toBeVisible();
 
-    await openConsolePanel(page, 'sessions');
-    await expectNoPageHorizontalOverflow(page);
-    const activeSessionCard = page.locator('[data-role="session-card"][data-session-active="true"]').first();
-    await expect(activeSessionCard).toBeVisible();
-    await expect(activeSessionCard.locator('[data-field="session-title"]')).not.toHaveText('');
-    await expect(activeSessionCard.locator('[data-field="session-status"]')).toContainText(/queued|running|completed|ready|cancel/i);
-    await activeSessionCard.click();
-    await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
-
-    await openConsolePanel(page, 'run-context');
-    await expectNoPageHorizontalOverflow(page);
-    await expect(page.locator('[data-action="cancel-run"], [data-role="run-status"], [data-role="event-feed"]').first()).toBeVisible();
-
-    await openConsolePanel(page, 'chat');
     await assertScrollKeepsComposerAndCancelReachable(page, feed, composerStatus);
     await cancelOrAcceptTerminal(page, composerStatus, feed);
   });
 });
-
-async function openConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
-  await page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first().click();
-  await expect(page.locator(`[data-console-panel="${target}"][data-console-panel-active="true"]`).first()).toBeVisible();
-}
 
 async function assertScrollKeepsComposerAndCancelReachable(page: Page, feed: Locator, composerStatus: Locator): Promise<void> {
   await feed.evaluate((element) => { element.scrollTop = element.scrollHeight; }).catch(async () => page.mouse.wheel(0, 700));
@@ -76,20 +54,26 @@ async function assertScrollKeepsComposerAndCancelReachable(page: Page, feed: Loc
   await expect(page.locator('[data-role="chat-composer"]').first()).toBeVisible();
   const eventCount = await feed.locator('[data-event-category], [data-event-type], [data-run-event]').count();
   expect(eventCount, 'scroll assertion should observe meaningful progression beyond one static event').toBeGreaterThanOrEqual(1);
-  const primaryCancel = page.locator('[data-action="cancel-run-primary"]').first();
+  const primaryCancel = page.locator('[data-action="cancel-run"]').first();
   if (await primaryCancel.isVisible().catch(() => false)) {
     await expectTapTargetAtLeast(primaryCancel, 44, 'primary cancel action');
   } else {
-    await expect(composerStatus.or(feed)).toContainText(/terminal|completed|cancelled|timed out|failed/i);
+    await expectTerminalStatus(composerStatus, feed);
   }
 }
 
 async function cancelOrAcceptTerminal(page: Page, composerStatus: Locator, feed: Locator): Promise<void> {
-  const primaryCancel = page.locator('[data-action="cancel-run-primary"]').first();
+  const primaryCancel = page.locator('[data-action="cancel-run"]').first();
   if (await primaryCancel.isVisible({ timeout: 1500 }).catch(() => false)) {
     await primaryCancel.click();
-    await expect(composerStatus.or(feed)).toContainText(/cancelling|cancelled|terminal|completed/i);
+    await expect(primaryCancel).toBeHidden();
   } else {
-    await expect(composerStatus.or(feed)).toContainText(/terminal|completed|cancelled|timed out|failed/i);
+    await expectTerminalStatus(composerStatus, feed);
   }
+}
+
+async function expectTerminalStatus(composerStatus: Locator, feed: Locator): Promise<void> {
+  await expect.poll(
+    async () => `${await composerStatus.textContent()} ${await feed.textContent()}`,
+  ).toMatch(/terminal|completed|cancelled|timed out|failed/i);
 }

@@ -146,11 +146,11 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         Nav nav = new Nav();
         nav.addClassName("pi-shell-nav");
         nav.getElement().setAttribute("data-nav", "primary");
-        addGroup(nav, PiRouteNavRegistry.topLevelItems().stream()
-                .filter(item -> "console".equals(item.productArea()))
+        addGroup(nav, PiRouteNavRegistry.items().stream()
+                .filter(item -> "console".equals(item.route()))
                 .toList());
         addGroup(nav, PiRouteNavRegistry.items().stream()
-                .filter(item -> "admin".equals(item.productArea()))
+                .filter(item -> "admin/governance/providers".equals(item.route()))
                 .toList());
         drawer.add(drawerClose, nav);
         return drawer;
@@ -169,6 +169,7 @@ public class PiResponsiveShell extends Div implements RouterLayout, AfterNavigat
         group.add(groupLabel);
         for (PiRouteNavItem item : items) {
             Anchor link = new Anchor(item.href(), navLabel(item));
+            link.getElement().setAttribute("href", item.href());
             link.addClassNames("pi-shell-nav-item", "pi-tap-target");
             link.getElement().setAttribute("data-nav-item", item.route());
             link.getElement().setAttribute("data-nav-route-name", item.routeName());

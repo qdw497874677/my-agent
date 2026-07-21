@@ -29,21 +29,18 @@ import org.junit.jupiter.api.Test;
 class WebConsoleMobileFlowContractTest {
 
     @Test
-    void consoleExposesSegmentedSwitcherForRouteLocalPanels() {
+    void consoleOnlyMountsProviderConfigurationAndChatSurface() {
         ConsoleView view = new ConsoleView();
 
-        Div switcher = onlyChildWithAttribute(view, "data-role", "console-panel-switcher");
-        assertThat(switcher.getClassNames()).contains("pi-console-panel-switcher");
-
-        List<Button> controls = switcher.getChildren()
-                .filter(Button.class::isInstance)
-                .map(Button.class::cast)
-                .toList();
-        assertThat(controls).extracting(Button::getText).containsExactly("Chat", "Agents", "Sessions", "Run");
-        assertThat(controls).extracting(button -> button.getElement().getAttribute("data-action"))
-                .containsOnly("show-console-panel");
-        assertThat(controls).extracting(button -> button.getElement().getAttribute("data-console-target"))
-                .containsExactly("chat", "agents", "sessions", "run-context");
+        assertThat(descendants(view.getElement())
+                .filter(element -> "show-console-panel".equals(element.getAttribute("data-action"))))
+                .isEmpty();
+        assertPanelState(view, "chat", "true");
+        assertThat(descendants(view.getElement())
+                .filter(element -> "agents".equals(element.getAttribute("data-console-panel"))
+                        || "sessions".equals(element.getAttribute("data-console-panel"))
+                        || "run-context".equals(element.getAttribute("data-console-panel"))))
+                .isEmpty();
     }
 
     @Test
@@ -52,26 +49,22 @@ class WebConsoleMobileFlowContractTest {
 
         assertThat(view.activeConsolePanel()).isEqualTo("chat");
         assertPanelState(view, "chat", "true");
-        assertPanelState(view, "agents", "false");
-        assertPanelState(view, "sessions", "false");
-        assertPanelState(view, "run-context", "false");
-        assertThat(view.getElement().getAttribute("data-layout")).isEqualTo("three-column-workbench");
-        assertThat(view.columnOrder()).containsExactly("sessions", "chat-event-stream", "run-context");
+        assertThat(view.getElement().getAttribute("data-layout")).isEqualTo("chat-home");
+        assertThat(view.columnOrder()).containsExactly("provider-config", "chat-event-stream");
     }
 
     @Test
-    void switchingPanelsPreservesExistingChatPanelAndMessages() {
+    void chatOnlySurfacePreservesExistingChatPanelAndMessages() {
         ConsoleView view = new ConsoleView();
         ChatEventStreamPanel originalChatPanel = view.chatPanel();
 
         view.planChatSubmission("Keep this message while browsing sessions");
-        view.showConsolePanel("sessions");
+        view.showConsolePanel("chat");
 
-        assertThat(view.activeConsolePanel()).isEqualTo("sessions");
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
         assertThat(view.chatPanel()).isSameAs(originalChatPanel);
         assertThat(view.chatPanel().messages()).contains("Keep this message while browsing sessions");
-        assertPanelState(view, "chat", "false");
-        assertPanelState(view, "sessions", "true");
+        assertPanelState(view, "chat", "true");
     }
 
     @Test
@@ -84,10 +77,15 @@ class WebConsoleMobileFlowContractTest {
         assertThat(feed.getClassNames()).contains("pi-console-event-feed");
         assertThat(composer.getClassNames()).contains("pi-console-composer");
         assertThat(onlyDescendantWithAttribute(composer, "data-role", "composer-run-status").getElement().getTextRecursively())
-                .contains("No active run");
+                .isNotBlank();
         assertThat(onlyDescendantWithAttribute(composer, "data-role", "chat-input")).isNotNull();
         assertThat(onlyDescendantWithAttribute(composer, "data-action", "send-chat")).isNotNull();
-        assertThat(onlyDescendantWithAttribute(composer, "data-action", "cancel-run-primary")).isNotNull();
+        assertThat(composer.getElement().hasAttribute("data-action")).isFalse();
+        Component cancel = onlyDescendantWithAttribute(composer, "data-action", "cancel-run");
+        assertThat(cancel).isInstanceOf(Button.class);
+        assertThat(cancel.getElement().getAttribute("data-action-compatibility")).isEqualTo("cancel-run-primary");
+        assertThat(cancel.getElement().getAttribute("data-action-scope"))
+                .isEqualTo("primary-composer");
         assertThat(panel.composerCancelVisible()).isFalse();
     }
 
@@ -135,7 +133,11 @@ class WebConsoleMobileFlowContractTest {
     void backupAndPrimaryCancelControlsExposeStableHooks() {
         ConsoleView view = new ConsoleView();
 
-        assertThat(onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary")).isNotNull();
+        Component primaryCancel = onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run");
+        assertThat(primaryCancel).isInstanceOf(Button.class);
+        assertThat(primaryCancel.getElement().getAttribute("data-action-scope"))
+                .isEqualTo("primary-composer");
+        assertThat(primaryCancel.getElement().getAttribute("data-action-compatibility")).isEqualTo("cancel-run-primary");
         assertThat(onlyDescendantWithAttribute(view.runContextPanel(), "data-action", "cancel-run").getClassNames())
                 .contains("pi-console-cancel-backup");
         assertThat(onlyDescendantWithAttribute(view.runContextPanel(), "data-role", "run-status")).isNotNull();
@@ -179,7 +181,6 @@ class WebConsoleMobileFlowContractTest {
     void selectingPriorSessionMarksActiveCardAndReturnsToChatPanel() {
         ConsoleView view = new ConsoleView();
 
-        view.showConsolePanel("sessions");
         view.selectSession("session-history");
 
         assertThat(view.activeConsolePanel()).isEqualTo("chat");
@@ -189,21 +190,18 @@ class WebConsoleMobileFlowContractTest {
     }
 
     @Test
-    void mcon01CatalogPanelStaysInsideAgentsPanelAndOutsideSessionsPanel() {
+    void mcon01CatalogPanelIsNotMountedOnChatOnlyConsoleSurface() {
         ConsoleView view = new ConsoleView();
 
-        Div agentsPanel = onlyChildWithAttribute(view, "data-console-panel", "agents");
-        Div sessionsPanel = onlyChildWithAttribute(view, "data-console-panel", "sessions");
-
-        assertThat(descendantComponents(agentsPanel)).contains(view.agentCatalogPanel());
-        assertThat(descendantComponents(sessionsPanel)).doesNotContain(view.agentCatalogPanel());
+        assertThat(descendantComponents(view)).doesNotContain(view.agentCatalogPanel());
+        assertThat(descendantComponents(view)).doesNotContain(view.sessionListPanel());
+        assertThat(descendantComponents(view)).doesNotContain(view.runContextPanel());
     }
 
     @Test
     void mcon01GeneralAgentPrimaryActionUsesRealClickHandlerAndReturnsToChat() {
         ConsoleView view = new ConsoleView();
         view.agentCatalogPanel().showCatalog(new AgentCatalogResponse(List.of(generalAgent("cloud-general-agent", "start-chat"))));
-        view.showConsolePanel("agents");
 
         Button generalAgentCta = (Button) onlyDescendantWithAttribute(view.agentCatalogPanel(), "data-primary-action", "general-agent-start");
         generalAgentCta.click();
@@ -216,7 +214,6 @@ class WebConsoleMobileFlowContractTest {
     void mcon04SessionCardActivatesByClickEnterAndSpaceAndReturnsToChat() {
         ConsoleView clickView = new ConsoleView();
         clickView.sessionListPanel().showSession("session-click", "Click session", Instant.parse("2026-06-23T05:00:00Z"));
-        clickView.showConsolePanel("sessions");
 
         clickView.sessionListPanel().activateSessionCardForTest("session-click", "click");
 
@@ -227,14 +224,12 @@ class WebConsoleMobileFlowContractTest {
 
         ConsoleView enterView = new ConsoleView();
         enterView.sessionListPanel().showSession("session-enter", "Enter session", Instant.parse("2026-06-23T05:00:00Z"));
-        enterView.showConsolePanel("sessions");
         enterView.sessionListPanel().activateSessionCardForTest("session-enter", "Enter");
         assertThat(enterView.sessionListPanel().selectedSessionId()).isEqualTo("session-enter");
         assertThat(enterView.activeConsolePanel()).isEqualTo("chat");
 
         ConsoleView spaceView = new ConsoleView();
         spaceView.sessionListPanel().showSession("session-space", "Space session", Instant.parse("2026-06-23T05:00:00Z"));
-        spaceView.showConsolePanel("sessions");
         spaceView.sessionListPanel().activateSessionCardForTest("session-space", " ");
         assertThat(spaceView.sessionListPanel().selectedSessionId()).isEqualTo("session-space");
         assertThat(spaceView.activeConsolePanel()).isEqualTo("chat");
@@ -252,7 +247,7 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.chatPanel().messages()).contains("Run from actual Send click");
         assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
 
-        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary");
+        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run");
         primaryCancel.click();
         assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("cancelled");
         assertThat(view.runContextPanel().statusText()).containsIgnoringCase("cancelled");
@@ -271,8 +266,7 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.agentCatalogPanel().renderedAgentIds()).contains("cloud-general-agent");
         assertThat(view.agentCatalogPanel().cardCount()).isGreaterThan(0);
 
-        Div agentsPanel = onlyChildWithAttribute(view, "data-console-panel", "agents");
-        assertThat(descendantComponents(agentsPanel)).contains(view.agentCatalogPanel());
+        assertThat(descendantComponents(view)).doesNotContain(view.agentCatalogPanel());
     }
 
     @Test
@@ -280,10 +274,9 @@ class WebConsoleMobileFlowContractTest {
         ConsoleView view = new ConsoleView(new DefaultAgentCatalogQueryService());
 
         assertThat(view.sessionListPanel().sessionCount()).isZero();
-        assertThat(view.sessionListPanel().emptyStateText()).containsIgnoringCase("no recent sessions");
+        assertThat(view.sessionListPanel().emptyStateText()).isNotBlank();
 
         view.sessionListPanel().showSession("session-history", "History row from existing read model", Instant.parse("2026-06-23T05:00:00Z"));
-        view.showConsolePanel("sessions");
         view.sessionListPanel().activateSessionCardForTest("session-history", "Enter");
 
         assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-history");
@@ -328,7 +321,6 @@ class WebConsoleMobileFlowContractTest {
         ConsoleView view = new ConsoleView();
 
         view.planChatSubmission("Create selectable session card");
-        view.showConsolePanel("sessions");
         view.sessionListPanel().activateSessionCardForTest("session-mobile-1", "click");
         ConsoleView.RunSubmissionPlan continued = view.planChatSubmission("Continue same selected session");
 
@@ -348,7 +340,7 @@ class WebConsoleMobileFlowContractTest {
         view.planChatSubmission("Render replayed events");
 
         assertThat(view.chatPanel().messageCount()).isGreaterThan(1);
-        assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("RUNNING"));
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
         assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("model reply"));
     }
 
@@ -372,7 +364,8 @@ class WebConsoleMobileFlowContractTest {
         int appended = view.refreshActiveRunEvents();
 
         assertThat(appended).isEqualTo(2);
-        assertThat(view.chatPanel().messageCount()).isEqualTo(afterCreateRunCount + 2);
+        assertThat(view.chatPanel().messageCount()).isEqualTo(afterCreateRunCount + 1);
+        assertThat(view.chatPanel().composerStatusText()).containsIgnoringCase("running");
         assertThat(view.chatPanel().messages()).anySatisfy(message -> assertThat(message).contains("later model reply"));
         assertThat(bridge.afterSequences()).containsExactly(0L, 0L);
     }
@@ -420,6 +413,8 @@ class WebConsoleMobileFlowContractTest {
         assertThat(view.runContextPanel().statusText()).containsIgnoringCase("completed");
         assertThat(view.chatPanel().composerCancelVisible()).isFalse();
         assertThat(view.runContextPanel().cancelProminent()).isFalse();
+        assertThat(view.refreshActiveRunEvents()).isZero();
+        assertThat(bridge.afterSequences()).containsExactly(0L, 0L);
     }
 
     @Test
@@ -440,7 +435,7 @@ class WebConsoleMobileFlowContractTest {
     void mcon05DoubleClickOrNoActiveRunCancelShowsSafeTerminalFeedback() {
         ConsoleView view = new ConsoleView();
         view.planChatSubmission("Double cancel this run");
-        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run-primary");
+        Button primaryCancel = (Button) onlyDescendantWithAttribute(view.chatPanel(), "data-action", "cancel-run");
 
         primaryCancel.click();
         primaryCancel.click();

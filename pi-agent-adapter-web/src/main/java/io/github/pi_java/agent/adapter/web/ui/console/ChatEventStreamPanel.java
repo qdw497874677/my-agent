@@ -34,6 +34,7 @@ public class ChatEventStreamPanel extends Div {
     private Div activeAssistantLine;
     private Consumer<String> submitHandler;
     private Runnable cancelHandler;
+    private String streamMode = "polling-fallback";
 
     public ChatEventStreamPanel() {
         addClassName("pi-console-chat");
@@ -42,13 +43,9 @@ public class ChatEventStreamPanel extends Div {
         getElement().setAttribute("data-primary", "chat-first");
         feed.addClassName("pi-console-event-feed");
         feed.getElement().setAttribute("data-role", "event-feed");
-        feed.getStyle().set("min-height", "220px");
-        feed.getStyle().set("padding", "1rem");
-        feed.getStyle().set("display", "flex");
-        feed.getStyle().set("flex-direction", "column");
-        feed.getStyle().set("gap", "0.75rem");
         composer.addClassName("pi-console-composer");
         composer.getElement().setAttribute("data-role", "chat-composer");
+        composer.getElement().setAttribute("data-action-scope", "primary-composer");
         composerRunStatus.setText(t("chat.noActiveRun"));
         composerRunStatus.setVisible(false);
         input.setLabel(t("chat.label.message"));
@@ -62,28 +59,17 @@ public class ChatEventStreamPanel extends Div {
         input.getElement().setAttribute("data-role", "chat-input");
         send.getElement().setAttribute("data-action", "send-chat");
         send.addClickListener(event -> submitCurrentInput());
-        composerCancel.getElement().setAttribute("data-action", "cancel-run-primary");
+        composerCancel.getElement().setAttribute("data-action", "cancel-run");
+        composerCancel.getElement().setAttribute("data-action-compatibility", "cancel-run-primary");
+        composerCancel.getElement().setAttribute("data-action-scope", "primary-composer");
         composerCancel.addClickListener(event -> {
             if (cancelHandler != null) {
                 cancelHandler.run();
             }
         });
         composerCancel.setVisible(false);
-        composer.getStyle().set("display", "grid");
-        composer.getStyle().set("grid-template-columns", "1fr auto auto");
-        composer.getStyle().set("gap", "0.75rem");
-        composer.getStyle().set("align-items", "end");
-        composer.getStyle().set("padding", "0.9rem");
-        composerRunStatus.getStyle().set("grid-column", "1 / -1");
         composer.add(composerRunStatus, input, send, composerCancel);
         add(feed, composer);
-        getStyle().set("max-width", "820px");
-        getStyle().set("margin", "0 auto");
-        getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        getStyle().set("border-radius", "28px");
-        getStyle().set("background", "var(--lumo-base-color)");
-        getStyle().set("box-shadow", "0 24px 80px color-mix(in srgb, var(--lumo-contrast) 12%, transparent)");
-        getStyle().set("overflow", "hidden");
         showEmptyState();
     }
 
@@ -91,6 +77,12 @@ public class ChatEventStreamPanel extends Div {
         activeAssistantLine = null;
         liveAssistantBubbles.clear();
         append("user", requireText(text, "text"));
+    }
+
+    public void appendUserMessage(String text, String sessionId, String runId) {
+        activeAssistantLine = null;
+        liveAssistantBubbles.clear();
+        appendUserTranscriptMessage(requireText(text, "text"), sessionId, runId);
     }
 
     public void appendEvent(RunEventRenderer.RenderedEvent event) {
@@ -122,6 +114,10 @@ public class ChatEventStreamPanel extends Div {
 
     public void replaceTranscriptForProof(List<ConversationMessageDto> transcriptMessages) {
         replaceTranscript(transcriptMessages);
+    }
+
+    public void setStreamMode(String streamMode) {
+        this.streamMode = normalizeStreamMode(streamMode);
     }
 
     public void replaceTranscript(List<ConversationMessageDto> transcriptMessages) {
@@ -191,7 +187,9 @@ public class ChatEventStreamPanel extends Div {
         }
         bubble.append(cleanDelta);
         bubble.line().removeAll();
-        bubble.line().setText(bubble.text());
+        Span text = new Span(bubble.text());
+        text.getElement().setAttribute("data-assistant-text", "true");
+        bubble.line().add(text);
         setLiveBubbleStatus(bubble.line(), ConversationMessageStatus.PENDING, "streaming");
         if (bubble.messageIndex() == null) {
             bubble.messageIndex(messages.size());
@@ -244,8 +242,6 @@ public class ChatEventStreamPanel extends Div {
             Span fallback = new Span(text);
             fallback.getElement().setAttribute("data-role", "fallback-label");
             fallback.getElement().setAttribute("data-fallback-mode", "local");
-            fallback.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-            fallback.getStyle().set("font-weight", "600");
             target.add(fallback);
         }
     }
@@ -285,20 +281,33 @@ public class ChatEventStreamPanel extends Div {
         line.getElement().setAttribute("data-message-role", ConversationMessageRole.ASSISTANT.wireValue());
         line.getElement().setAttribute("data-message-kind", "primary-bubble");
         line.getElement().setAttribute("data-bubble-align", "left");
+        line.getElement().setAttribute("data-stream-mode", streamMode);
         line.getElement().setAttribute("data-stream-aggregation-key", key);
         setOptionalAttribute(line, "data-session-id", sessionId);
         setOptionalAttribute(line, "data-run-id", runId);
         setOptionalAttribute(line, "data-step-id", normalizedStepId(stepId));
         setLiveBubbleStatus(line, ConversationMessageStatus.PENDING, ConversationMessageStatus.PENDING.wireValue());
-        line.getStyle().set("max-width", "78%");
-        line.getStyle().set("padding", "0.75rem 0.95rem");
-        line.getStyle().set("border-radius", "18px");
-        line.getStyle().set("align-self", "flex-start");
-        line.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        Span pending = statusChip(ConversationMessageStatus.PENDING, t("chat.assistant.pending"));
-        line.add(pending);
+        LiveAssistantBubble bubble = new LiveAssistantBubble(line);
+        renderLoadingIndicator(bubble);
         feed.add(line);
-        return new LiveAssistantBubble(line);
+        return bubble;
+    }
+
+    private void renderLoadingIndicator(LiveAssistantBubble bubble) {
+        bubble.line().removeAll();
+        bubble.line().getElement().setAttribute("data-loading", "true");
+        Div indicator = new Div();
+        indicator.getElement().setAttribute("data-role", "assistant-loading");
+        Span label = statusChip(ConversationMessageStatus.PENDING, t("chat.assistant.pending"));
+        label.getElement().setAttribute("data-loading-label", "true");
+        indicator.add(label, loadingDot(), loadingDot(), loadingDot());
+        bubble.line().add(indicator);
+    }
+
+    private Span loadingDot() {
+        Span dot = new Span("•");
+        dot.getElement().setAttribute("data-role", "assistant-loading-dot");
+        return dot;
     }
 
     private void renderTerminalStatus(LiveAssistantBubble bubble, ConversationMessageStatus status, String safeSummary) {
@@ -318,14 +327,15 @@ public class ChatEventStreamPanel extends Div {
     private Span statusChip(ConversationMessageStatus status, String text) {
         Span chip = new Span(text);
         chip.getElement().setAttribute("data-status-chip", status.wireValue());
-        chip.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        chip.getStyle().set("font-weight", "600");
         return chip;
     }
 
     private static void setLiveBubbleStatus(Div line, ConversationMessageStatus status, String streamState) {
         line.getElement().setAttribute("data-message-status", status.wireValue());
         line.getElement().setAttribute("data-stream-state", streamState);
+        if ("streaming".equals(streamState) || status != ConversationMessageStatus.PENDING) {
+            line.getElement().setAttribute("data-loading", "false");
+        }
     }
 
     private void append(String category, String text) {
@@ -348,17 +358,6 @@ public class ChatEventStreamPanel extends Div {
         }
         Div line = new Div(text);
         line.getElement().setAttribute("data-event-category", category);
-        line.getStyle().set("max-width", "78%");
-        line.getStyle().set("padding", "0.75rem 0.95rem");
-        line.getStyle().set("border-radius", "18px");
-        if ("user".equals(category)) {
-            line.getStyle().set("align-self", "flex-end");
-            line.getStyle().set("background", "var(--lumo-primary-color)");
-            line.getStyle().set("color", "var(--lumo-primary-contrast-color)");
-        } else {
-            line.getStyle().set("align-self", "flex-start");
-            line.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        }
         if ("assistant".equals(category)) {
             activeAssistantLine = line;
         }
@@ -380,25 +379,46 @@ public class ChatEventStreamPanel extends Div {
         line.getElement().setAttribute("data-stream-state", statusValue);
         setOptionalAttribute(line, "data-session-id", message.sessionId());
         setOptionalAttribute(line, "data-run-id", message.runId());
-        line.getStyle().set("max-width", "78%");
-        line.getStyle().set("padding", "0.75rem 0.95rem");
-        line.getStyle().set("border-radius", "18px");
         if (ConversationMessageRole.TOOL.equals(role) || ConversationMessageRole.ERROR.equals(role)) {
             renderTranscriptCard(line, roleValue, text, statusValue);
         } else if (ConversationMessageRole.USER.equals(role)) {
             line.setText(text);
             line.getElement().setAttribute("data-message-kind", "primary-bubble");
             line.getElement().setAttribute("data-bubble-align", "right");
-            line.getStyle().set("align-self", "flex-end");
-            line.getStyle().set("background", "var(--lumo-primary-color)");
-            line.getStyle().set("color", "var(--lumo-primary-contrast-color)");
         } else {
             line.setText(text);
             line.getElement().setAttribute("data-message-kind", "primary-bubble");
             line.getElement().setAttribute("data-bubble-align", "left");
-            line.getStyle().set("align-self", "flex-start");
-            line.getStyle().set("background", "var(--lumo-contrast-5pct)");
+            line.getElement().setAttribute("data-stream-mode", streamMode);
         }
+        feed.add(line);
+    }
+
+    private static String normalizeStreamMode(String streamMode) {
+        if (streamMode == null || streamMode.isBlank()) {
+            return "polling-fallback";
+        }
+        return switch (streamMode.trim()) {
+            case "push", "sse", "polling-fallback" -> streamMode.trim();
+            default -> "polling-fallback";
+        };
+    }
+
+    private void appendUserTranscriptMessage(String text, String sessionId, String runId) {
+        if (messages.isEmpty() && eventComponents.isEmpty()) {
+            feed.removeAll();
+        }
+        messages.add(text);
+        Div line = new Div(text);
+        line.addClassName("pi-transcript-message");
+        line.addClassName("pi-transcript-user");
+        line.getElement().setAttribute("data-message-role", ConversationMessageRole.USER.wireValue());
+        line.getElement().setAttribute("data-message-status", ConversationMessageStatus.COMPLETED.wireValue());
+        line.getElement().setAttribute("data-stream-state", ConversationMessageStatus.COMPLETED.wireValue());
+        line.getElement().setAttribute("data-message-kind", "primary-bubble");
+        line.getElement().setAttribute("data-bubble-align", "right");
+        setOptionalAttribute(line, "data-session-id", sessionId);
+        setOptionalAttribute(line, "data-run-id", runId);
         feed.add(line);
     }
 
@@ -406,26 +426,16 @@ public class ChatEventStreamPanel extends Div {
         card.addClassName("pi-transcript-card");
         card.getElement().setAttribute("data-message-kind", "secondary-card");
         card.getElement().setAttribute("data-transcript-card", roleValue);
-        card.getStyle().set("align-self", "flex-start");
-        card.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        card.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        card.getStyle().set("max-width", "92%");
         HorizontalLayout header = new HorizontalLayout();
         header.setSpacing(true);
         header.setPadding(false);
-        header.getStyle().set("align-items", "center");
         Span label = new Span(roleValue);
         label.getElement().setAttribute("data-card-label", roleValue);
-        label.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        label.getStyle().set("font-weight", "600");
         header.add(label);
         if (!"completed".equals(statusValue)) {
             Span status = new Span(translatedStatus(statusValue));
             status.addClassName("pi-transcript-status");
             status.getElement().setAttribute("data-status-chip", statusValue);
-            status.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-            status.getStyle().set("font-weight", "600");
-            status.getStyle().set("color", "var(--lumo-error-text-color)");
             header.add(status);
         }
         Span summary = new Span(text);
@@ -466,7 +476,7 @@ public class ChatEventStreamPanel extends Div {
     }
 
     private static String aggregationKey(String sessionId, String runId, String stepId) {
-        return requireText(sessionId, "sessionId") + "::" + requireText(runId, "runId") + "::" + normalizedStepId(stepId);
+        return requireText(sessionId, "sessionId") + "::" + requireText(runId, "runId");
     }
 
     private static String normalizedStepId(String stepId) {

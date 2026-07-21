@@ -172,7 +172,7 @@ public class ConversationEventReducer {
     }
 
     private static String aggregationKey(String sessionId, String runId, String stepId) {
-        return normalizeKeyPart(sessionId) + "::" + normalizeKeyPart(runId) + "::" + normalizeStepId(stepId);
+        return normalizeKeyPart(sessionId) + "::" + normalizeKeyPart(runId);
     }
 
     private static String runStateKey(RunEventDto event) {
@@ -181,10 +181,6 @@ public class ConversationEventReducer {
 
     private static String normalizeKeyPart(String value) {
         return value == null || value.isBlank() ? "unknown" : value.trim();
-    }
-
-    private static String normalizeStepId(String value) {
-        return value == null || value.isBlank() ? "default" : value.trim();
     }
 
     private static String normalize(String value) {

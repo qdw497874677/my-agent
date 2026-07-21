@@ -5,7 +5,6 @@ import io.github.pi_java.agent.app.usecase.RunQueryService;
 import io.github.pi_java.agent.app.usecase.SessionCommandService;
 import io.github.pi_java.agent.app.usecase.ConversationQueryService;
 import io.github.pi_java.agent.adapter.web.controller.RunController.RunActivationTrigger;
-import io.github.pi_java.agent.app.port.execution.RunDispatcher;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.api.PageResponse;
 import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
@@ -26,7 +25,6 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
     private final RunQueryService runQueryService;
     private final ConversationQueryService conversationQueryService;
     private final RunActivationTrigger runActivationTrigger;
-    private final RunDispatcher runDispatcher;
 
     public AppConsoleRunExecutionBridge(
             SessionCommandService sessionCommandService,
@@ -34,13 +32,12 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
             RunQueryService runQueryService,
             ConversationQueryService conversationQueryService,
             RunActivationTrigger runActivationTrigger,
-            RunDispatcher runDispatcher) {
+            io.github.pi_java.agent.app.port.execution.RunDispatcher runDispatcher) {
         this.sessionCommandService = sessionCommandService;
         this.runCommandService = runCommandService;
         this.runQueryService = runQueryService;
         this.conversationQueryService = conversationQueryService;
         this.runActivationTrigger = runActivationTrigger;
-        this.runDispatcher = runDispatcher;
     }
 
     @Override
@@ -54,7 +51,6 @@ public final class AppConsoleRunExecutionBridge implements ConsoleRunExecutionBr
     public RunResponse createRun(String sessionId, CreateRunRequest request) {
         RunResponse response = runCommandService.createRun(ConsoleView.consoleRequestContext(), sessionId, request);
         runActivationTrigger.triggerAsync();
-        runDispatcher.dispatch("vaadin-console-worker");
         return response;
     }
 

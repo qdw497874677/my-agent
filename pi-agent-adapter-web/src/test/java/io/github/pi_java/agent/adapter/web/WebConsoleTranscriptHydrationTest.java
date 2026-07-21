@@ -58,17 +58,27 @@ class WebConsoleTranscriptHydrationTest {
     @Test
     void restoredMessagesExposeSessionRunStatusAndStreamStateSelectors() {
         ChatEventStreamPanel panel = new ChatEventStreamPanel();
+        panel.setStreamMode("push");
 
         panel.replaceTranscript(List.of(
                 new ConversationMessageDto("m1", "session-1", "run-1", "step-1", ConversationMessageRole.USER,
-                        "with metadata", ConversationMessageStatus.PARTIAL, now(), now(), 1L, 1L, Map.of(), true, false)
+                        "with metadata", ConversationMessageStatus.PARTIAL, now(), now(), 1L, 1L, Map.of(), true, false),
+                new ConversationMessageDto("m2", "session-1", "run-1", "step-1", ConversationMessageRole.ASSISTANT,
+                        "assistant metadata", ConversationMessageStatus.PARTIAL, now(), now(), 2L, 2L, Map.of(), true, false)
         ));
 
-        Component message = onlyMessage(panel, "user");
-        assertThat(message.getElement().getAttribute("data-session-id")).isEqualTo("session-1");
-        assertThat(message.getElement().getAttribute("data-run-id")).isEqualTo("run-1");
-        assertThat(message.getElement().getAttribute("data-message-status")).isEqualTo("partial");
-        assertThat(message.getElement().getAttribute("data-stream-state")).isEqualTo("partial");
+        Component user = onlyMessage(panel, "user");
+        assertThat(user.getElement().getAttribute("data-session-id")).isEqualTo("session-1");
+        assertThat(user.getElement().getAttribute("data-run-id")).isEqualTo("run-1");
+        assertThat(user.getElement().getAttribute("data-message-status")).isEqualTo("partial");
+        assertThat(user.getElement().getAttribute("data-stream-state")).isEqualTo("partial");
+
+        Component assistant = onlyMessage(panel, "assistant");
+        assertThat(assistant.getElement().getAttribute("data-session-id")).isEqualTo("session-1");
+        assertThat(assistant.getElement().getAttribute("data-run-id")).isEqualTo("run-1");
+        assertThat(assistant.getElement().getAttribute("data-message-status")).isEqualTo("partial");
+        assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("partial");
+        assertThat(assistant.getElement().getAttribute("data-stream-mode")).isEqualTo("push");
     }
 
     @Test
@@ -154,7 +164,9 @@ class WebConsoleTranscriptHydrationTest {
                 Map.of("secret", "should-not-render", "nested", Map.of("token", "raw-json")), true, true)));
 
         String rendered = onlyMessage(panel, "tool").getElement().getTextRecursively();
-        assertThat(rendered).contains("safe summary", "failed");
+        Component tool = onlyMessage(panel, "tool");
+        assertThat(tool.getElement().getAttribute("data-message-status")).isEqualTo("failed");
+        assertThat(rendered).contains("safe summary");
         assertThat(rendered).doesNotContain("should-not-render", "raw-json", "{", "}", "secret", "token");
     }
 

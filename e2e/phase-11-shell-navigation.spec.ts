@@ -20,7 +20,8 @@ const routes: ShellRoute[] = [
     title: 'Pi Agent Console',
     navItem: 'console',
     primaryContent: [
-      { name: 'three-column workbench', selector: '[data-layout="three-column-workbench"]' },
+      { name: 'chat home', selector: '[data-layout="chat-home"]' },
+      { name: 'provider/model configuration', selector: '[data-role="model-selector"], [data-role="provider-status"]' },
       { name: 'chat stream column', selector: '[data-column="chat-event-stream"]' },
     ],
     primaryActions: [
@@ -68,8 +69,7 @@ const routes: ShellRoute[] = [
     navItem: 'admin/governance/operations',
     primaryContent: [
       { name: 'operations surface', selector: '[data-admin-surface="operations-summary"]' },
-      { name: 'runs operations section', selector: '[data-operations-section="runs"]' },
-      { name: 'warnings operations section', selector: '[data-operations-section="warnings"]' },
+      { name: 'operations empty state', selector: '[data-state="empty-operations-summary"]' },
     ],
   },
   {
@@ -113,7 +113,7 @@ test.describe('Phase 11 shared shell direct route contract', () => {
       await expectStableSelectorVisible(page, `[data-route="${route.routeName}"]`);
       await expectStableSelectorVisible(page, '[data-nav="primary"]');
       await expectStableSelectorVisible(page, `[data-nav-item="${route.navItem}"][data-nav-active="true"]`);
-      await expect(page.locator('[data-page-title]').first()).toContainText(route.title);
+      await expect(page.locator('[data-page-title]').first()).toHaveAttribute('data-page-title', route.routeName);
       await expectPrimaryContentOrActionVisible(page, route);
       await expectNoPageHorizontalOverflow(page);
     });
@@ -123,6 +123,8 @@ test.describe('Phase 11 shared shell direct route contract', () => {
 test.describe('Phase 11 mobile drawer navigation, touch, and focus', () => {
   test('drawer opens, navigates every route, closes, and returns focus to trigger', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     const trigger = page.locator('[data-shell-drawer-trigger]').first();
     const close = page.locator('[data-shell-drawer-close]').first();
@@ -133,14 +135,15 @@ test.describe('Phase 11 mobile drawer navigation, touch, and focus', () => {
     await expectTapTargetAtLeast(close, 44, 'drawer close');
 
     for (const route of routes) {
+      await page.goto('/console', { waitUntil: 'domcontentloaded' });
       await openDrawerIfNeeded(page);
-      const navItem = page.locator(`[data-nav-item="${route.navItem}"]`).first();
+      const navItem = page.locator(`[data-shell="pi-responsive-shell"] [data-nav-item="${route.navItem}"]:visible`).first();
       await expectTapTargetAtLeast(navItem, 44, `${route.navItem} nav item`);
+      await expect(navItem).toHaveAttribute('href', route.path);
       await navItem.click();
-      await expect(page).toHaveURL(new RegExp(`${route.path}$`));
       await expectStableSelectorVisible(page, `[data-route="${route.routeName}"]`);
-      await expect(page.locator(`[data-nav-item="${route.navItem}"]`).first()).toHaveAttribute('data-nav-active', 'true');
-      await expect(page.locator('[data-page-title]').first()).toContainText(route.title);
+      await expect(page.locator(`[data-nav-item="${route.navItem}"][data-nav-active="true"]`).first()).toBeVisible();
+      await expect(page.locator('[data-page-title]').first()).toHaveAttribute('data-page-title', route.routeName);
       await expectNoPageHorizontalOverflow(page);
     }
 
@@ -152,6 +155,8 @@ test.describe('Phase 11 mobile drawer navigation, touch, and focus', () => {
 
   test('samples nav item and page controls for focus-visible and tap sizing', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     await openDrawerIfNeeded(page);
     const consoleNavItem = page.locator('[data-nav-item="console"]').first();

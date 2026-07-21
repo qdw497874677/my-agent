@@ -48,13 +48,16 @@ Primary assistant bubbles should be discoverable with:
 Related Console controls used by product-path tests:
 
 ```text
-[data-role="console-panel-switcher"]
-[data-action="show-console-panel"][data-console-target="sessions|run-context|chat"]
+[data-layout="chat-home"]
+[data-role="model-selector"]
+[data-role="provider-status"]
+[data-console-panel="chat"][data-console-panel-active="true"]
+[data-action="show-console-panel"] must be absent from the user-facing Console
 [data-role="chat-input"]
 [data-action="send-chat"]
 [data-action="cancel-run-primary"]
 [data-action="cancel-run"]
-[data-role="session-card"][data-session-id]
+[data-role="active-session-banner"][data-active-session-state="new|continued"]
 ```
 
 Secondary operational cards may use `data-message-kind="secondary-card"` and must remain separate from primary assistant prose.

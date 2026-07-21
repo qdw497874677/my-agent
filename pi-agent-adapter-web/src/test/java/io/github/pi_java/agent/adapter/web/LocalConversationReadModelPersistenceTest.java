@@ -52,6 +52,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LocalConversationReadModelPersistenceTest {
 
     @Test
+    void sqlitePersistenceCreatesMissingParentDirectoryForLocalProfileDb(@TempDir Path tmp) {
+        Path db = tmp.resolve("missing-parent").resolve("pi-local.db");
+
+        SqliteLocalPersistence persistence = new SqliteLocalPersistence(db.toString());
+        persistence.saveSession("sess-local", "tenant-a", "user-a", "ws", "ACTIVE",
+                "2026-06-01T00:00:00Z", "2026-06-01T00:01:00Z", "{}");
+
+        assertThat(db.getParent()).isDirectory();
+        assertThat(db).exists();
+        assertThat(persistence.loadSessions()).extracting(row -> row.get("session_id"))
+                .containsExactly("sess-local");
+    }
+
+    @Test
     void localSessionsOrderedByUpdatedAtDescAndFilteredByTenantUser(@TempDir Path tmp) {
         SqliteLocalPersistence persistence = new SqliteLocalPersistence(tmp.resolve("read-model.db").toString());
 

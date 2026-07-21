@@ -32,7 +32,7 @@ class WebMobileBaselineContractTest {
         ConsoleView view = new ConsoleView();
 
         assertAttribute(view, "data-route", "console");
-        assertAttribute(view, "data-layout", "three-column-workbench");
+        assertAttribute(view, "data-layout", "chat-home");
         assertAttribute(view, "data-mobile-critical", "true");
     }
 

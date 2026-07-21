@@ -8,10 +8,12 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfig;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfigController;
 import io.github.pi_java.agent.adapter.web.provider.ProviderConfigStore;
 import io.github.pi_java.agent.adapter.web.controller.RunController.RunActivationTrigger;
+import io.github.pi_java.agent.adapter.web.sse.SseRunEventFanout;
 import io.github.pi_java.agent.app.port.execution.RunDispatcher;
 import io.github.pi_java.agent.adapter.web.ui.ConsoleHttpClient;
 import io.github.pi_java.agent.adapter.web.ui.EventStreamClient;
@@ -58,9 +60,6 @@ public class ConsoleView extends Div {
     private static final String DEFAULT_AGENT_ID = "cloud-general-agent";
     private static final String PENDING_SESSION_ID = "pending-session";
     private static final String PENDING_RUN_ID = "pending-run";
-    private static final String CHAT_PANEL_SELECTOR_CONTRACT = "data-console-panel=chat";
-    private static final String AGENTS_TARGET_SELECTOR_CONTRACT = "data-console-target=agents";
-    private static final String SELECT_SESSION_RETURN_CONTRACT = "showConsolePanel(\"chat\")";
     private static final String DEFAULT_ASSISTANT_STEP_ID = "step-1";
 
     private final ConsoleHttpClient httpClient;
@@ -93,6 +92,7 @@ public class ConsoleView extends Div {
     private String activeRunId;
     private long activeRunNextAfterSequence;
     private String activeConsolePanel = "chat";
+    private Registration fallbackPollRegistration;
 
     public ConsoleView() {
         this(new ConsoleHttpClient(), new EventStreamClient(), new DefaultAgentCatalogQueryService(), new DemoConsoleRunExecutionBridge(), new RunEventRenderer());
@@ -109,7 +109,8 @@ public class ConsoleView extends Div {
             RunActivationTrigger runActivationTrigger,
             RunDispatcher runDispatcher,
             ProviderConfigStore providerConfigStore,
-            ProviderConfigController providerConfigController) {
+            ProviderConfigController providerConfigController,
+            SseRunEventFanout runEventFanout) {
         this(
                 new ConsoleHttpClient(),
                 new EventStreamClient(),
@@ -117,7 +118,8 @@ public class ConsoleView extends Div {
                 new AppConsoleRunExecutionBridge(sessionCommandService, runCommandService, runQueryService, conversationQueryService, runActivationTrigger, runDispatcher),
                 new RunEventRenderer(new ConsoleHttpClient(), new AppApprovalDecisionHandler(approvalCommandService)),
                 providerConfigStore,
-                providerConfigController);
+                providerConfigController,
+                new ConsoleLiveRunEventSubscriber(runEventFanout));
     }
 
     public ConsoleView(AgentCatalogQueryService agentCatalogQueryService) {
@@ -221,41 +223,44 @@ public class ConsoleView extends Div {
         this.chatPanel = new ChatEventStreamPanel();
         this.runContextPanel = new RunContextPanel();
         wireActionHandlers();
-        Div switcher = createPanelSwitcher();
-        Div agentsPanel = panelWrapper("agents", agentCatalogPanel);
-        Div sessionsPanel = panelWrapper("sessions", sessionListPanel);
         configureActiveSessionBanner();
         Div chatPanelWrapper = panelWrapper("chat", chatPanel);
-        Div runContextPanelWrapper = panelWrapper("run-context", runContextPanel);
         this.consolePanels = Map.of(
-                "chat", chatPanelWrapper,
-                "agents", agentsPanel,
-                "sessions", sessionsPanel,
-                "run-context", runContextPanelWrapper);
-        this.panelControls = Map.of(
-                "chat", panelControl(switcher, "chat"),
-                "agents", panelControl(switcher, "agents"),
-                "sessions", panelControl(switcher, "sessions"),
-                "run-context", panelControl(switcher, "run-context"));
+                "chat", chatPanelWrapper);
+        this.panelControls = Map.of();
         addClassName("pi-console-workbench");
         addClassName("pi-console-home");
         getElement().setAttribute("data-route", "console");
         getElement().setAttribute("data-layout", "chat-home");
         getElement().setAttribute("data-mobile-critical", "true");
-        getElement().setAttribute("data-stream-mode", liveStreamingAvailable() ? "push" : "polling-fallback");
+        String streamMode = liveStreamingAvailable() ? "push" : "polling-fallback";
+        getElement().setAttribute("data-stream-mode", streamMode);
+        chatPanel.setStreamMode(streamMode);
         Div hero = createConversationHero();
         Div modelBar = createModelBar();
-        Div advancedPanels = new Div(sessionsPanel, runContextPanelWrapper, agentsPanel);
-        advancedPanels.addClassName("pi-console-advanced-panels");
-        advancedPanels.getElement().setAttribute("data-role", "advanced-console-panels");
-        add(hero, modelBar, switcher, activeSessionBanner, chatPanelWrapper, advancedPanels);
+        add(hero, modelBar, activeSessionBanner, chatPanelWrapper);
         addAttachListener(event -> {
-            event.getUI().setPollInterval(750);
-            event.getUI().addPollListener(poll -> refreshActiveRunEvents());
+            if (liveStreamingAvailable()) {
+                removeFallbackPollRegistration();
+                event.getUI().setPollInterval(-1);
+            } else {
+                event.getUI().setPollInterval(750);
+                removeFallbackPollRegistration();
+                fallbackPollRegistration = event.getUI().addPollListener(poll -> refreshActiveRunEvents());
+            }
             loadRecentSessionsForProof();
         });
+        addDetachListener(event -> removeFallbackPollRegistration());
         loadInitialAgentCatalog();
         applyPanelState();
+    }
+
+    private void removeFallbackPollRegistration() {
+        Registration current = fallbackPollRegistration;
+        fallbackPollRegistration = null;
+        if (current != null) {
+            current.remove();
+        }
     }
 
     private Div createConversationHero() {
@@ -265,21 +270,6 @@ public class ConsoleView extends Div {
         Div hero = new Div(badge, title, subtitle);
         hero.addClassName("pi-console-hero");
         hero.getElement().setAttribute("data-role", "conversation-hero");
-        hero.getStyle().set("max-width", "820px");
-        hero.getStyle().set("margin", "2.5rem auto 1rem");
-        hero.getStyle().set("text-align", "center");
-        badge.getStyle().set("display", "inline-block");
-        badge.getStyle().set("padding", "0.25rem 0.7rem");
-        badge.getStyle().set("border-radius", "999px");
-        badge.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        badge.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        title.getStyle().set("margin", "0.8rem 0 0.5rem");
-        title.getStyle().set("font-size", "clamp(2rem, 6vw, 4.5rem)");
-        title.getStyle().set("letter-spacing", "-0.08em");
-        subtitle.getStyle().set("margin", "0 auto");
-        subtitle.getStyle().set("max-width", "620px");
-        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        subtitle.getStyle().set("font-size", "1.05rem");
         return hero;
     }
 
@@ -295,15 +285,6 @@ public class ConsoleView extends Div {
     private void configureActiveSessionBanner() {
         activeSessionBanner.addClassName("pi-active-session-banner");
         activeSessionBanner.getElement().setAttribute("data-role", "active-session-banner");
-        activeSessionBanner.getStyle().set("max-width", "820px");
-        activeSessionBanner.getStyle().set("margin", "0 auto 0.75rem");
-        activeSessionBanner.getStyle().set("padding", "0.55rem 0.8rem");
-        activeSessionBanner.getStyle().set("border-radius", "999px");
-        activeSessionBanner.getStyle().set("background", "var(--lumo-contrast-5pct)");
-        activeSessionBanner.getStyle().set("display", "flex");
-        activeSessionBanner.getStyle().set("align-items", "center");
-        activeSessionBanner.getStyle().set("justify-content", "space-between");
-        activeSessionBanner.getStyle().set("gap", "0.75rem");
         activeSessionLabel.getElement().setAttribute("data-role", "active-session-label");
         newConversationAction.setText(t("console.session.action.newConversation"));
         newConversationAction.getElement().setAttribute("data-action", "new-conversation");
@@ -315,6 +296,11 @@ public class ConsoleView extends Div {
     private void updateActiveSessionBanner(String title) {
         boolean continued = selectedSessionId != null;
         activeSessionBanner.getElement().setAttribute("data-active-session-state", continued ? "continued" : "new");
+        if (continued) {
+            activeSessionBanner.getElement().setAttribute("data-session-id", selectedSessionId);
+        } else {
+            activeSessionBanner.getElement().removeAttribute("data-session-id");
+        }
         activeSessionLabel.setText(continued
                 ? t("console.session.continueTitle", title == null || title.isBlank() ? selectedSessionId : title)
                 : t("console.session.new"));
@@ -329,6 +315,7 @@ public class ConsoleView extends Div {
         chatPanel.replaceTranscript(List.of());
         runContextPanel.showStatus(t("console.session.new"), true);
         chatPanel.showComposerRunStatus(t("chat.noActiveRun"), false);
+        updateModelSelectionScopeStatus(false);
         updateActiveSessionBanner(null);
         showConsolePanel("chat");
     }
@@ -347,7 +334,6 @@ public class ConsoleView extends Div {
             modelSelector.setAllowCustomValue(true);
             modelSelector.setItems(List.of());
             modelSelector.setValue(providerConfigStore.current().modelId());
-            modelSelector.setWidth("220px");
             modelSelector.getElement().setAttribute("data-role", "model-selector");
 
             Button refreshModels = new Button(getTranslation("console.modelSelector.refresh"));
@@ -394,14 +380,6 @@ public class ConsoleView extends Div {
 
             Div bar = new Div(modelSelector, refreshModels, providerStatus, modelRefreshStatus, modelSelectionScopeStatus, fallbackModeStatus);
             bar.addClassName("pi-console-model-bar");
-            bar.getStyle().set("display", "flex");
-            bar.getStyle().set("gap", "0.5rem");
-            bar.getStyle().set("align-items", "flex-end");
-            bar.getStyle().set("justify-content", "center");
-            bar.getStyle().set("flex-wrap", "wrap");
-            bar.getStyle().set("max-width", "820px");
-            bar.getStyle().set("margin", "0 auto 1rem");
-            bar.setWidthFull();
             return bar;
         }
         return new Div();
@@ -523,7 +501,6 @@ public class ConsoleView extends Div {
             showProviderBlockedSend();
             return null;
         }
-        chatPanel.appendUserMessage(message);
         boolean needsSession = selectedSessionId == null;
         String sessionId = needsSession ? executionBridge.createSession().sessionId() : selectedSessionId;
         selectedSessionId = sessionId;
@@ -535,8 +512,10 @@ public class ConsoleView extends Div {
                 runMetadataSnapshot());
         RunResponse run = executionBridge.createRun(sessionId, request);
         String runId = run.runId();
+        chatPanel.appendUserMessage(message, sessionId, runId);
         activeRunId = runId;
         activeRunNextAfterSequence = 0;
+        updateModelSelectionScopeStatus(true);
         EventStreamClient.ConnectionSpec streamSpec = eventStreamClient.runEventStream(sessionId, runId, 0);
         ConversationEventReducer.apply(conversationEventReducer.begin(sessionId, runId, DEFAULT_ASSISTANT_STEP_ID), chatPanel, runEventRenderer);
         sessionListPanel.showSession(sessionId, sessionTitle(message), run.status(), latest(run.createdAt(), run.updatedAt()));
@@ -549,7 +528,9 @@ public class ConsoleView extends Div {
         if (explicitLocalFallbackMode) {
             chatPanel.markLocalFallbackMode(t("chat.localFallback.label"));
         }
-        subscribeToLiveRunEvents(runId);
+        if (hasActiveRun()) {
+            subscribeToLiveRunEvents(runId);
+        }
         return new RunSubmissionPlan(
                 needsSession ? httpClient.createSessionPath() : null,
                 sessionId,
@@ -565,6 +546,7 @@ public class ConsoleView extends Div {
         chatPanel.replaceTranscript(transcript.messages());
         activeRunId = transcript.activeRunId();
         activeRunNextAfterSequence = parseNextAfterSequence(transcript.nextCursor());
+        updateModelSelectionScopeStatus(hasActiveRun());
         if (activeRunId != null && !activeRunId.isBlank()) {
             runContextPanel.showRunning(selectedSessionId, activeRunId);
             chatPanel.showComposerRunStatus("Run status: " + nullToDefault(transcript.activeRunStatus(), "running"), isCancellable(transcript.activeRunStatus()));
@@ -586,6 +568,13 @@ public class ConsoleView extends Div {
             }
         }
         sessionListPanel.showRecentSessions(recent.items(), selectedSessionId, recent.hasMore());
+        if (selectedSessionId == null && !recent.items().isEmpty()) {
+            SessionSummaryDto mostRecent = recent.items().getFirst();
+            if (mostRecent != null && mostRecent.sessionId() != null && !mostRecent.sessionId().isBlank()) {
+                selectSession(mostRecent.sessionId());
+                return;
+            }
+        }
         updateActiveSessionBanner(selectedSessionId == null ? null : recentSessionTitles.get(selectedSessionId));
     }
 
@@ -606,7 +595,7 @@ public class ConsoleView extends Div {
         selectedSessionId = requireText(sessionId, "sessionId");
         activeRunId = requireText(runId, "runId");
         activeRunNextAfterSequence = 0;
-        updateModelSelectionScopeStatus(false);
+        updateModelSelectionScopeStatus(true);
         runContextPanel.showRunning(selectedSessionId, activeRunId);
         chatPanel.showComposerRunStatus("Running run " + activeRunId + " in session " + selectedSessionId, true);
     }
@@ -651,6 +640,10 @@ public class ConsoleView extends Div {
     public void applyRunStatus(String status, boolean terminal) {
         runContextPanel.showStatus(status, terminal);
         chatPanel.showComposerRunStatus("Run status: " + requireText(status, "status"), !terminal && isCancellable(status));
+        if (terminal) {
+            activeRunId = null;
+            updateModelSelectionScopeStatus(false);
+        }
     }
 
     public AgentCatalogPlan agentCatalogPlan() {
@@ -658,7 +651,7 @@ public class ConsoleView extends Div {
     }
 
     public List<String> columnOrder() {
-        return List.of("sessions", "chat-event-stream", "run-context");
+        return List.of("provider-config", "chat-event-stream");
     }
 
     public String selectedAgentId() {
@@ -799,48 +792,12 @@ public class ConsoleView extends Div {
         });
     }
 
-    private Div createPanelSwitcher() {
-        Div switcher = new Div();
-        switcher.addClassName("pi-console-panel-switcher");
-        switcher.getElement().setAttribute("data-role", "console-panel-switcher");
-        switcher.add(panelButton(getTranslation("console.panel.chat"), "chat"));
-        switcher.add(panelButton(getTranslation("console.panel.agents"), "agents"));
-        switcher.add(panelButton(getTranslation("console.panel.sessions"), "sessions"));
-        switcher.add(panelButton(getTranslation("console.panel.run"), "run-context"));
-        switcher.getStyle().set("display", "flex");
-        switcher.getStyle().set("gap", "0.5rem");
-        switcher.getStyle().set("justify-content", "center");
-        switcher.getStyle().set("flex-wrap", "wrap");
-        switcher.getStyle().set("max-width", "820px");
-        switcher.getStyle().set("margin", "0 auto 0.75rem");
-        return switcher;
-    }
-
-    private Button panelButton(String label, String target) {
-        Button button = new Button(label, event -> showConsolePanel(target));
-        button.getElement().setAttribute("data-action", "show-console-panel");
-        button.getElement().setAttribute("data-console-target", target);
-        button.getElement().setAttribute("aria-pressed", "false");
-        return button;
-    }
-
-    private static Button panelControl(Div switcher, String target) {
-        return switcher.getChildren()
-                .filter(Button.class::isInstance)
-                .map(Button.class::cast)
-                .filter(button -> target.equals(button.getElement().getAttribute("data-console-target")))
-                .findFirst()
-                .orElseThrow();
-    }
-
     private static Div panelWrapper(String panel, Div content) {
         Div wrapper = new Div(content);
         wrapper.addClassName("pi-console-panel");
         wrapper.addClassName("pi-console-panel-" + panel);
         wrapper.getElement().setAttribute("data-console-panel", panel);
         wrapper.getElement().setAttribute("data-console-panel-active", "false");
-        wrapper.getStyle().set("max-width", "820px");
-        wrapper.getStyle().set("margin", "0 auto 0.75rem");
         return wrapper;
     }
 

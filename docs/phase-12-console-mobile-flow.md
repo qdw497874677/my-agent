@@ -6,25 +6,26 @@ Phase 12 turns the existing Vaadin Agent Console into a mobile-first, browser-ve
 
 Requirement traceability:
 
-- **MCON-01:** Mobile users can open Console, switch to Agents, find `cloud-general-agent`, start or continue the General Agent flow, and return to Chat.
+- **MCON-01:** Mobile users can open Console and immediately use the General Agent chat flow with provider/model configuration visible on the same page.
 - **MCON-02:** Chat uses a bounded multi-line prompt composer and submits `Phase 12 mobile prompt\nline two\nline three` through the existing no-key Console path.
 - **MCON-03:** The live event feed is a vertical mobile feed; a Vaadin poll-backed bounded replay hook appends later run events after `createRun` without another Send click, de-duplicates by sequence, and propagates terminal status to composer/run-context surfaces.
-- **MCON-04:** Sessions are reachable through the mobile Console panel contract, and a successful send creates a real visible active session card that can be selected to return to Chat and continue the same session identity.
-- **MCON-05:** Cancellation is reachable through a primary composer control when a run is cancellable, with a run-context backup action/status surface and tolerant terminal-state fallback.
+- **MCON-04:** A successful send creates a real active session identity that is shown through the active-session banner and reused by follow-up sends.
+- **MCON-05:** Cancellation is reachable through a primary composer control when a run is cancellable, with composer/run-status feedback and tolerant terminal-state fallback.
 - **MVER-03:** `e2e/phase-12-console-mobile-flow.spec.ts` is the browser-visible fake/no-key mobile Console gate for Mobile Chrome, Mobile Safari/WebKit proxy, and Tablet.
 
 ## Selector Contract
 
 Use stable `data-*` hooks only. Do not target Vaadin generated IDs or shadow-DOM internals.
 
-Core mobile Console panel hooks:
+Core mobile Console hooks:
 
-- `[data-console-panel="chat|agents|sessions|run-context"]`
-- `[data-console-panel-active="true"]`
-- `[data-action="show-console-panel"][data-console-target="agents|sessions|run-context|chat"]`
-- `[data-agent-id="cloud-general-agent"] [data-primary-action^="general-agent-"]`
-- `[data-role="session-card"][data-session-active="true|false"]`
-- `[data-role="session-card"] [data-field="session-title|session-status|session-updated-at"]`
+- `[data-layout="chat-home"]`
+- `[data-role="model-selector"]`
+- `[data-role="provider-status"]`
+- `[data-console-panel="chat"][data-console-panel-active="true"]`
+- `[data-role="active-session-banner"][data-active-session-state="new|continued"]`
+- `[data-action="show-console-panel"]` must be absent from the user-facing Console.
+- `[data-console-panel="agents"], [data-console-panel="sessions"], [data-console-panel="run-context"]` must be absent from the user-facing Console.
 
 Chat/run hooks:
 
@@ -45,10 +46,11 @@ Tool/approval reachability hooks for MVER-03:
 
 Desktop regression hooks preserved by `e2e/phase-05-web-console.spec.ts`:
 
-- `[data-layout="three-column-workbench"]`
-- `[data-column="sessions"]`
+- `[data-layout="chat-home"]`
+- `[data-role="model-selector"]`
+- `[data-role="provider-status"]`
 - `[data-column="chat-event-stream"]`
-- `[data-column="run-context"]`
+- `[data-action="show-console-panel"]` must be absent.
 
 ## Verification Commands
 
@@ -78,15 +80,15 @@ npm run e2e -- e2e/phase-05-web-console.spec.ts --project="chromium"
 
 ## Final MVER-03 Evidence Contract
 
-The Phase 12 mobile spec no longer accepts a one-shot replay plus an empty Sessions state as the main product path. It now records the browser-visible feed event count immediately after Send, waits for the live/bounded replay path to increase that count without clicking Send again, then opens Sessions and requires a real `[data-role="session-card"]` with `data-session-active="true"`. The test activates that card and asserts Chat becomes the active panel again, proving the visible card is selectable rather than an empty-state fallback.
+The Phase 12 mobile spec no longer accepts a one-shot replay as the main product path. It records the browser-visible feed event count immediately after Send, waits for the live/bounded replay path to increase that count without clicking Send again, and verifies the active-session banner represents a real continued conversation identity for follow-up sends.
 
 The local no-key Java contract gate covers the same behavior without a browser: `ConsoleView.refreshActiveRunEvents()` consumes `ConsoleRunExecutionBridge.listEvents(...)` using `nextAfterSequence`, ignores duplicate replayed sequences, and applies terminal feedback to both run-status surfaces. The Vaadin view wires this hook to UI polling so browser runs can observe post-createRun append behavior through existing REST/SSE DTO seams only.
 
 ## Desktop Regression
 
-Phase 12 explicitly preserves desktop Console coverage rather than deferring it to Phase 15. The Phase 05 Playwright regression now checks the three-column workbench layout, sessions column, chat/event stream column, run-context column, chat input, and send action before continuing through the existing API-level no-key catalog, run, session, tool, approval, and cancellation assertions.
+Phase 12 explicitly preserves desktop Console coverage rather than deferring it to Phase 15. The Phase 05 Playwright regression now checks the chat-only home layout, provider/model configuration, chat/event stream column, chat input, and send action before continuing through the existing API-level no-key catalog, run, session, tool, approval, and cancellation assertions.
 
-This ensures the mobile-first panel state and sticky composer work remains additive to the desktop workbench contract.
+This ensures the mobile-first composer work remains compatible with the simplified chat-first desktop contract.
 
 ## Deferred Handoffs
 

@@ -1,6 +1,8 @@
 package io.github.pi_java.agent.adapter.web;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.PollEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.dom.Element;
@@ -113,6 +115,39 @@ class WebConsoleLiveStreamingPushTest {
 
         assertThat(push.getElement().getAttribute("data-stream-mode")).isEqualTo("push");
         assertThat(fallback.getElement().getAttribute("data-stream-mode")).isEqualTo("polling-fallback");
+    }
+
+    @Test
+    void pushModeDisablesVaadinPollingWhileFallbackKeepsPollingInterval() {
+        RecordingUi pushUi = installUi();
+        ConsoleView push = new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
+                new RecordingBridge(List.of()), new RunEventRenderer(), new ConsoleLiveRunEventSubscriber(new SseRunEventFanout()));
+        pushUi.add(push);
+
+        RecordingUi fallbackUi = installUi();
+        ConsoleView fallback = new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
+                new RecordingBridge(List.of()), new RunEventRenderer());
+        fallbackUi.add(fallback);
+
+        assertThat(pushUi.getPollInterval()).isEqualTo(-1);
+        assertThat(fallbackUi.getPollInterval()).isEqualTo(750);
+    }
+
+    @Test
+    void fallbackPollingRegistrationIsNotDuplicatedAcrossAttachCycles() {
+        RecordingUi ui = installUi();
+        RecordingBridge bridge = new RecordingBridge(List.of());
+        ConsoleView fallback = new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
+                bridge, new RunEventRenderer());
+
+        ui.add(fallback);
+        ui.remove(fallback);
+        ui.add(fallback);
+
+        fallback.planChatSubmission("hello fallback");
+        ui.triggerPoll();
+
+        assertThat(bridge.listEventAfterSequences()).containsExactly(0L, 0L);
     }
 
     @Test
@@ -243,6 +278,7 @@ class WebConsoleLiveStreamingPushTest {
 
     private static final class RecordingUi extends UI {
         private int accessCalls;
+        private final List<ComponentEventListener<PollEvent>> pollListeners = new ArrayList<>();
 
         @Override
         public Future<Void> access(Command command) {
@@ -253,6 +289,16 @@ class WebConsoleLiveStreamingPushTest {
 
         private int accessCalls() {
             return accessCalls;
+        }
+
+        @Override
+        public com.vaadin.flow.shared.Registration addPollListener(ComponentEventListener<PollEvent> listener) {
+            pollListeners.add(listener);
+            return () -> pollListeners.remove(listener);
+        }
+
+        private void triggerPoll() {
+            List.copyOf(pollListeners).forEach(listener -> listener.onComponentEvent(new PollEvent(this, false)));
         }
     }
 

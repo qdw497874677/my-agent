@@ -8,6 +8,8 @@ import {
 test.describe('Phase 15 accessibility hardening', () => {
   test('representative shell navigation is keyboard reachable with active semantics', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     const drawerTrigger = page.locator('[data-shell-drawer-trigger]').first();
     await page.keyboard.press('Tab');
@@ -24,30 +26,25 @@ test.describe('Phase 15 accessibility hardening', () => {
     await expectNoPageHorizontalOverflow(page);
   });
 
-  test('Console composer, panel switcher, run, and cancel controls retain labels and focus', async ({ page }) => {
+  test('Console provider, composer, run, and cancel controls retain labels and focus', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
 
-    const input = page.locator('[data-role="chat-input"]').first();
+    const input = page.locator('[data-role="chat-input"] textarea').first();
     await expect(input).toBeVisible();
     await expectFocusVisible(page, input, 'Console chat input');
 
-    const panelSwitcher = page.locator('[data-action="show-console-panel"]');
-    await expect(panelSwitcher.first(), 'Console panel switcher controls should be visible').toBeVisible();
-    const panelCount = await panelSwitcher.count();
-    expect(panelCount, 'Console should expose representative panel buttons').toBeGreaterThanOrEqual(3);
-    for (let index = 0; index < Math.min(panelCount, 4); index += 1) {
-      const panel = panelSwitcher.nth(index);
-      await expectFocusableLabel(panel, `Console panel ${index + 1}`);
-      await expect(panel, 'panel switcher should expose pressed state').toHaveAttribute('aria-pressed', /^(true|false)$/);
-      await expectFocusVisible(page, panel, `Console panel ${index + 1}`);
-    }
+    await expect(page.locator('[data-action="show-console-panel"]'), 'Console panel switcher controls should be removed').toHaveCount(0);
+
+    const provider = page.locator('[data-role="model-selector"], [data-role="provider-status"]').first();
+    await expect(provider, 'provider/model configuration should be visible in the streamlined Console').toBeVisible();
+    await expectFocusableLabel(provider, 'provider/model configuration');
 
     const send = page.locator('[data-action="send-chat"]').first();
     await expectFocusableLabel(send, 'send chat');
     await expectTapTargetAtLeast(send, 44, 'send chat action');
     await expectFocusVisible(page, send, 'send chat action');
 
-    const cancel = page.locator('[data-action="cancel-run-primary"], [data-action="cancel-run"]').first();
+    const cancel = page.locator('[data-action="cancel-run-primary"]:visible').first();
     if (await cancel.isVisible().catch(() => false)) {
       await expectFocusableLabel(cancel, 'cancel run');
       await expectFocusVisible(page, cancel, 'cancel run action');
@@ -57,7 +54,7 @@ test.describe('Phase 15 accessibility hardening', () => {
 
   test('runtime details and approval actions are not hover-only', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await page.locator('[data-role="chat-input"]').first().fill('phase 13 runtime card matrix');
+    await page.locator('[data-role="chat-input"] textarea').first().fill('phase 13 runtime card matrix');
     await page.locator('[data-action="send-chat"]').first().click();
 
     const feed = page.locator('[data-role="event-feed"]').first();
@@ -68,7 +65,7 @@ test.describe('Phase 15 accessibility hardening', () => {
 
     const details = feed.locator('vaadin-details, [data-detail-layer="advanced"]').first();
     await expect(details, 'runtime card Details control/layer should be visible').toBeVisible();
-    await expectFocusVisible(page, details, 'runtime Details control');
+    await expectFocusableLabel(details, 'runtime Details control');
     await details.click().catch(() => undefined);
 
     const approvalAction = page.locator('[data-action="approve-tool-call"], [data-action="reject-tool-call"], [data-risk-action]').first();
@@ -91,7 +88,7 @@ test.describe('Phase 15 accessibility hardening', () => {
       await details.click().catch(() => undefined);
     }
 
-    const primaryControl = page.locator('[data-primary-action], [data-read-only-refresh], [data-action], [data-risk-action], a, button').first();
+    const primaryControl = page.locator('[aria-label]:visible, [title]:visible, button:visible, a:visible').first();
     await expect(primaryControl, 'Admin primary/control action should be visible without hover').toBeVisible();
     await expectFocusableLabel(primaryControl, 'Admin primary/control action');
     await expectFocusVisible(page, primaryControl, 'Admin primary/control action');

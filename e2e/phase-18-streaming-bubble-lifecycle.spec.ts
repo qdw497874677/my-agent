@@ -10,10 +10,10 @@ import {
 test.describe('Phase 18 streaming bubble lifecycle', () => {
   test('live Console send exposes stream mode and keeps model deltas in one assistant bubble', async ({ page }) => {
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await openVisibleConsolePanel(page, 'chat');
+    await expectChatOnlyConsole(page);
 
     const assistantCountBefore = await primaryAssistantBubbles(page).count();
-    await page.locator('[data-role="chat-input"]').first().fill(slowStreamingHint());
+    await chatInput(page).fill(slowStreamingHint());
     await page.locator('[data-action="send-chat"]').first().click();
 
     const assistant = primaryAssistantBubbles(page).nth(assistantCountBefore);
@@ -46,11 +46,7 @@ test.describe('Phase 18 streaming bubble lifecycle', () => {
     const streamed = await createSlowStreamingRun(request);
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await openVisibleConsolePanel(page, 'sessions');
-    const restoredCard = page.locator(`[data-role="session-card"][data-session-id="${streamed.sessionId}"]`).first();
-    await expect(restoredCard, 'no-key fake runtime session should be discoverable in recent sessions').toBeVisible();
-    await restoredCard.click();
-    await openVisibleConsolePanel(page, 'chat');
+    await expectChatOnlyConsole(page);
 
     const assistant = assistantBubbleForRun(page, streamed.runId).first();
     await expect(assistant, 'restored stream should render one assistant bubble for the run').toBeVisible();
@@ -69,9 +65,7 @@ test.describe('Phase 18 streaming bubble lifecycle', () => {
     const cancelled = await cancelStreamingRun(request);
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await openVisibleConsolePanel(page, 'sessions');
-    await page.locator(`[data-role="session-card"][data-session-id="${cancelled.sessionId}"]`).first().click();
-    await openVisibleConsolePanel(page, 'chat');
+    await expectChatOnlyConsole(page);
 
     const assistant = assistantBubbleForRun(page, cancelled.runId).first();
     await expect(assistant, 'cancelled run should still have a visible assistant bubble').toBeVisible();
@@ -91,9 +85,7 @@ test.describe('Phase 18 streaming bubble lifecycle', () => {
     const failed = await createFailedStreamingRun(request);
 
     await page.goto('/console', { waitUntil: 'domcontentloaded' });
-    await openVisibleConsolePanel(page, 'sessions');
-    await page.locator(`[data-role="session-card"][data-session-id="${failed.sessionId}"]`).first().click();
-    await openVisibleConsolePanel(page, 'chat');
+    await expectChatOnlyConsole(page);
 
     const assistant = assistantBubbleForRun(page, failed.runId).first();
     await expect(assistant, 'provider/runtime failure should mutate the assistant bubble rather than add raw prose').toBeVisible();
@@ -110,16 +102,20 @@ test.describe('Phase 18 streaming bubble lifecycle', () => {
   });
 });
 
-async function openVisibleConsolePanel(page: Page, target: 'agents' | 'sessions' | 'run-context' | 'chat'): Promise<void> {
-  const control = page.locator(`[data-action="show-console-panel"][data-console-target="${target}"]`).first();
-  await expect(control, `${target} control must be visible before product-path navigation`).toBeVisible();
-  await expect(control, `${target} control must be enabled before product-path navigation`).toBeEnabled();
-  await control.click();
-  await expect(page.locator(`[data-console-panel="${target}"][data-console-panel-active="true"]`).first()).toBeVisible();
+async function expectChatOnlyConsole(page: Page): Promise<void> {
+  await expect(page.locator('[data-layout="chat-home"]').first()).toBeVisible();
+  await expect(page.locator('[data-role="model-selector"], [data-role="provider-status"]').first()).toBeVisible();
+  await expect(page.locator('[data-console-panel="chat"][data-console-panel-active="true"]').first()).toBeVisible();
+  await expect(page.locator('[data-action="show-console-panel"]')).toHaveCount(0);
+  await expect(page.locator('[data-console-panel="agents"], [data-console-panel="sessions"], [data-console-panel="run-context"]')).toHaveCount(0);
 }
 
 function primaryAssistantBubbles(page: Page): Locator {
   return page.locator('[data-message-role="assistant"][data-message-kind="primary-bubble"][data-run-id][data-stream-state][data-stream-mode]');
+}
+
+function chatInput(page: Page): Locator {
+  return page.locator('[data-role="chat-input"] textarea').first();
 }
 
 function assistantBubbleForRun(page: Page, runId: string): Locator {

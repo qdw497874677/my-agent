@@ -17,6 +17,7 @@ import io.github.pi_java.agent.adapter.web.ui.console.ConsoleRunExecutionBridge;
 import io.github.pi_java.agent.adapter.web.ui.console.ConsoleView;
 import io.github.pi_java.agent.adapter.web.ui.console.RunEventRenderer;
 import io.github.pi_java.agent.client.agent.AgentCatalogResponse;
+import io.github.pi_java.agent.client.conversation.ConversationTranscriptResponse;
 import io.github.pi_java.agent.client.event.EventHistoryResponse;
 import io.github.pi_java.agent.client.run.CancelRunRequest;
 import io.github.pi_java.agent.client.run.CreateRunRequest;
@@ -212,6 +213,35 @@ class WebConsoleProviderModelBarTest {
     }
 
     @Test
+    void modelSelectionScopeTracksCreatedTerminalAndNewConversationRunLifecycle() {
+        ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
+        ConsoleView view = consoleView(store, new ProviderConfigController(store));
+
+        view.planChatSubmission("start a run");
+
+        assertModelSelectionScope(view, "next-run");
+
+        view.applyRunStatus("COMPLETED", true);
+
+        assertModelSelectionScope(view, "future-runs");
+
+        view.startNewConversation();
+
+        assertModelSelectionScope(view, "future-runs");
+    }
+
+    @Test
+    void restoringAnActiveRunSetsModelSelectionScopeToNextRun() {
+        ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
+        ConsoleView view = new ConsoleView(new ConsoleHttpClient(), new EventStreamClient(), context -> new AgentCatalogResponse(List.of()),
+                new RestoringBridge(), new RunEventRenderer(), store, new ProviderConfigController(store));
+
+        view.selectSession("session-restored");
+
+        assertModelSelectionScope(view, "next-run");
+    }
+
+    @Test
     void selectedModelSnapshotIsCopiedIntoNextRunMetadata() {
         ProviderConfigStore store = storeWith(readyConfig("https://example.invalid/v1", "sk-ready", "gpt-ready"));
         CapturingBridge bridge = new CapturingBridge();
@@ -265,6 +295,11 @@ class WebConsoleProviderModelBarTest {
                 .toList();
         assertThat(matches).as(attribute + "=" + value).hasSize(1);
         return matches.getFirst();
+    }
+
+    private static void assertModelSelectionScope(ConsoleView view, String expectedScope) {
+        assertThat(onlyDescendantWithAttribute(view, "data-role", "model-selection-scope")
+                .getElement().getAttribute("data-selection-scope")).isEqualTo(expectedScope);
     }
 
     private static List<Component> descendants(Component root) {
@@ -341,6 +376,13 @@ class WebConsoleProviderModelBarTest {
         public RunResponse createRun(String sessionId, CreateRunRequest request) {
             this.lastRequest = request;
             return super.createRun(sessionId, request);
+        }
+    }
+
+    private static final class RestoringBridge extends NoopBridge {
+        @Override
+        public ConversationTranscriptResponse getTranscript(String sessionId, int limit, String cursor) {
+            return new ConversationTranscriptResponse(sessionId, List.of(), "run-restored", "RUNNING", "0", false, Map.of());
         }
     }
 }

@@ -34,8 +34,31 @@ class WebConsoleStreamingBubbleLifecycleTest {
         assertThat(assistant.getElement().getAttribute("data-step-id")).isEqualTo("step-1");
         assertThat(assistant.getElement().getAttribute("data-stream-state")).isEqualTo("pending");
         assertThat(assistant.getElement().getAttribute("data-message-status")).isEqualTo("pending");
-        assertThat(assistant.getElement().getAttribute("data-stream-aggregation-key")).isEqualTo("session-1::run-1::step-1");
-        assertThat(assistant.getElement().getTextRecursively().toLowerCase()).contains("pending");
+        assertThat(assistant.getElement().getAttribute("data-loading")).isEqualTo("true");
+        assertThat(assistant.getElement().getAttribute("data-stream-aggregation-key")).isEqualTo("session-1::run-1");
+        assertThat(descendantsWithAttribute(assistant, "data-role").stream()
+                .filter(component -> "assistant-loading".equals(component.getElement().getAttribute("data-role"))))
+                .hasSize(1);
+        assertThat(descendantsWithAttribute(assistant, "data-role").stream()
+                .filter(component -> "assistant-loading-dot".equals(component.getElement().getAttribute("data-role"))))
+                .hasSize(3);
+    }
+
+    @Test
+    void placeholderAndProviderEventsForSameRunCoalesceEvenWhenStepIdsDiffer() {
+        ChatEventStreamPanel panel = new ChatEventStreamPanel();
+
+        panel.beginAssistantMessage("session-1", "run-1", "placeholder-step");
+        panel.appendAssistantDelta("session-1", "run-1", "provider-step", "Alpha");
+        panel.appendAssistantDelta("session-1", "run-1", "provider-step", " Beta");
+        panel.markAssistantTerminal("session-1", "run-1", "provider-step", ConversationMessageStatus.COMPLETED, null);
+
+        List<Component> assistants = primaryAssistantBubbles(panel);
+        assertThat(assistants).hasSize(1);
+        assertThat(assistants.getFirst().getElement().getAttribute("data-stream-aggregation-key")).isEqualTo("session-1::run-1");
+        assertThat(assistants.getFirst().getElement().getAttribute("data-step-id")).isEqualTo("placeholder-step");
+        assertThat(assistants.getFirst().getElement().getTextRecursively()).isEqualTo("Alpha Beta");
+        assertThat(assistants.getFirst().getElement().getAttribute("data-stream-state")).isEqualTo("completed");
     }
 
     @Test
@@ -50,6 +73,10 @@ class WebConsoleStreamingBubbleLifecycleTest {
         assertThat(assistants).hasSize(1);
         assertThat(assistants.getFirst().getElement().getTextRecursively()).isEqualTo("Hello world");
         assertThat(assistants.getFirst().getElement().getAttribute("data-stream-state")).isEqualTo("streaming");
+        assertThat(assistants.getFirst().getElement().getAttribute("data-loading")).isEqualTo("false");
+        assertThat(descendantsWithAttribute(assistants.getFirst(), "data-role").stream()
+                .noneMatch(component -> "assistant-loading".equals(component.getElement().getAttribute("data-role"))))
+                .isTrue();
         assertThat(panel.messages()).containsExactly("Hello world");
     }
 
@@ -78,14 +105,14 @@ class WebConsoleStreamingBubbleLifecycleTest {
         ChatEventStreamPanel cancelledPanel = new ChatEventStreamPanel();
         cancelledPanel.beginAssistantMessage("session-1", "run-cancelled", "step-1");
         cancelledPanel.markAssistantTerminal("session-1", "run-cancelled", "step-1", ConversationMessageStatus.CANCELLED, null);
-        assertThat(primaryAssistantBubbles(cancelledPanel).getFirst().getElement().getTextRecursively().toLowerCase())
-                .contains("cancelled");
+        assertThat(primaryAssistantBubbles(cancelledPanel).getFirst().getElement().getAttribute("data-stream-state"))
+                .isEqualTo("cancelled");
 
         ChatEventStreamPanel partialPanel = new ChatEventStreamPanel();
         partialPanel.beginAssistantMessage("session-1", "run-partial", "step-1");
         partialPanel.markAssistantTerminal("session-1", "run-partial", "step-1", ConversationMessageStatus.PARTIAL, null);
-        assertThat(primaryAssistantBubbles(partialPanel).getFirst().getElement().getTextRecursively().toLowerCase())
-                .contains("partial");
+        assertThat(primaryAssistantBubbles(partialPanel).getFirst().getElement().getAttribute("data-stream-state"))
+                .isEqualTo("partial");
     }
 
     @Test

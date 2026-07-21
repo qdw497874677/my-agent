@@ -82,46 +82,47 @@ class WebConsoleSessionRestoreUxTest {
         Component banner = onlyDescendantWithAttribute(view, "data-role", "active-session-banner");
 
         assertThat(banner.getElement().getAttribute("data-active-session-state")).isEqualTo("new");
-        assertThat(banner.getElement().getTextRecursively()).contains("New conversation");
+        assertThat(banner.getElement().getTextRecursively()).contains(ResourceBundle.getBundle("messages").getString("console.session.new"));
     }
 
     @Test
-    void newConsoleExposesVisibleHistoryAndDetailsControlsWithoutTestOnlyPanelCalls() {
+    void newConsoleDoesNotExposeHistoryAndDetailsTabsOnChatOnlySurface() {
         ConsoleView view = viewWith(new RecordingBridge());
         view.loadRecentSessionsForProof();
 
-        Component switcher = onlyDescendantWithAttribute(view, "data-role", "console-panel-switcher");
-        Button history = panelControl(view, "sessions");
-        Button details = panelControl(view, "run-context");
-        Button chat = panelControl(view, "chat");
-
-        assertThat(componentAndAncestorsVisible(switcher)).isTrue();
-        assertThat(componentAndAncestorsVisible(history)).isTrue();
-        assertThat(componentAndAncestorsVisible(details)).isTrue();
-        assertThat(componentAndAncestorsVisible(chat)).isTrue();
+        assertThat(descendants(view.getElement())
+                .filter(element -> "show-console-panel".equals(element.getAttribute("data-action"))))
+                .isEmpty();
+        assertThat(descendants(view.getElement())
+                .filter(element -> "sessions".equals(element.getAttribute("data-console-panel"))
+                        || "run-context".equals(element.getAttribute("data-console-panel"))
+                        || "agents".equals(element.getAttribute("data-console-panel"))))
+                .isEmpty();
     }
 
     @Test
-    void visibleHistoryControlOpensRecentSessionsAndVisibleDetailsControlKeepsChatPrimary() {
+    void restoredHistoryStaysInternalWhileChatPanelRemainsPrimary() {
         ConsoleView view = viewWith(new RecordingBridge());
         view.loadRecentSessionsForProof();
 
-        panelControl(view, "sessions").click();
-
-        Component sessions = onlyDescendantWithAttribute(view, "data-console-panel", "sessions");
-        assertThat(view.activeConsolePanel()).isEqualTo("sessions");
-        assertThat(sessions.isVisible()).isTrue();
-        assertThat(sessions.getElement().getAttribute("data-console-panel-active")).isEqualTo("true");
         assertThat(view.sessionListPanel().sessionCards()).hasSize(1);
 
-        panelControl(view, "run-context").click();
-
         Component chat = onlyDescendantWithAttribute(view, "data-console-panel", "chat");
-        Component details = onlyDescendantWithAttribute(view, "data-console-panel", "run-context");
-        assertThat(view.activeConsolePanel()).isEqualTo("run-context");
+        assertThat(view.activeConsolePanel()).isEqualTo("chat");
         assertThat(chat.isVisible()).isTrue();
-        assertThat(details.isVisible()).isTrue();
-        assertThat(details.getElement().getAttribute("data-console-panel-active")).isEqualTo("true");
+        assertThat(chat.getElement().getAttribute("data-console-panel-active")).isEqualTo("true");
+    }
+
+    @Test
+    void loadingRecentSessionsRestoresMostRecentTranscriptIntoChat() {
+        RecordingBridge bridge = new RecordingBridge();
+        ConsoleView view = viewWith(bridge);
+
+        view.loadRecentSessionsForProof();
+
+        assertThat(bridge.transcriptSessionId).isEqualTo("session-old");
+        assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-old");
+        assertThat(view.chatPanel().messages()).containsExactly("old question", "old answer");
     }
 
     @Test
@@ -133,7 +134,8 @@ class WebConsoleSessionRestoreUxTest {
 
         Component banner = onlyDescendantWithAttribute(view, "data-role", "active-session-banner");
         assertThat(banner.getElement().getAttribute("data-active-session-state")).isEqualTo("continued");
-        assertThat(banner.getElement().getTextRecursively()).contains("Continue: Stable Title");
+        assertThat(banner.getElement().getAttribute("data-session-id")).isEqualTo("session-old");
+        assertThat(banner.getElement().getTextRecursively()).contains(ResourceBundle.getBundle("messages").getString("console.session.continueTitle").replace("{0}", "Stable Title"));
     }
 
     @Test
@@ -147,7 +149,8 @@ class WebConsoleSessionRestoreUxTest {
 
         Component banner = onlyDescendantWithAttribute(view, "data-role", "active-session-banner");
         assertThat(banner.getElement().getAttribute("data-active-session-state")).isEqualTo("new");
-        assertThat(banner.getElement().getTextRecursively()).contains("New conversation");
+        assertThat(banner.getElement().hasAttribute("data-session-id")).isFalse();
+        assertThat(banner.getElement().getTextRecursively()).contains(ResourceBundle.getBundle("messages").getString("console.session.new"));
         assertThat(view.sessionListPanel().selectedSessionId()).isNull();
         assertThat(view.chatPanel().messages()).isEmpty();
         assertThat(view.activeConsolePanel()).isEqualTo("chat");
@@ -175,7 +178,6 @@ class WebConsoleSessionRestoreUxTest {
         RecordingBridge bridge = new RecordingBridge();
         ConsoleView view = viewWith(bridge);
         view.loadRecentSessionsForProof();
-        view.showConsolePanel("sessions");
 
         view.selectSession("session-old");
         int appended = view.refreshActiveRunEvents();
@@ -204,6 +206,16 @@ class WebConsoleSessionRestoreUxTest {
         assertThat(view.sessionListPanel().selectedSessionId()).isEqualTo("session-old");
         assertThat(view.sessionListPanel().sessionCards().getFirst().getElement().getAttribute("data-session-active"))
                 .isEqualTo("true");
+        Element userBubble = descendants(view.chatPanel().getElement())
+                .filter(element -> "user".equals(element.getAttribute("data-message-role")))
+                .filter(element -> element.getTextRecursively().contains("follow up"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(userBubble.getAttribute("data-session-id")).isEqualTo("session-old");
+        assertThat(userBubble.getAttribute("data-run-id")).isEqualTo("run-created");
+        assertThat(userBubble.getAttribute("data-message-status")).isEqualTo("completed");
+        assertThat(userBubble.getAttribute("data-stream-state")).isEqualTo("completed");
+        assertThat(userBubble.getAttribute("data-message-kind")).isEqualTo("primary-bubble");
     }
 
     @Test
@@ -233,26 +245,6 @@ class WebConsoleSessionRestoreUxTest {
                 .toList();
         assertThat(matches).hasSize(1);
         return matches.getFirst();
-    }
-
-    private static Button panelControl(ConsoleView view, String target) {
-        return descendants(view.getElement())
-                .filter(element -> "show-console-panel".equals(element.getAttribute("data-action")))
-                .filter(element -> target.equals(element.getAttribute("data-console-target")))
-                .map(element -> (Button) element.getComponent().orElseThrow())
-                .findFirst()
-                .orElseThrow();
-    }
-
-    private static boolean componentAndAncestorsVisible(Component component) {
-        Component current = component;
-        while (current != null) {
-            if (!current.isVisible()) {
-                return false;
-            }
-            current = current.getParent().orElse(null);
-        }
-        return true;
     }
 
     private static java.util.stream.Stream<Element> descendants(Element root) {
